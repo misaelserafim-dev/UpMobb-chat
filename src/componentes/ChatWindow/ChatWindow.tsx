@@ -3,6 +3,7 @@ import { ChatInput } from "@/componentes/ChatInput/ChatInput.tsx";
 import type { ReplyDraft } from "@/componentes/ChatInput/ChatInput.ts";
 import { ChatMoreMenu } from "@/componentes/ChatMoreMenu/ChatMoreMenu.tsx";
 import { ConfirmModal } from "@/componentes/ConfirmModal/ConfirmModal.tsx";
+import { DocumentPreview } from "@/componentes/DocumentPreview/DocumentPreview.tsx";
 import { Icons } from "@/componentes/Icons/Icons.tsx";
 import { Lightbox } from "@/componentes/Lightbox/Lightbox.tsx";
 import { MessageBubble } from "@/componentes/MessageBubble/MessageBubble.tsx";
@@ -10,6 +11,7 @@ import { MessageMenu } from "@/componentes/MessageMenu/MessageMenu.tsx";
 import type { MessageMenuAction } from "@/componentes/MessageMenu/MessageMenu.ts";
 import { useDismissable } from "@/hooks/useDismissable.ts";
 import type { ChatMessage } from "@/utils/chatData.ts";
+import type { DocumentPreviewFile } from "@/utils/documentPreview.ts";
 import type { ChatWindowProps } from "./ChatWindow.ts";
 import "./ChatWindow.css";
 import "../ChatInput/ChatInput.css";
@@ -17,6 +19,7 @@ import "../MessageBubble/MessageBubble.css";
 import "../ChatMoreMenu/ChatMoreMenu.css";
 import "../ConfirmModal/ConfirmModal.css";
 import "../MessageMenu/MessageMenu.css";
+import "../DocumentPreview/DocumentPreview.css";
 
 type MsgMenuState = {
   messageId: string;
@@ -52,6 +55,7 @@ export function ChatWindow({
   const [msgSearchQuery, setMsgSearchQuery] = useState("");
   const [moreOpen, setMoreOpen] = useState(false);
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
+  const [documentFile, setDocumentFile] = useState<DocumentPreviewFile | null>(null);
   const [hasComposerPreview, setHasComposerPreview] = useState(false);
   const [isDropTarget, setIsDropTarget] = useState(false);
   const [replyTo, setReplyTo] = useState<ReplyDraft | null>(null);
@@ -94,6 +98,8 @@ export function ChatWindow({
     setMsgSearchOpen(false);
     setMsgSearchQuery("");
     setConfirmDelete(false);
+    setDocumentFile(null);
+    setLightboxSrc(null);
   }, [activeChat.id]);
 
   useEffect(() => {
@@ -257,6 +263,7 @@ export function ChatWindow({
               senderName={senderName}
               className={searchClass}
               onImageClick={setLightboxSrc}
+              onDocumentClick={setDocumentFile}
               onContextMenu={(e) => openMessageMenu(msg, e)}
             />
           );
@@ -276,6 +283,12 @@ export function ChatWindow({
         open={Boolean(lightboxSrc)}
         src={lightboxSrc}
         onClose={() => setLightboxSrc(null)}
+      />
+
+      <DocumentPreview
+        open={Boolean(documentFile)}
+        file={documentFile}
+        onClose={() => setDocumentFile(null)}
       />
 
       <MessageMenu

@@ -17,7 +17,7 @@
 
 .top-nav__link:hover {
   color: var(--text);
-  background: rgba(0, 0, 0, 0.05);
+  background: rgb(0 0 0 / 0.05);
 }
 
 .top-nav__link--active {

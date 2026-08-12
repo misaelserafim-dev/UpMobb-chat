@@ -131,7 +131,18 @@ export const SAMPLE_MESSAGES: ChatMessage[] = [
       size: "2.4 MB",
       pages: "4 pages",
       type: "pdf",
-      url: "#",
+      url: "https://mozilla.github.io/pdf.js/web/compressed.tracemonkey-pldi-09.pdf",
+    },
+  },
+  {
+    id: "4b",
+    from: "in",
+    time: "10:38",
+    attachment: {
+      name: "briefing.txt",
+      size: "1 KB",
+      type: "file",
+      url: "data:text/plain;charset=utf-8,Briefing%20Q3%0A%0A- Revisar%20metricas%0A- Validar%20proposta%0A- Enviar%20feedback",
     },
   },
   {

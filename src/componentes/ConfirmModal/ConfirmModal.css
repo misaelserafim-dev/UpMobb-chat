@@ -16,7 +16,7 @@
 .confirm-modal__backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(15, 18, 24, 0.45);
+  background: rgb(15 18 24 / 0.45);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
 }
@@ -28,7 +28,7 @@
   background: #fff;
   border-radius: 18px;
   padding: 24px 22px 18px;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22);
+  box-shadow: 0 24px 60px rgb(0 0 0 / 0.22);
   animation: confirm-in 0.18s ease;
 }
 

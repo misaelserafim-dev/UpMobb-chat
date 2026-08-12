@@ -9,7 +9,7 @@
   z-index: 1;
   border-radius: var(--radius) var(--radius) 0 0;
   overflow: hidden;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.04), 0 8px 24px rgb(0 0 0 / 0.04);
 }
 
 .chat-window__header {
@@ -24,11 +24,11 @@
   gap: 12px;
   padding: 12px 20px;
   flex-shrink: 0;
-  background: rgba(255, 255, 255, 0.62);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.45);
+  background: rgb(255 255 255 / 0.62);
+  border-bottom: 1px solid rgb(255 255 255 / 0.45);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.65),
-    0 1px 0 rgba(0, 0, 0, 0.04);
+    inset 0 1px 0 rgb(255 255 255 / 0.65),
+    0 1px 0 rgb(0 0 0 / 0.04);
   backdrop-filter: blur(28px) saturate(180%);
   -webkit-backdrop-filter: blur(28px) saturate(180%);
 }
@@ -40,8 +40,8 @@
   pointer-events: none;
   background: linear-gradient(
     180deg,
-    rgba(255, 255, 255, 0.35) 0%,
-    rgba(255, 255, 255, 0.08) 100%
+    rgb(255 255 255 / 0.35) 0%,
+    rgb(255 255 255 / 0.08) 100%
   );
 }
 
@@ -72,15 +72,15 @@
 
 .chat-window__header .icon-btn {
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.35);
+  background: rgb(255 255 255 / 0.35);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   border: 1px solid var(--border);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.04), 0 8px 24px rgb(0 0 0 / 0.04);
 }
 
 .chat-window__header .icon-btn:hover {
-  background: rgba(255, 255, 255, 0.55);
+  background: rgb(255 255 255 / 0.55);
 }
 
 .chat-window__avatar {
@@ -155,7 +155,7 @@
 }
 
 .chat-msg-search__close:hover {
-  background: rgba(0, 0, 0, 0.06);
+  background: rgb(0 0 0 / 0.06);
   color: var(--text);
 }
 
@@ -181,7 +181,7 @@
   flex-direction: column;
   gap: 8px;
   background:
-    radial-gradient(circle, rgba(0, 0, 0, 0.03) 1px, transparent 1px) 0 0 / 18px 18px,
+    radial-gradient(circle, rgb(0 0 0 / 0.03) 1px, transparent 1px) 0 0 / 18px 18px,
     var(--chat-bg);
 }
 

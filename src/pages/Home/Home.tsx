@@ -6,11 +6,7 @@ import { ChatWindow } from "@/componentes/ChatWindow/ChatWindow.tsx";
 import { TopNav } from "@/componentes/TopNav/TopNav.tsx";
 import { useAuth } from "@/context/AuthContext.tsx";
 import { HomeTemplate } from "@/templates/Home/HomeTemplate.tsx";
-import {
-  fetchChatMessages,
-  SAMPLE_CHATS,
-  type ChatMessage,
-} from "@/utils/chatData.ts";
+import { fetchChatMessages, SAMPLE_CHATS, type ChatMessage } from "@/utils/chatData.ts";
 import type { ComposerSendPayload } from "@/componentes/ChatInput/ChatInput.ts";
 import type { ChatItemData } from "@/componentes/ChatItem/ChatItem.ts";
 import { applyListWidth, getSavedListWidth, initListResize } from "@/utils/listResize.ts";

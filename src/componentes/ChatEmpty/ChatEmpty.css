@@ -5,18 +5,19 @@
   position: relative;
   z-index: 1;
   background-color: var(--chat-bg);
+  background-image: url("../../assets/wa-background.png");
   background-position: center;
   background-repeat: no-repeat;
   background-size: 180px;
   opacity: 0.5;
   border-radius: var(--radius) var(--radius) 0 0;
   overflow: hidden;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.04), 0 8px 24px rgb(0 0 0 / 0.04);
 }
 
 .chat-empty--loading {
   opacity: 1;
-  background-image: none !important;
+  background-image: none;
 }
 
 .chat-progress {
@@ -27,7 +28,7 @@
   width: min(200px, 70%);
   height: 5px;
   z-index: 12;
-  background: rgba(0, 0, 0, 0.12);
+  background: rgb(0 0 0 / 0.12);
   border-radius: 999px;
   opacity: 0;
   pointer-events: none;

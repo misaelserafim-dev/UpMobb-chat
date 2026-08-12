@@ -115,7 +115,7 @@
   background: #fff;
   border: 1px solid var(--border);
   color: #5f5f68;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.08);
 }
 
 .composer-preview__remove:hover {

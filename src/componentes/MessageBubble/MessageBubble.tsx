@@ -1,5 +1,6 @@
 ﻿import { Icons } from "@/componentes/Icons/Icons.tsx";
 import type { ChatMessage } from "@/utils/chatData.ts";
+import { getDocumentBadge, getDocumentKind } from "@/utils/documentPreview.ts";
 import type { MessageBubbleProps } from "./MessageBubble.ts";
 import "./MessageBubble.css";
 
@@ -16,6 +17,7 @@ export function MessageBubble({
   senderName = "",
   className = "",
   onImageClick,
+  onDocumentClick,
   onContextMenu,
 }: MessageBubbleProps) {
   const isOut = message.from === "out";
@@ -23,6 +25,11 @@ export function MessageBubble({
   const showName = !isOut && senderName;
   const isRead = Boolean(message.read);
   const reactions = message.reactions || [];
+  const attachment = message.attachment;
+  const docKind = attachment
+    ? getDocumentKind({ name: attachment.name, type: attachment.type })
+    : null;
+  const docBadge = attachment && docKind ? getDocumentBadge(docKind, attachment.name) : "FILE";
 
   return (
     <div
@@ -72,23 +79,38 @@ export function MessageBubble({
           </div>
         ) : null}
 
-        {message.attachment ? (
+        {attachment ? (
           <div className="message__attachment">
-            <div className="attachment__icon">
-              {message.attachment.type === "pdf" ? "PDF" : "FILE"}
-            </div>
-            <div className="attachment__info">
-              <div className="attachment__name">{message.attachment.name}</div>
-              <div className="attachment__meta">
-                {[message.attachment.size, message.attachment.pages].filter(Boolean).join(" · ")}
+            <button
+              type="button"
+              className="attachment__preview-btn"
+              aria-label={`Pré-visualizar ${attachment.name}`}
+              onClick={() =>
+                onDocumentClick?.({
+                  url: attachment.url || "#",
+                  name: attachment.name,
+                  size: attachment.size,
+                  pages: attachment.pages,
+                  type: attachment.type,
+                })
+              }
+            >
+              <div className="attachment__icon">{docBadge}</div>
+              <div className="attachment__info">
+                <div className="attachment__name">{attachment.name}</div>
+                <div className="attachment__meta">
+                  {[attachment.size, attachment.pages].filter(Boolean).join(" · ") ||
+                    "Clique para pré-visualizar"}
+                </div>
               </div>
-            </div>
+            </button>
             <a
               className="attachment__download"
-              href={message.attachment.url || "#"}
-              download={message.attachment.name}
-              aria-label={`Baixar ${message.attachment.name}`}
+              href={attachment.url || "#"}
+              download={attachment.name}
+              aria-label={`Baixar ${attachment.name}`}
               title="Download"
+              onClick={(e) => e.stopPropagation()}
             >
               <Icons.Download />
             </a>
