@@ -1,0 +1,42 @@
+/* NavLink */
+.top-nav__link {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  padding: 7px 16px;
+  border-radius: 999px;
+  border: none;
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: var(--text-muted);
+  text-decoration: none;
+  background: transparent;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.top-nav__link:hover {
+  color: var(--text);
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.top-nav__link--active {
+  color: var(--accent-text);
+  font-weight: 600;
+  background: var(--accent);
+}
+
+.top-nav__link--active:hover {
+  color: var(--accent-hover-text);
+  background: var(--accent-hover);
+}
+
+.top-nav__links--mobile .top-nav__link--active {
+  background: var(--accent);
+  color: var(--accent-text);
+}
+
+.top-nav__links--mobile .top-nav__link--active:hover {
+  background: var(--accent-hover);
+  color: var(--accent-hover-text);
+}

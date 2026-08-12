@@ -1,0 +1,70 @@
+/* FilterChip */
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  width: max-content;
+  max-width: none;
+  flex-shrink: 0;
+  padding: 4px 5px 4px 12px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.2;
+  background: #fff;
+  color: #2a2a2e;
+  white-space: nowrap;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.filter-chip:hover:not(.filter-chip--active) {
+  color: var(--accent);
+}
+
+.filter-chip__label,
+.filter-chip__count {
+  white-space: nowrap;
+}
+
+.filter-chip__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  color: var(--accent);
+  line-height: 1;
+}
+
+.filter-chip__chevron {
+  display: inline-flex;
+  margin-left: -2px;
+  color: currentColor;
+  opacity: 0.85;
+  flex-shrink: 0;
+}
+
+.filter-chip__chevron .icon {
+  width: 14px;
+  height: 14px;
+}
+
+.filter-chip--active {
+  background: var(--accent);
+  color: var(--accent-text);
+}
+
+.filter-chip--active:hover {
+  background: var(--accent-hover);
+  color: var(--accent-hover-text);
+}
+
+.filter-chip--active .filter-chip__count {
+  background: color-mix(in srgb, var(--accent-text) 28%, transparent);
+  color: var(--accent-text);
+}

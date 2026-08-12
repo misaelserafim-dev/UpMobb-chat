@@ -1,8 +1,8 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { Icons } from "../../componentes/Icons/Icons.tsx";
-import { useAuth } from "../../context/AuthContext.tsx";
-import { login, requestPasswordReset } from "../../services/auth.ts";
+import { Icons } from "@/componentes/Icons/Icons.tsx";
+import { useAuth } from "@/context/AuthContext.tsx";
+import { login, requestPasswordReset } from "@/services/auth.ts";
 import {
   getRememberedEmail,
   LOGIN_LOGO,

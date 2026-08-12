@@ -1,0 +1,168 @@
+/* ChatList */
+/* ========== Chat list ========== */
+.chat-list {
+  width: var(--list-w);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  background: transparent;
+  z-index: 2;
+  /* alinha a lista com a sobra do painel (só o topo) */
+  margin: calc(var(--panel-gap) * -1) 0 0;
+  padding: var(--panel-gap) 0 0;
+}
+
+
+/* Embla — filtros (mesmo padrão do React) */
+.chat-filters.embla {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 4px 0 12px;
+  --slide-spacing: 6px;
+  --fade-w: 36px;
+}
+
+.chat-filters .embla__viewport {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  padding: 0 4px;
+}
+
+.chat-filters .embla__container {
+  display: flex;
+  touch-action: pan-y pinch-zoom;
+  margin-left: calc(var(--slide-spacing) * -1);
+}
+
+.chat-filters .embla__slide {
+  flex: 0 0 auto;
+  min-width: auto;
+  width: auto;
+  padding-left: var(--slide-spacing);
+}
+
+/* Setas */
+.chat-filters .embla__prev,
+.chat-filters .embla__next {
+  position: relative;
+  z-index: 2;
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  transition: opacity 0.2s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.chat-filters .embla__prev {
+  margin-left: 8px;
+}
+
+.chat-filters .embla__next {
+  margin-right: 8px;
+}
+
+.chat-filters .embla__prev:hover:not(:disabled),
+.chat-filters .embla__next:hover:not(:disabled) {
+  background: #fff;
+  color: var(--accent);
+}
+
+.chat-filters .embla__prev.is-hidden,
+.chat-filters .embla__next.is-hidden,
+.chat-filters .embla__prev:disabled,
+.chat-filters .embla__next:disabled {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Fade / opacidade dos chips passando sob as setas */
+.chat-filters .embla__viewport::before,
+.chat-filters .embla__viewport::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: var(--fade-w);
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.chat-filters .embla__viewport::before {
+  left: 0;
+  background: linear-gradient(
+    to right,
+    var(--app-bg) 0%,
+    color-mix(in srgb, var(--app-bg) 75%, transparent) 45%,
+    transparent 100%
+  );
+}
+
+.chat-filters .embla__viewport::after {
+  right: 0;
+  background: linear-gradient(
+    to left,
+    var(--app-bg) 0%,
+    color-mix(in srgb, var(--app-bg) 75%, transparent) 45%,
+    transparent 100%
+  );
+}
+
+.chat-filters.can-scroll-prev .embla__viewport::before,
+.chat-filters.can-scroll-next .embla__viewport::after {
+  opacity: 1;
+}
+
+.chat-filters--loading .embla__prev,
+.chat-filters--loading .embla__next {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.chat-list__items {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  /* espaço pra as curvas não cortarem no scroll */
+  padding: calc(var(--curve) + 4px) 0 calc(var(--curve) + 16px);
+}
+
+.chat-list__empty {
+  list-style: none;
+  margin: 24px 16px;
+  padding: 20px 16px;
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+
+@media (max-width: 800px) {
+  .chat-list {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    display: none;
+  }
+
+  .app[data-mobile-panel="list"] .chat-list {
+    display: flex;
+  }
+
+  .app[data-mobile-panel="chat"] .chat-list {
+    display: none;
+  }
+
+  .chat-list__items {
+    padding: 8px 12px 24px;
+  }
+}

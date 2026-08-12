@@ -1,2 +1,10 @@
-.home-template {
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  max-width: var(--app-max-w);
+  margin: 0 auto;
+  overflow: hidden;
+  background: var(--app-bg);
 }
