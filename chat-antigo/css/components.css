@@ -1,0 +1,16 @@
+/* Barrel — CSS dos componentes (js/components + js/ui) */
+@import url("./components/ChatEmpty.css");
+@import url("./components/ConfirmModal.css");
+@import url("./components/MessageMenu.css");
+@import url("./components/AddButton.css");
+@import url("./components/FilterChip.css");
+@import url("./components/ChatListSkeleton.css");
+@import url("./components/ChatItem.css");
+@import url("./components/ChatInput.css");
+@import url("./components/MessageBubble.css");
+@import url("./components/ChatMoreMenu.css");
+@import url("./components/ThemePickerMenu.css");
+@import url("./components/ChatList.css");
+@import url("./components/ChatWindow.css");
+@import url("./components/TopNav.css");
+@import url("./components/NavLink.css");

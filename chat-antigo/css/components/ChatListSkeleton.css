@@ -1,0 +1,106 @@
+/* ChatListSkeleton */
+.filter-chip--skeleton {
+  display: block;
+  height: 28px;
+  padding: 0;
+  border: none;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.06) 25%,
+    rgba(0, 0, 0, 0.1) 37%,
+    rgba(0, 0, 0, 0.06) 63%
+  );
+  background-size: 400% 100%;
+}
+
+.chat-list__items {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  /* espaço pra as curvas não cortarem no scroll */
+  padding: calc(var(--curve) + 4px) 0 calc(var(--curve) + 16px);
+}
+
+.chat-list__empty {
+  list-style: none;
+  margin: 24px 16px;
+  padding: 20px 16px;
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+/* Skeleton da lista */
+.chat-item--skeleton {
+  pointer-events: none;
+  cursor: default;
+  border-left-color: transparent;
+}
+
+.chat-item--skeleton:hover {
+  background: linear-gradient(
+    88deg,
+    rgb(255 255 255 / 68%) 0%,
+    rgb(255 255 255 / 84%) 100%
+  );
+}
+
+.skeleton {
+  display: block;
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.06) 25%,
+    rgba(0, 0, 0, 0.1) 37%,
+    rgba(0, 0, 0, 0.06) 63%
+  );
+  background-size: 400% 100%;
+  animation: skeleton-shimmer 1.35s ease-in-out infinite;
+  border-radius: 6px;
+}
+
+.skeleton--avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+}
+
+.skeleton--line {
+  height: 10px;
+}
+
+.skeleton--name {
+  width: 42%;
+  max-width: 140px;
+}
+
+.skeleton--time {
+  width: 36px;
+  flex-shrink: 0;
+}
+
+.skeleton--preview {
+  width: 58%;
+  max-width: 180px;
+  margin-top: 2px;
+}
+
+.skeleton--preview-wide {
+  width: 72%;
+  max-width: 220px;
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: 0 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+  }
+}

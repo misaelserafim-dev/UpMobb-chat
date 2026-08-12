@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Upmobb | Chat</title>
+    <link rel="icon" href="https://resources.upmobb.tech/images/favicon.ico" type="image/x-icon" />
+
+    <!-- Preconnect antecipado (reduz latência da fonte) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <!--
+      IBM Plex Sans com display=optional:
+      - se a fonte não carregar a tempo, mantém o fallback
+      - não troca depois (evita FOUT)
+    -->
+    <link
+      rel="preload"
+      as="style"
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=optional"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=optional"
+    />
+
+    <link rel="stylesheet" href="css/chat.css" />
+    <link rel="stylesheet" href="css/components.css" />
+    <link rel="stylesheet" href="css/login.css" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="js/main.js"></script>
+  </body>
+</html>

@@ -1,8 +1,7 @@
 import { HomeTemplate } from "../../templates/Home/HomeTemplate.tsx";
-import type { HomeProps } from "./Home.ts";
 import "./Home.css";
 
-export function Home(_props: HomeProps) {
+export function Home() {
   return (
     <HomeTemplate>
       <div className="home" />

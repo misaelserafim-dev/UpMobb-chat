@@ -1,9 +1,8 @@
-export type AuthUser = {
-  id: string;
-  name: string;
-} | null;
+import type { AuthUser } from "../services/auth.ts";
 
 export type AuthContextValue = {
-  user: AuthUser;
+  user: AuthUser | null;
   isAuthenticated: boolean;
+  setSession: (user: AuthUser) => void;
+  logout: () => void;
 };

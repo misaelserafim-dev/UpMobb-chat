@@ -1,0 +1,17 @@
+/* AddButton */
+.add-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 30px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  background: var(--accent);
+  color: var(--accent-text);
+  transition: background 0.15s ease;
+}
+
+.add-btn:hover {
+  background: var(--accent-hover);
+  color: var(--accent-hover-text);
+}
