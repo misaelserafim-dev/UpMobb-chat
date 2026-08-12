@@ -3,13 +3,32 @@
   flex: 1;
   min-width: 0;
   display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  background: transparent;
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.chat-window__column {
+  flex: 1;
+  min-width: 0;
+  display: flex;
   flex-direction: column;
   background: var(--chat-bg);
   position: relative;
-  z-index: 1;
-  border-radius: var(--radius) var(--radius) 0 0;
   overflow: hidden;
+  border-radius: var(--radius) var(--radius) 0 0;
   box-shadow: 0 1px 2px rgb(0 0 0 / 0.04), 0 8px 24px rgb(0 0 0 / 0.04);
+}
+
+.chat-window.has-contact-panel .chat-window__column {
+  border-radius: var(--radius) 0 0 0;
+}
+
+.chat-window.has-contact-panel .contact-panel {
+  border-radius: 0 var(--radius) 0 0;
 }
 
 .chat-window__header {
@@ -83,6 +102,19 @@
   background: rgb(255 255 255 / 0.55);
 }
 
+.chat-window__avatar-btn {
+  padding: 0;
+  border-radius: 50%;
+  flex-shrink: 0;
+  line-height: 0;
+  cursor: pointer;
+}
+
+.chat-window__avatar-btn:hover {
+  outline: 2px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  outline-offset: 1px;
+}
+
 .chat-window__avatar {
   width: 42px;
   height: 42px;
@@ -90,6 +122,7 @@
   object-fit: cover;
   flex-shrink: 0;
   background: #ddd;
+  display: block;
 }
 
 .chat-window__meta {
@@ -99,17 +132,139 @@
   gap: 2px;
 }
 
+.chat-window__name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
 .chat-window__name {
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  font: inherit;
   font-weight: 600;
   font-size: 0.9375rem;
+  color: inherit;
+  text-align: left;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  flex-shrink: 1;
+  min-width: 0;
+  cursor: pointer;
+}
+
+.chat-window__name:hover {
+  color: var(--accent);
+}
+
+.chat-window__tags {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.chat-window__tag {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.08);
 }
 
 .chat-window__assignee {
+  width: max-content;
   font-size: 0.8125rem;
   color: var(--text-muted);
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.chat-window__assignee-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chat-window__etiqueta-picker {
+  position: relative;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  align-self: center;
+}
+
+button.chat-window__etiqueta-add {
+  box-sizing: border-box;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1.5px dashed #b0b0b8;
+  background: transparent;
+  color: #8a8a93;
+  line-height: 0;
+  flex-shrink: 0;
+}
+
+button.chat-window__etiqueta-add:hover,
+.chat-window__etiqueta-picker.is-open button.chat-window__etiqueta-add {
+  border-color: color-mix(in srgb, var(--accent) 65%, #b0b0b8);
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+}
+
+button.chat-window__etiqueta-add .icon {
+  stroke-width: 2.5;
+}
+
+.chat-window__etiqueta-menu {
+  top: calc(100% + 8px);
+  left: 0;
+  right: auto;
+  width: min(280px, 72vw);
+  z-index: 40;
+  max-height: 320px;
+}
+
+.chat-window__etiqueta-menu .etiqueta-select__list {
+  flex: 1;
+  min-height: 0;
+}
+
+.chat-window__etiqueta-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding: 8px 10px 10px;
+  border-top: 1px solid rgb(0 0 0 / 0.06);
+  background: #fff;
+  flex-shrink: 0;
+}
+
+.chat-window__etiqueta-apply {
+  height: 32px;
+  padding: 0 18px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-text, #fff);
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.chat-window__etiqueta-apply:hover {
+  background: var(--accent-hover, var(--accent));
 }
 
 .chat-window__actions {
@@ -206,7 +361,7 @@
   padding-bottom: 180px;
 }
 
-.chat-window.is-drop-target::after {
+.chat-window.is-drop-target .chat-window__column::after {
   content: "Solte o arquivo aqui";
   position: absolute;
   inset: 12px;
@@ -242,7 +397,7 @@
     display: flex;
   }
 
-  .chat-window.is-drop-target::after {
+  .chat-window.is-drop-target .chat-window__column::after {
     border-radius: 0;
   }
 }

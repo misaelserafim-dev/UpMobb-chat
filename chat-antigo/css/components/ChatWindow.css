@@ -109,6 +109,7 @@
 
 .chat-window__assignee {
   font-size: 0.8125rem;
+  width: max-content;
   color: var(--text-muted);
 }
 

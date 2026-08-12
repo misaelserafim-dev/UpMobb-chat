@@ -1476,21 +1476,13 @@ body.is-resizing-list * {
   align-items: center;
   gap: 8px;
   width: 100%;
-  padding: 8px 10px;
+  padding: 2px 10px;
   border-radius: 8px;
   text-align: left;
   font: inherit;
   font-size: 0.875rem;
   color: var(--text);
   background: transparent;
-}
-
-.etiqueta-select__option:hover {
-  background: rgb(0 0 0 / 0.05);
-}
-
-.etiqueta-select__option.is-active {
-  background: color-mix(in srgb, var(--accent) 10%, transparent);
 }
 
 .etiqueta-select__check {

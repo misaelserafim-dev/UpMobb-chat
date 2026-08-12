@@ -1,8 +1,13 @@
 ﻿import { useEffect, useEffectEvent, useRef, useState, type MouseEvent } from "react";
+import { useNavigate } from "react-router-dom";
 import { ChatInput } from "@/componentes/ChatInput/ChatInput.tsx";
 import type { ReplyDraft } from "@/componentes/ChatInput/ChatInput.ts";
 import { ChatMoreMenu } from "@/componentes/ChatMoreMenu/ChatMoreMenu.tsx";
 import { ConfirmModal } from "@/componentes/ConfirmModal/ConfirmModal.tsx";
+import {
+  ContactPanel,
+} from "@/componentes/ContactPanel/ContactPanel.tsx";
+import { collectChatMedia } from "@/componentes/ContactPanel/ContactPanel.ts";
 import { DocumentPreview } from "@/componentes/DocumentPreview/DocumentPreview.tsx";
 import { Icons } from "@/componentes/Icons/Icons.tsx";
 import { Lightbox } from "@/componentes/Lightbox/Lightbox.tsx";
@@ -10,6 +15,7 @@ import { MessageBubble } from "@/componentes/MessageBubble/MessageBubble.tsx";
 import { MessageMenu } from "@/componentes/MessageMenu/MessageMenu.tsx";
 import type { MessageMenuAction } from "@/componentes/MessageMenu/MessageMenu.ts";
 import { useDismissable } from "@/hooks/useDismissable.ts";
+import { listEtiquetas, type Etiqueta } from "@/services/etiquetas.ts";
 import type { ChatMessage } from "@/utils/chatData.ts";
 import type { DocumentPreviewFile } from "@/utils/documentPreview.ts";
 import type { ChatWindowProps } from "./ChatWindow.ts";
@@ -20,6 +26,15 @@ import "../ChatMoreMenu/ChatMoreMenu.css";
 import "../ConfirmModal/ConfirmModal.css";
 import "../MessageMenu/MessageMenu.css";
 import "../DocumentPreview/DocumentPreview.css";
+import "../ContactPanel/ContactPanel.css";
+
+function seedTagIds(label?: string): string[] {
+  if (!label) return [];
+  const match = listEtiquetas().find(
+    (e) => e.name.toLowerCase() === label.trim().toLowerCase(),
+  );
+  return match ? [match.id] : [];
+}
 
 type MsgMenuState = {
   messageId: string;
@@ -47,13 +62,21 @@ export function ChatWindow({
   onDeleteMessage,
   onReactMessage,
 }: ChatWindowProps) {
+  const navigate = useNavigate();
   const messagesRef = useRef<HTMLDivElement>(null);
   const moreRef = useRef<HTMLDivElement>(null);
+  const tagPickerRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const tagSearchRef = useRef<HTMLInputElement>(null);
 
   const [msgSearchOpen, setMsgSearchOpen] = useState(false);
   const [msgSearchQuery, setMsgSearchQuery] = useState("");
   const [moreOpen, setMoreOpen] = useState(false);
+  const [contactOpen, setContactOpen] = useState(false);
+  const [tagMenuOpen, setTagMenuOpen] = useState(false);
+  const [tagSearch, setTagSearch] = useState("");
+  const [tagIds, setTagIds] = useState<string[]>(() => seedTagIds(activeChat.tag?.label));
+  const [draftTagIds, setDraftTagIds] = useState<string[]>(() => seedTagIds(activeChat.tag?.label));
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
   const [documentFile, setDocumentFile] = useState<DocumentPreviewFile | null>(null);
   const [hasComposerPreview, setHasComposerPreview] = useState(false);
@@ -61,6 +84,14 @@ export function ChatWindow({
   const [replyTo, setReplyTo] = useState<ReplyDraft | null>(null);
   const [msgMenu, setMsgMenu] = useState<MsgMenuState>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
+
+  const etiquetas = listEtiquetas();
+  const selectedTags = etiquetas.filter((e) => tagIds.includes(e.id));
+  const contactMedia = collectChatMedia(messages);
+  const tagQ = tagSearch.trim().toLowerCase();
+  const filteredTags = tagQ
+    ? etiquetas.filter((e) => e.name.toLowerCase().includes(tagQ))
+    : etiquetas;
 
   const senderName = activeChat.company
     ? `${activeChat.name} - ${activeChat.company}`
@@ -75,6 +106,16 @@ export function ChatWindow({
     open: moreOpen,
     onDismiss: () => setMoreOpen(false),
     refs: [moreRef],
+  });
+
+  useDismissable({
+    open: tagMenuOpen,
+    onDismiss: () => {
+      setDraftTagIds(tagIds);
+      setTagSearch("");
+      setTagMenuOpen(false);
+    },
+    refs: [tagPickerRef],
   });
 
   const scrollToEnd = useEffectEvent(() => {
@@ -92,20 +133,58 @@ export function ChatWindow({
   }, [hasComposerPreview]);
 
   useEffect(() => {
+    const seeded = seedTagIds(activeChat.tag?.label);
     setReplyTo(null);
     setMsgMenu(null);
     setMoreOpen(false);
+    setContactOpen(false);
+    setTagMenuOpen(false);
+    setTagSearch("");
+    setTagIds(seeded);
+    setDraftTagIds(seeded);
     setMsgSearchOpen(false);
     setMsgSearchQuery("");
     setConfirmDelete(false);
     setDocumentFile(null);
     setLightboxSrc(null);
-  }, [activeChat.id]);
+  }, [activeChat.id, activeChat.tag?.label]);
 
   useEffect(() => {
     if (!msgSearchOpen) return;
     searchInputRef.current?.focus({ preventScroll: true });
   }, [msgSearchOpen]);
+
+  useEffect(() => {
+    if (!tagMenuOpen) return;
+    tagSearchRef.current?.focus({ preventScroll: true });
+  }, [tagMenuOpen]);
+
+  function openTagMenu() {
+    setMoreOpen(false);
+    setMsgMenu(null);
+    setDraftTagIds(tagIds);
+    setTagSearch("");
+    setTagMenuOpen(true);
+  }
+
+  function toggleDraftTag(id: string) {
+    setDraftTagIds((prev) =>
+      prev.includes(id) ? prev.filter((t) => t !== id) : [...prev, id],
+    );
+  }
+
+  function applyTags() {
+    setTagIds(draftTagIds);
+    setTagSearch("");
+    setTagMenuOpen(false);
+  }
+
+  function toggleContactPanel() {
+    setMoreOpen(false);
+    setMsgMenu(null);
+    setTagMenuOpen(false);
+    setContactOpen((v) => !v);
+  }
 
   useEffect(() => {
     if (!searchQ || !matchCount) return;
@@ -154,22 +233,144 @@ export function ChatWindow({
 
   return (
     <main
-      className={`chat-window${isDropTarget ? " is-drop-target" : ""}`}
+      className={`chat-window${isDropTarget ? " is-drop-target" : ""}${
+        contactOpen ? " has-contact-panel" : ""
+      }`}
       id="chat-window"
       aria-label={`Conversa com ${activeChat.name}`}
     >
+      <div className="chat-window__column">
       <header className="chat-window__header">
         <div className="chat-window__identity">
           <button type="button" className="chat-window__back icon-btn" aria-label="Voltar" onClick={onBack}>
             <Icons.ChevronLeft />
           </button>
-          <img className="chat-window__avatar" src={activeChat.avatar} alt="" />
+          <button
+            type="button"
+            className="chat-window__avatar-btn"
+            aria-label={`Ver contato ${activeChat.name}`}
+            aria-expanded={contactOpen}
+            onClick={toggleContactPanel}
+          >
+            <img className="chat-window__avatar" src={activeChat.avatar} alt="" />
+          </button>
           <div className="chat-window__meta">
-            <div className="chat-window__name" id="chat-contact-name">
-              {activeChat.name}
+            <div className="chat-window__name-row">
+              <button
+                type="button"
+                className="chat-window__name"
+                id="chat-contact-name"
+                aria-expanded={contactOpen}
+                onClick={toggleContactPanel}
+              >
+                {activeChat.name}
+              </button>
+              {selectedTags.length > 0 ? (
+                <div className="chat-window__tags" aria-label="Etiquetas">
+                  {selectedTags.map((et) => (
+                    <span
+                      key={et.id}
+                      className="chat-window__tag"
+                      style={{ background: et.color }}
+                      title={et.name}
+                      aria-label={et.name}
+                    />
+                  ))}
+                </div>
+              ) : null}
             </div>
             <div className="chat-window__assignee" id="chat-contact-assignee">
-              <small>Responsável</small>: {activeChat.assignee || ""}
+              <span className="chat-window__assignee-text">
+                <small>Responsável</small>: {activeChat.assignee || ""}
+              </span>
+              <div
+                className={`chat-window__etiqueta-picker${tagMenuOpen ? " is-open" : ""}`}
+                ref={tagPickerRef}
+              >
+                <button
+                  type="button"
+                  className="chat-window__etiqueta-add"
+                  aria-label="Adicionar etiqueta"
+                  title="Adicionar etiqueta"
+                  aria-haspopup="listbox"
+                  aria-expanded={tagMenuOpen}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (tagMenuOpen) {
+                      setDraftTagIds(tagIds);
+                      setTagSearch("");
+                      setTagMenuOpen(false);
+                      return;
+                    }
+                    openTagMenu();
+                  }}
+                >
+                  <Icons.Plus size="xs" />
+                </button>
+                {tagMenuOpen ? (
+                  <div
+                    className="etiqueta-select__menu chat-window__etiqueta-menu"
+                    role="listbox"
+                    aria-multiselectable="true"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <input
+                      ref={tagSearchRef}
+                      type="search"
+                      className="etiqueta-select__search"
+                      placeholder="Pesquisar etiqueta"
+                      aria-label="Pesquisar etiqueta"
+                      value={tagSearch}
+                      onChange={(e) => setTagSearch(e.target.value)}
+                    />
+                    <button
+                      type="button"
+                      className="etiqueta-select__clear"
+                      hidden={draftTagIds.length === 0}
+                      onClick={() => setDraftTagIds([])}
+                    >
+                      Limpar seleção
+                    </button>
+                    <div className="etiqueta-select__list">
+                      {filteredTags.length === 0 ? (
+                        <p className="contact-etiqueta-picker__empty">Nenhuma etiqueta encontrada.</p>
+                      ) : (
+                        filteredTags.map((et: Etiqueta) => {
+                          const on = draftTagIds.includes(et.id);
+                          return (
+                            <button
+                              key={et.id}
+                              type="button"
+                              className={`etiqueta-select__option${on ? " is-active" : ""}`}
+                              role="option"
+                              aria-selected={on}
+                              onClick={() => toggleDraftTag(et.id)}
+                            >
+                              <span className="etiqueta-select__check" aria-hidden="true" />
+                              <span
+                                className="etiqueta-chip"
+                                style={{ ["--etiqueta-color" as string]: et.color }}
+                              >
+                                <span className="etiqueta-chip__bar" aria-hidden="true" />
+                                <span className="etiqueta-chip__name">{et.name}</span>
+                              </span>
+                            </button>
+                          );
+                        })
+                      )}
+                    </div>
+                    <div className="chat-window__etiqueta-footer">
+                      <button
+                        type="button"
+                        className="chat-window__etiqueta-apply"
+                        onClick={applyTags}
+                      >
+                        Adicionar
+                      </button>
+                    </div>
+                  </div>
+                ) : null}
+              </div>
             </div>
           </div>
         </div>
@@ -313,6 +514,18 @@ export function ChatWindow({
           onAction?.("deletar");
         }}
       />
+      </div>
+
+      {contactOpen ? (
+        <ContactPanel
+          chat={activeChat}
+          media={contactMedia}
+          onClose={() => setContactOpen(false)}
+          onEdit={() => navigate("/contatos")}
+          onOpenImage={setLightboxSrc}
+          onOpenDocument={setDocumentFile}
+        />
+      ) : null}
     </main>
   );
 }
