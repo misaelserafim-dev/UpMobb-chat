@@ -28,6 +28,7 @@ export function ChatItem({ chat, onClick }: ChatItemProps) {
       data-chat-id={chat.id}
       role="button"
       tabIndex={0}
+      title={chat.preview || undefined}
       style={chat.color ? { borderLeftColor: chat.color } : undefined}
       onClick={onClick}
       onKeyDown={(e) => {

@@ -44,7 +44,7 @@
 
 .message__bubble {
   padding: 9px 12px 6px;
-  border-radius: 14px;
+  border-radius: 8px;
   overflow: hidden;
   color: var(--text);
   position: relative;
