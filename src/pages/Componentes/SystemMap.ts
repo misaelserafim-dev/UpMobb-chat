@@ -17,7 +17,7 @@ export const SYSTEM_MAP_FLOWS: SystemMapFlow[] = [
   {
     id: "boot",
     label: "Boot do app",
-    summary: "Entrada da aplicação React + rotas + autenticação em memória.",
+    summary: "Entrada React + rotas com lazy (cada página vira chunk separado).",
     steps: [
       {
         title: "HTML / Vite",
@@ -30,8 +30,8 @@ export const SYSTEM_MAP_FLOWS: SystemMapFlow[] = [
         files: ["src/main.tsx", "src/utils/theme.ts", "src/context/AuthContext.tsx"],
       },
       {
-        title: "Rotas",
-        detail: "App → AppRoutes define /login, / e /componentes.",
+        title: "Rotas lazy",
+        detail: "Login, Home, Contatos e Componentes só baixam ao entrar na URL.",
         files: ["src/App.tsx", "src/routes/index.tsx"],
       },
     ],
@@ -80,12 +80,12 @@ export const SYSTEM_MAP_FLOWS: SystemMapFlow[] = [
   },
   {
     id: "dashboard",
-    label: "Dashboard inicial",
-    summary: "Shell do chat: TopNav + lista + empty/window, tema e resize.",
+    label: "Dashboard (Conversas)",
+    summary: "Rota `/` — lazy. Só carrega o chunk da Home (lista + chat), sem a lista de contatos.",
     steps: [
       {
         title: "Home page",
-        detail: "Orquestra estado: nav, filtro, busca, chat ativo, mensagens, loading.",
+        detail: "Orquestra estado: filtro, busca, chat ativo, mensagens, loading.",
         files: ["src/pages/Home/Home.tsx", "src/pages/Home/Home.css"],
       },
       {
@@ -95,11 +95,11 @@ export const SYSTEM_MAP_FLOWS: SystemMapFlow[] = [
       },
       {
         title: "TopNav",
-        detail: "Busca, navegação, menu config, theme picker, logout.",
+        detail: "Busca, navegação (URL), theme picker, logout. Contatos → navigate('/contatos').",
         files: ["src/componentes/TopNav/TopNav.tsx", "src/componentes/ThemePickerMenu/ThemePickerMenu.tsx"],
       },
       {
-        title: "Lista",
+        title: "Lista de conversas",
         detail: "ChatList + FilterChip + skeleton; dados de SAMPLE_CHATS (mock).",
         files: [
           "src/componentes/ChatList/ChatList.tsx",
@@ -109,18 +109,52 @@ export const SYSTEM_MAP_FLOWS: SystemMapFlow[] = [
       },
       {
         title: "Painel direito",
-        detail: "ChatEmpty (idle/loading) até selecionar conversa.",
-        files: ["src/componentes/ChatEmpty/ChatEmpty.tsx"],
-      },
-      {
-        title: "Tema + resize",
-        detail: "applyTheme / listResize via utils e localStorage.",
-        files: ["src/utils/theme.ts", "src/utils/listResize.ts"],
+        detail: "ChatEmpty (idle/loading) até selecionar conversa → ChatWindow.",
+        files: ["src/componentes/ChatEmpty/ChatEmpty.tsx", "src/componentes/ChatWindow/ChatWindow.tsx"],
       },
     ],
     notes: [
-      "Lista: mock local (SAMPLE_CHATS), sem API ainda.",
-      "Skeleton ~600ms no mount da lista.",
+      "Import lazy em routes/index.tsx — Home não puxa ContatosPage.",
+      "Lista de chats: mock local (SAMPLE_CHATS).",
+    ],
+  },
+  {
+    id: "contatos",
+    label: "Contatos (lista grande)",
+    summary: "Rota `/contatos` — lazy. Mock ~420 clientes, paginação 40/página. Não entra no bundle da Home.",
+    steps: [
+      {
+        title: "Navegação",
+        detail: "TopNav Contatos → navigate('/contatos'). Chunk JS carrega sob demanda.",
+        files: ["src/routes/index.tsx", "src/pages/Contatos/Contatos.tsx"],
+      },
+      {
+        title: "Service",
+        detail: "fetchContacts({ page, pageSize, query }) — mock local; futuro GET /contacts.",
+        files: ["src/services/contacts.ts"],
+      },
+      {
+        title: "UI",
+        detail: "Tabela + busca + paginação. Só a página atual fica no state (não os 420 de uma vez na tela).",
+        files: ["src/pages/Contatos/Contatos.tsx", "src/pages/Contatos/Contatos.css"],
+      },
+    ],
+    payload: `// fetchContacts params
+{ "page": 1, "pageSize": 40, "query": "ana" }
+
+// resultado
+{
+  "items": [ { "id": "c-1", "name": "…", "phone": "…", "tags": [] } ],
+  "total": 420,
+  "page": 1,
+  "pageSize": 40
+}
+
+// futuro
+GET /contacts?page=1&pageSize=40&q=ana`,
+    notes: [
+      "Voltar pra Home não descarrega o chunk (cache do browser) — só evita baixar de novo.",
+      "Próximo passo natural: virtualização se pageSize crescer muito.",
     ],
   },
   {

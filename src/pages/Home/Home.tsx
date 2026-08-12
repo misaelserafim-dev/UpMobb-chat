@@ -19,7 +19,6 @@ export function Home() {
   const chatLoadToken = useRef(0);
 
   const [themeId, setThemeId] = useState(getSavedThemeId);
-  const [activeNav, setActiveNav] = useState("conversas");
   const [activeFilter, setActiveFilter] = useState("todos");
   const [searchQuery, setSearchQuery] = useState("");
   const [chatsData, setChatsData] = useState(() => SAMPLE_CHATS.map((c) => ({ ...c })));
@@ -41,9 +40,9 @@ export function Home() {
   }, []);
 
   useEffect(() => {
-    if (activeNav !== "conversas" || listLoading) return;
+    if (listLoading) return;
     return initListResize();
-  }, [activeNav, listLoading]);
+  }, [listLoading]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => setListLoading(false), 600);
@@ -179,6 +178,22 @@ export function Home() {
     applyTheme(id);
   }
 
+  function handleNavigate(id: string) {
+    if (id === "conversas") {
+      navigate("/");
+      return;
+    }
+    if (id === "contatos") {
+      navigate("/contatos");
+      return;
+    }
+    if (id === "componentes") {
+      navigate("/componentes");
+      return;
+    }
+    navigate(`/${id}`);
+  }
+
   let panel = <ChatEmpty />;
   if (chatLoading) {
     panel = <ChatEmpty loading />;
@@ -205,50 +220,41 @@ export function Home() {
   return (
     <HomeTemplate mobilePanel={activeChatId || chatLoading ? "chat" : "list"}>
       <TopNav
-        active={activeNav}
+        active="conversas"
         searchQuery={searchQuery}
         searchDisabled={listLoading}
         themeId={themeId}
         onSearchChange={setSearchQuery}
-        onNavigate={(id) => {
-          setActiveNav(id);
-          if (id !== "conversas") closeChat();
-        }}
+        onNavigate={handleNavigate}
         onThemeChange={handleThemeChange}
         onLogout={handleLogout}
       />
 
       <div className="workspace" id="workspace">
-        {activeNav === "conversas" ? (
-          <>
-            <ChatList
-              chats={chats}
-              activeFilter={activeFilter}
-              loading={listLoading}
-              onFilterChange={setActiveFilter}
-              onChatSelect={selectChat}
-            />
+        <ChatList
+          chats={chats}
+          activeFilter={activeFilter}
+          loading={listLoading}
+          onFilterChange={setActiveFilter}
+          onChatSelect={selectChat}
+        />
 
-            <div
-              className="list-resize-handle"
-              id="list-resize-handle"
-              role="separator"
-              aria-orientation="vertical"
-              aria-label="Redimensionar lista de conversas"
-              title="Arraste para redimensionar"
-            >
-              <span className="list-resize-handle__grip" aria-hidden="true">
-                <span />
-                <span />
-                <span />
-              </span>
-            </div>
+        <div
+          className="list-resize-handle"
+          id="list-resize-handle"
+          role="separator"
+          aria-orientation="vertical"
+          aria-label="Redimensionar lista de conversas"
+          title="Arraste para redimensionar"
+        >
+          <span className="list-resize-handle__grip" aria-hidden="true">
+            <span />
+            <span />
+            <span />
+          </span>
+        </div>
 
-            {panel}
-          </>
-        ) : (
-          <ChatEmpty />
-        )}
+        {panel}
       </div>
     </HomeTemplate>
   );
