@@ -9,6 +9,7 @@ export type Contact = {
   name: string;
   phone: string;
   email?: string;
+  notes?: string;
   avatar?: string;
   tags?: ContactTag[];
 };
@@ -24,6 +25,15 @@ export type FetchContactsResult = {
   total: number;
   page: number;
   pageSize: number;
+};
+
+export type CreateContactPayload = {
+  name: string;
+  phone: string;
+  dialCode: string;
+  email?: string;
+  notes?: string;
+  tags?: ContactTag[];
 };
 
 function wait(ms: number) {
@@ -110,17 +120,43 @@ export async function fetchContacts(
           c.name.toLowerCase().includes(q) ||
           c.phone.toLowerCase().includes(q) ||
           (c.email || "").toLowerCase().includes(q) ||
+          (c.notes || "").toLowerCase().includes(q) ||
           (c.tags || []).some((t) => t.label.toLowerCase().includes(q)),
       )
     : ALL_CONTACTS;
 
   const start = (page - 1) * pageSize;
-  const items = filtered.slice(start, start + pageSize);
+  const items = filtered.slice(start, start + pageSize).map((c) => ({
+    ...c,
+    tags: c.tags ? c.tags.map((t) => ({ ...t })) : undefined,
+  }));
 
   return {
     items,
     total: filtered.length,
     page,
     pageSize,
+  };
+}
+
+/** Futuro: POST /contacts  Body: CreateContactPayload */
+export async function createContact(payload: CreateContactPayload): Promise<Contact> {
+  await wait(280);
+  const name = payload.name.trim();
+  const phone = payload.phone.trim();
+  const id = `c-${Date.now()}`;
+  const created: Contact = {
+    id,
+    name,
+    phone,
+    email: payload.email?.trim() || undefined,
+    notes: payload.notes?.trim() || undefined,
+    avatar: `https://i.pravatar.cc/80?u=${encodeURIComponent(id)}`,
+    tags: payload.tags?.length ? payload.tags.map((t) => ({ ...t })) : undefined,
+  };
+  ALL_CONTACTS.unshift(created);
+  return {
+    ...created,
+    tags: created.tags ? created.tags.map((t) => ({ ...t })) : undefined,
   };
 }

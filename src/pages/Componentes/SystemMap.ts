@@ -31,7 +31,7 @@ export const SYSTEM_MAP_FLOWS: SystemMapFlow[] = [
       },
       {
         title: "Rotas lazy",
-        detail: "Login, Home, Contatos e Componentes só baixam ao entrar na URL.",
+        detail: "Login, Home, Contatos, Etiquetas e Componentes só baixam ao entrar na URL.",
         files: ["src/App.tsx", "src/routes/index.tsx"],
       },
     ],
@@ -155,7 +155,190 @@ GET /contacts?page=1&pageSize=40&q=ana`,
     notes: [
       "Voltar pra Home não descarrega o chunk (cache do browser) — só evita baixar de novo.",
       "Próximo passo natural: virtualização se pageSize crescer muito.",
+      "Layout: InternasTemplate (mesmo shell das outras internas).",
     ],
+  },
+  {
+    id: "etiquetas",
+    label: "Etiquetas",
+    summary: "Rota `/etiquetas` — lazy. CRUD via service (payload tipado). Layout InternasTemplate.",
+    steps: [
+      {
+        title: "Navegação",
+        detail: "TopNav Configurações → Etiqueta → navigate('/etiquetas').",
+        files: ["src/routes/index.tsx", "src/pages/Etiquetas/Etiquetas.tsx"],
+      },
+      {
+        title: "Service",
+        detail: "fetch / create / update / delete — página só monta o payload e chama o service.",
+        files: ["src/services/etiquetas.ts"],
+      },
+      {
+        title: "UI",
+        detail: "Grid de chips + modal criar/editar + ConfirmModal deletar + skeleton.",
+        files: [
+          "src/pages/Etiquetas/Etiquetas.tsx",
+          "src/templates/Internas/InternasTemplate.tsx",
+        ],
+      },
+    ],
+    payload: `// listar
+fetchEtiquetas({ page: 1, pageSize: 40, query: "vip" })
+→ { items, total, page, pageSize }
+
+// criar
+createEtiqueta({ name: "VIP", color: "#ef4444" })
+
+// atualizar
+updateEtiqueta({ id: "vip", name: "VIP", color: "#dc2626" })
+
+// remover
+deleteEtiqueta({ id: "vip" })
+
+// futuro
+GET    /etiquetas?page=&pageSize=&q=
+POST   /etiquetas
+PUT    /etiquetas/:id
+DELETE /etiquetas/:id`,
+    notes: [
+      "Mock em memória no módulo do service (persiste na sessão até refresh).",
+      "CRUD atualiza só o item no state — sem skeleton na lista inteira.",
+    ],
+  },
+  {
+    id: "departamentos",
+    label: "Departamentos",
+    summary: "Rota `/departamentos` — lazy. CRUD via service. Layout InternasTemplate + tabela dept-*.",
+    steps: [
+      {
+        title: "Navegação",
+        detail: "TopNav Configurações → Departamento → navigate('/departamentos').",
+        files: ["src/routes/index.tsx", "src/pages/Departamentos/Departamentos.tsx"],
+      },
+      {
+        title: "Service",
+        detail: "fetch / create / update / delete com payload tipado.",
+        files: ["src/services/departamentos.ts"],
+      },
+      {
+        title: "UI",
+        detail: "Tabela nome/cor/saudação + modal + ConfirmModal + skeleton.",
+        files: [
+          "src/pages/Departamentos/Departamentos.tsx",
+          "src/templates/Internas/InternasTemplate.tsx",
+        ],
+      },
+    ],
+    payload: `// listar
+fetchDepartamentos({ page: 1, pageSize: 40, query: "comercial" })
+
+// criar
+createDepartamento({
+  name: "Comercial",
+  color: "#1d4ed8",
+  greeting: "Olá! Somos o comercial…"
+})
+
+// atualizar
+updateDepartamento({ id: "dept-comercial", name, color, greeting })
+
+// remover
+deleteDepartamento({ id: "dept-comercial" })
+
+// futuro
+GET    /departamentos?page=&pageSize=&q=
+POST   /departamentos
+PUT    /departamentos/:id
+DELETE /departamentos/:id`,
+  },
+  {
+    id: "respostas-rapidas",
+    label: "Respostas rápidas",
+    summary: "Rota `/respostas-rapidas` — lazy. CRUD via service. Layout InternasTemplate.",
+    steps: [
+      {
+        title: "Navegação",
+        detail: "TopNav Configurações → Resposta rápida → navigate('/respostas-rapidas').",
+        files: ["src/routes/index.tsx", "src/pages/RespostasRapidas/RespostasRapidas.tsx"],
+      },
+      {
+        title: "Service",
+        detail: "fetch / create / update / delete com payload tipado.",
+        files: ["src/services/respostasRapidas.ts"],
+      },
+      {
+        title: "UI",
+        detail: "Tabela atalho/texto + modal + ConfirmModal + skeleton.",
+        files: [
+          "src/pages/RespostasRapidas/RespostasRapidas.tsx",
+          "src/templates/Internas/InternasTemplate.tsx",
+        ],
+      },
+    ],
+    payload: `// listar
+fetchRespostasRapidas({ page: 1, pageSize: 40, query: "ola" })
+
+// criar
+createRespostaRapida({ shortcut: "ola", text: "Olá!…" })
+
+// atualizar
+updateRespostaRapida({ id: "rr-ola", shortcut, text })
+
+// remover
+deleteRespostaRapida({ id: "rr-ola" })
+
+// futuro
+GET    /respostas-rapidas?page=&pageSize=&q=
+POST   /respostas-rapidas
+PUT    /respostas-rapidas/:id
+DELETE /respostas-rapidas/:id`,
+  },
+  {
+    id: "equipe",
+    label: "Equipe",
+    summary: "Rota `/equipe` — lazy. CRUD via service. Layout InternasTemplate + formulário largo.",
+    steps: [
+      {
+        title: "Navegação",
+        detail: "TopNav Configurações → Equipe → navigate('/equipe').",
+        files: ["src/routes/index.tsx", "src/pages/Equipe/Equipe.tsx"],
+      },
+      {
+        title: "Service",
+        detail: "fetch / create / update / delete com payload tipado (perms + depts).",
+        files: ["src/services/equipe.ts", "src/services/departamentos.ts"],
+      },
+      {
+        title: "UI",
+        detail: "Tabela membros + modal (conexões, perfil, depts, permissões) + ConfirmModal.",
+        files: [
+          "src/pages/Equipe/Equipe.tsx",
+          "src/componentes/LetterAvatar/LetterAvatar.tsx",
+          "src/templates/Internas/InternasTemplate.tsx",
+        ],
+      },
+    ],
+    payload: `// listar
+fetchEquipe({ page: 1, pageSize: 40, query: "nicoly" })
+
+// criar
+createEquipeMember({
+  name, email, password, connectionId, profile,
+  departamentoIds: ["dept-comercial"],
+  permissions: { historico: true, … }
+})
+
+// atualizar
+updateEquipeMember({ id, name, email, password?, … })
+
+// remover
+deleteEquipeMember({ id: "eq-nicoly" })
+
+// futuro
+GET    /equipe?page=&pageSize=&q=
+POST   /equipe
+PUT    /equipe/:id
+DELETE /equipe/:id`,
   },
   {
     id: "open-chat",
@@ -294,8 +477,15 @@ Body: { text, html?, replyToId?, files[] }`,
       },
       {
         title: "services/",
-        detail: "Chamadas de API / mocks (auth hoje).",
-        files: ["src/services/auth.ts"],
+        detail: "Chamadas de API / mocks (auth, contacts, etiquetas, departamentos, respostasRapidas, equipe).",
+        files: [
+          "src/services/auth.ts",
+          "src/services/contacts.ts",
+          "src/services/etiquetas.ts",
+          "src/services/departamentos.ts",
+          "src/services/respostasRapidas.ts",
+          "src/services/equipe.ts",
+        ],
       },
       {
         title: "context / hooks / utils",

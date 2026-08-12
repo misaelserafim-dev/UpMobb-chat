@@ -12,4 +12,9 @@ export default defineConfig({
       "@": path.resolve(root, "src"),
     },
   },
+  // Vite 8 default (lightningcss) drops unprefixed backdrop-filter and
+  // rewrites rgb(… / a) to #rrggbbaa — preview looked different from dev.
+  build: {
+    cssMinify: "esbuild",
+  },
 });

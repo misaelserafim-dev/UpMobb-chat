@@ -56,6 +56,7 @@ body,
 body {
   font-family: var(--font);
   color: var(--text);
+  background: var(--app-bg);
   -webkit-font-smoothing: antialiased;
   overflow: hidden;
 }
@@ -64,6 +65,7 @@ body {
   display: flex;
   justify-content: center;
   width: 100%;
+  background: var(--app-bg);
 }
 
 button {

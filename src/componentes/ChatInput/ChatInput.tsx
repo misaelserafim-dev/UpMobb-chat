@@ -8,6 +8,10 @@
   type KeyboardEvent,
 } from "react";
 import { Icons } from "@/componentes/Icons/Icons.tsx";
+import {
+  filterRespostasRapidas,
+  type RespostaRapida,
+} from "@/services/respostasRapidas.ts";
 import type { ChatInputProps, PendingAttachment, ReplyDraft } from "./ChatInput.ts";
 import "./ChatInput.css";
 
@@ -51,6 +55,53 @@ function replyPreviewText(reply: ReplyDraft) {
   return "Mensagem";
 }
 
+function getSlashState(input: HTMLElement | null) {
+  if (!input) return null;
+  const sel = window.getSelection();
+  if (!sel?.rangeCount || !input.contains(sel.focusNode)) return null;
+  const caret = sel.getRangeAt(0);
+  if (!caret.collapsed) return null;
+
+  const pre = document.createRange();
+  pre.selectNodeContents(input);
+  pre.setEnd(caret.endContainer, caret.endOffset);
+  const before = pre.toString().replace(/\u00a0/g, " ");
+
+  const match = before.match(/(^|[\s\n])\/([^\s\n]*)$/);
+  if (!match) return null;
+
+  return {
+    query: match[2].toLowerCase(),
+    before,
+  };
+}
+
+function placeCaret(el: HTMLElement, offset: number) {
+  const range = document.createRange();
+  const sel = window.getSelection();
+  if (!sel) return;
+
+  let remaining = offset;
+  const walk = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+  let node = walk.nextNode();
+  while (node) {
+    const len = node.textContent?.length || 0;
+    if (remaining <= len) {
+      range.setStart(node, remaining);
+      range.collapse(true);
+      sel.removeAllRanges();
+      sel.addRange(range);
+      return;
+    }
+    remaining -= len;
+    node = walk.nextNode();
+  }
+  range.selectNodeContents(el);
+  range.collapse(false);
+  sel.removeAllRanges();
+  sel.addRange(range);
+}
+
 export function ChatInput({
   conversationId,
   replyTo = null,
@@ -64,8 +115,12 @@ export function ChatInput({
   const wrapRef = useRef<HTMLDivElement>(null);
   const attachmentsRef = useRef<PendingAttachment[]>([]);
   const addFilesRef = useRef<(files: File[]) => void>(() => {});
+  const slashQueryRef = useRef<string | null>(null);
   const [empty, setEmpty] = useState(true);
   const [attachments, setAttachments] = useState<PendingAttachment[]>([]);
+  const [slashOpen, setSlashOpen] = useState(false);
+  const [slashMatches, setSlashMatches] = useState<RespostaRapida[]>([]);
+  const [slashIndex, setSlashIndex] = useState(0);
 
   function revokeAll(list: PendingAttachment[]) {
     list.forEach((a) => {
@@ -88,6 +143,54 @@ export function ChatInput({
     });
   }
 
+  function closeSlash() {
+    setSlashOpen(false);
+    setSlashMatches([]);
+    setSlashIndex(0);
+    slashQueryRef.current = null;
+  }
+
+  function updateSlashMenu() {
+    const state = getSlashState(fieldRef.current);
+    if (!state) {
+      closeSlash();
+      return;
+    }
+
+    const matches = filterRespostasRapidas({ query: state.query, limit: 8 });
+    const queryChanged = slashQueryRef.current !== state.query;
+    slashQueryRef.current = state.query;
+    setSlashMatches(matches);
+    setSlashOpen(true);
+    setSlashIndex((prev) => {
+      if (queryChanged) return 0;
+      if (!matches.length) return 0;
+      return Math.min(prev, matches.length - 1);
+    });
+  }
+
+  function applySlash(reply: RespostaRapida) {
+    const input = fieldRef.current;
+    const state = getSlashState(input);
+    if (!input || !state || !reply) return;
+
+    const sel = window.getSelection();
+    if (!sel?.rangeCount) return;
+    const caret = sel.getRangeAt(0);
+
+    const post = document.createRange();
+    post.selectNodeContents(input);
+    post.setStart(caret.endContainer, caret.endOffset);
+    const after = post.toString().replace(/\u00a0/g, " ");
+
+    const newBefore = state.before.replace(/\/[^\s\n]*$/, reply.text);
+    input.textContent = newBefore + after;
+    placeCaret(input, newBefore.length);
+    setEmpty(!input.textContent.trim());
+    closeSlash();
+    input.focus({ preventScroll: true });
+  }
+
   const setDropTarget = useEffectEvent((active: boolean) => {
     onDropTargetChange?.(active);
   });
@@ -101,6 +204,7 @@ export function ChatInput({
     onClearReply?.();
     if (fieldRef.current) fieldRef.current.innerHTML = "";
     setEmpty(true);
+    closeSlash();
     // eslint-disable-next-line react-hooks/exhaustive-deps -- reset only when conversation changes
   }, [conversationId]);
 
@@ -193,6 +297,7 @@ export function ChatInput({
   }
 
   function submit() {
+    if (slashOpen) return;
     const { text, html } = getComposerContent();
     const files = [...attachments];
     if (!text && !files.length) return;
@@ -208,6 +313,7 @@ export function ChatInput({
     setEmpty(true);
     attachmentsRef.current = [];
     setAttachments([]);
+    closeSlash();
     onClearReply?.();
   }
 
@@ -217,10 +323,48 @@ export function ChatInput({
   }
 
   function handleKeyDown(e: KeyboardEvent<HTMLDivElement>) {
+    if (slashOpen) {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        closeSlash();
+        return;
+      }
+
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        if (!slashMatches.length) return;
+        setSlashIndex((i) => (i + 1) % slashMatches.length);
+        return;
+      }
+
+      if (e.key === "ArrowUp") {
+        e.preventDefault();
+        if (!slashMatches.length) return;
+        setSlashIndex((i) => (i - 1 + slashMatches.length) % slashMatches.length);
+        return;
+      }
+
+      if (e.key === "Enter" || e.key === "Tab") {
+        if (!slashMatches.length) {
+          closeSlash();
+          if (e.key === "Tab") e.preventDefault();
+          return;
+        }
+        e.preventDefault();
+        applySlash(slashMatches[slashIndex]);
+        return;
+      }
+    }
+
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       submit();
     }
+  }
+
+  function handleInput() {
+    syncEmpty();
+    updateSlashMenu();
   }
 
   function handlePaste(e: ClipboardEvent<HTMLDivElement>) {
@@ -245,6 +389,7 @@ export function ChatInput({
     const plain = e.clipboardData.getData("text/plain");
     document.execCommand("insertText", false, plain);
     syncEmpty();
+    updateSlashMenu();
   }
 
   const hasPreview = attachments.length > 0;
@@ -319,6 +464,36 @@ export function ChatInput({
         </div>
       ) : null}
 
+      {slashOpen ? (
+        <div
+          className="composer-slash"
+          id="composer-slash"
+          role="listbox"
+          aria-label="Respostas rápidas"
+        >
+          {slashMatches.length === 0 ? (
+            <div className="composer-slash__empty">Nenhuma resposta rápida</div>
+          ) : (
+            slashMatches.map((r, i) => (
+              <button
+                key={r.id}
+                type="button"
+                className={`composer-slash__item${i === slashIndex ? " is-active" : ""}`}
+                role="option"
+                aria-selected={i === slashIndex}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  applySlash(r);
+                }}
+              >
+                <span className="composer-slash__shortcut">/{r.shortcut}</span>
+                <span className="composer-slash__text">{r.text}</span>
+              </button>
+            ))
+          )}
+        </div>
+      ) : null}
+
       <form className="chat-composer" id="chat-composer" autoComplete="off" onSubmit={handleSubmit}>
         <button
           type="button"
@@ -340,7 +515,7 @@ export function ChatInput({
           aria-label="Mensagem"
           data-placeholder="Digite uma mensagem"
           ref={fieldRef}
-          onInput={syncEmpty}
+          onInput={handleInput}
           onKeyDown={handleKeyDown}
           onPaste={handlePaste}
         />

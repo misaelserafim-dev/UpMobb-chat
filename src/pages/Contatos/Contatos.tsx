@@ -1,35 +1,48 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { AddButton } from "@/componentes/AddButton/AddButton.tsx";
+import { useEffect, useId, useMemo, useRef, useState, type FormEvent } from "react";
 import { ContatosSkeleton } from "@/componentes/ContatosSkeleton/ContatosSkeleton.tsx";
 import { Icons } from "@/componentes/Icons/Icons.tsx";
-import { PageBackButton } from "@/componentes/PageBackButton/PageBackButton.tsx";
-import { TopNav } from "@/componentes/TopNav/TopNav.tsx";
-import { useAuth } from "@/context/AuthContext.tsx";
-import { HomeTemplate } from "@/templates/Home/HomeTemplate.tsx";
-import { fetchContacts, type Contact } from "@/services/contacts.ts";
-import { applyTheme, getSavedThemeId } from "@/utils/theme.ts";
-import "@/componentes/TopNav/TopNav.css";
-import "@/componentes/AddButton/AddButton.css";
-import "@/componentes/ChatWindow/ChatWindow.css";
+import { InternasTemplate } from "@/templates/Internas/InternasTemplate.tsx";
+import {
+  createContact,
+  fetchContacts,
+  type Contact,
+  type ContactTag,
+} from "@/services/contacts.ts";
+import { listEtiquetas, type Etiqueta } from "@/services/etiquetas.ts";
+import { DIAL_CODES, getDialCode } from "@/utils/dialCodes.ts";
+import { maskPhone, phonePlaceholder } from "@/utils/phone.ts";
 import "./Contatos.css";
 
 const PAGE_SIZE = 40;
 
 export function Contatos() {
-  const navigate = useNavigate();
-  const { logout } = useAuth();
-  const [themeId, setThemeId] = useState(getSavedThemeId);
+  const titleId = useId();
+  const nameRef = useRef<HTMLInputElement>(null);
+
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    document.title = "Upmobb | Contatos";
-    applyTheme(themeId);
-  }, [themeId]);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [formError, setFormError] = useState("");
+
+  const [formName, setFormName] = useState("");
+  const [formEmail, setFormEmail] = useState("");
+  const [formNotes, setFormNotes] = useState("");
+  const [formPhone, setFormPhone] = useState("");
+  const [dialIso, setDialIso] = useState("BR");
+  const [ddiOpen, setDdiOpen] = useState(false);
+  const [ddiSearch, setDdiSearch] = useState("");
+
+  const [tagIds, setTagIds] = useState<string[]>([]);
+  const [tagMenuOpen, setTagMenuOpen] = useState(false);
+  const [tagSearch, setTagSearch] = useState("");
+
+  const selectedDial = useMemo(() => getDialCode("+55", dialIso), [dialIso]);
+  const etiquetas = useMemo(() => listEtiquetas(), [modalOpen]);
 
   useEffect(() => {
     let cancelled = false;
@@ -57,177 +70,481 @@ export function Contatos() {
     };
   }, [page, query]);
 
-  function go(id: string) {
-    if (id === "conversas") navigate("/");
-    else if (id === "contatos") navigate("/contatos");
-    else if (id === "componentes") navigate("/componentes");
-    else navigate(`/${id}`);
+  useEffect(() => {
+    if (!modalOpen) return;
+    const t = window.setTimeout(() => nameRef.current?.focus(), 40);
+    return () => window.clearTimeout(t);
+  }, [modalOpen]);
+
+  function resetForm() {
+    setFormName("");
+    setFormEmail("");
+    setFormNotes("");
+    setFormPhone("");
+    setDialIso("BR");
+    setDdiOpen(false);
+    setDdiSearch("");
+    setTagIds([]);
+    setTagMenuOpen(false);
+    setTagSearch("");
+    setFormError("");
   }
 
+  function openCreate() {
+    resetForm();
+    setModalOpen(true);
+  }
+
+  function closeModal() {
+    if (saving) return;
+    setModalOpen(false);
+    setFormError("");
+    setDdiOpen(false);
+    setTagMenuOpen(false);
+  }
+
+  function toggleTag(id: string) {
+    setTagIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  }
+
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    const name = formName.trim();
+    const phoneNumber = formPhone.trim();
+    if (!name) {
+      setFormError("Informe o nome.");
+      return;
+    }
+    if (!phoneNumber) {
+      setFormError("Informe o telefone.");
+      return;
+    }
+
+    const selectedTags: ContactTag[] = etiquetas
+      .filter((et) => tagIds.includes(et.id))
+      .map((et) => ({ id: et.id, label: et.name, color: et.color }));
+
+    setSaving(true);
+    setFormError("");
+    try {
+      const created = await createContact({
+        name,
+        phone: `${selectedDial.dial} ${phoneNumber}`.trim(),
+        dialCode: selectedDial.dial,
+        email: formEmail.trim() || undefined,
+        notes: formNotes.trim() || undefined,
+        tags: selectedTags,
+      });
+
+      if (page === 1) {
+        setContacts((prev) => [created, ...prev].slice(0, PAGE_SIZE));
+      }
+      setTotal((t) => t + 1);
+      setModalOpen(false);
+    } catch {
+      setFormError("Não foi possível salvar. Tente de novo.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const filteredDialCodes = DIAL_CODES.filter((c) => {
+    const q = ddiSearch.trim().toLowerCase();
+    if (!q) return true;
+    return (
+      c.name.toLowerCase().includes(q) ||
+      c.dial.includes(q) ||
+      c.iso.toLowerCase().includes(q)
+    );
+  });
+
+  const selectedTags = etiquetas.filter((et) => tagIds.includes(et.id));
+  const filteredTags = etiquetas.filter((et) =>
+    et.name.toLowerCase().includes(tagSearch.trim().toLowerCase()),
+  );
+
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const countLabel = loading ? "…" : `${total} contato${total === 1 ? "" : "s"}`;
 
   return (
-    <HomeTemplate>
-      <TopNav
-        active="contatos"
-        themeId={themeId}
-        onNavigate={go}
-        onThemeChange={(id) => {
-          setThemeId(id);
-          applyTheme(id);
-        }}
-        onLogout={() => {
-          logout();
-          navigate("/login", { replace: true });
-        }}
-      />
-
-      <div className="workspace" id="workspace">
-        <main className="chat-window page-panel" id="contatos-page" aria-label="Contatos">
-          <header className="chat-window__header">
-            <div className="page-container">
-              <div className="chat-window__identity">
-                <PageBackButton onClick={() => navigate("/")} />
-                <div className="chat-window__meta">
-                  <div className="chat-window__name">Contatos</div>
-                  <div className="chat-window__assignee">
-                    {loading ? "…" : `${total} contato${total === 1 ? "" : "s"}`}
+    <InternasTemplate
+      active="contatos"
+      title="Contatos"
+      countLabel={countLabel}
+      pageId="contatos-page"
+      ariaLabel="Contatos"
+      searchPlaceholder="Buscar contato"
+      searchValue={query}
+      onSearchChange={(value) => {
+        setPage(1);
+        setQuery(value);
+      }}
+      addId="contatos-add-btn"
+      addLabel="Adicionar contato"
+      onAdd={openCreate}
+    >
+      <div
+        className="page-panel__list contact-table"
+        id="contatos-list"
+        role="list"
+        aria-busy={loading || undefined}
+        aria-label={loading ? "Carregando contatos" : undefined}
+      >
+        {loading ? (
+          <ContatosSkeleton count={8} />
+        ) : contacts.length === 0 ? (
+          <p className="page-panel__empty">Nenhum contato encontrado.</p>
+        ) : (
+          <>
+            <div className="contact-table__head" aria-hidden="true">
+              <span className="contact-table__col contact-table__col--person">Contato</span>
+              <span className="contact-table__col contact-table__col--label">Etiquetas</span>
+              <span className="contact-table__col contact-table__col--actions">Ações</span>
+            </div>
+            {contacts.map((c) => (
+              <article key={c.id} className="contact-row" data-contact-id={c.id} role="listitem">
+                <div className="contact-row__person">
+                  <img className="contact-row__avatar" src={c.avatar} alt="" />
+                  <div className="contact-row__meta">
+                    <div className="contact-row__name">{c.name}</div>
+                    <div className="contact-row__phone">{c.phone}</div>
                   </div>
+                </div>
+
+                <div className="contact-row__etiqueta">
+                  {c.tags?.length ? (
+                    <div className="contact-etiqueta-list">
+                      {c.tags.map((t) => (
+                        <span
+                          key={t.id}
+                          className="etiqueta-chip contact-row__chip"
+                          style={{ ["--etiqueta-color" as string]: t.color || "#9ca3af" }}
+                        >
+                          <span className="etiqueta-chip__bar" aria-hidden="true" />
+                          <span className="etiqueta-chip__name">{t.label}</span>
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <span className="contact-etiqueta contact-etiqueta--empty">—</span>
+                  )}
+                </div>
+
+                <div className="contact-row__actions">
+                  <button
+                    type="button"
+                    className="contact-row__action"
+                    data-contact-action="whatsapp"
+                    aria-label="WhatsApp"
+                    title="WhatsApp"
+                  >
+                    <Icons.Whatsapp />
+                  </button>
+                  <button
+                    type="button"
+                    className="contact-row__action"
+                    data-contact-action="editar"
+                    aria-label="Editar"
+                    title="Editar"
+                  >
+                    <Icons.Edit />
+                  </button>
+                  <button
+                    type="button"
+                    className="contact-row__action contact-row__action--danger"
+                    data-contact-action="deletar"
+                    aria-label="Deletar"
+                    title="Deletar"
+                  >
+                    <Icons.X />
+                  </button>
+                </div>
+              </article>
+            ))}
+          </>
+        )}
+      </div>
+
+      {!loading && total > PAGE_SIZE ? (
+        <div className="internas-pagination contatos-pagination">
+          <button
+            type="button"
+            className="internas-pagination__btn contatos-pagination__btn"
+            disabled={page <= 1}
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+          >
+            Anterior
+          </button>
+          <span className="internas-pagination__info contatos-pagination__info">
+            Página {page} de {totalPages}
+          </span>
+          <button
+            type="button"
+            className="internas-pagination__btn contatos-pagination__btn"
+            disabled={page >= totalPages}
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+          >
+            Próxima
+          </button>
+        </div>
+      ) : null}
+
+      {modalOpen ? (
+        <div className="page-modal is-open" id="contact-add-modal">
+          <div className="page-modal__backdrop" onClick={closeModal} />
+          <div
+            className="page-modal__dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={titleId}
+          >
+            <button type="button" className="page-modal__close" aria-label="Fechar" onClick={closeModal}>
+              <Icons.X />
+            </button>
+
+            <h2 className="page-modal__title" id={titleId}>
+              Novo contato
+            </h2>
+
+            <form className="contact-form" autoComplete="off" onSubmit={handleSubmit}>
+              <label className="contact-field">
+                <span className="contact-field__label">Nome</span>
+                <input
+                  ref={nameRef}
+                  type="text"
+                  id="contact-add-name"
+                  name="name"
+                  required
+                  value={formName}
+                  onChange={(e) => setFormName(e.target.value)}
+                />
+              </label>
+
+              <div className="contact-field">
+                <span className="contact-field__label">Telefone</span>
+                <div className="phone-field">
+                  <div className="phone-ddi" id="phone-ddi">
+                    <button
+                      type="button"
+                      className="phone-ddi__trigger"
+                      id="phone-ddi-btn"
+                      aria-haspopup="listbox"
+                      aria-expanded={ddiOpen}
+                      onClick={() => {
+                        setTagMenuOpen(false);
+                        setDdiOpen((v) => !v);
+                      }}
+                    >
+                      <span className="phone-ddi__flag">{selectedDial.flag}</span>
+                      <span className="phone-ddi__chevron" aria-hidden="true">
+                        <Icons.ChevronDown />
+                      </span>
+                      <span className="phone-ddi__code">{selectedDial.dial}</span>
+                    </button>
+
+                    {ddiOpen ? (
+                      <div className="phone-ddi__menu" role="listbox">
+                        <input
+                          type="search"
+                          className="phone-ddi__search"
+                          placeholder="search"
+                          aria-label="Buscar país"
+                          value={ddiSearch}
+                          onChange={(e) => setDdiSearch(e.target.value)}
+                        />
+                        <div className="phone-ddi__list">
+                          {filteredDialCodes.map((c) => (
+                            <button
+                              key={`${c.iso}-${c.dial}`}
+                              type="button"
+                              className={`phone-ddi__option${
+                                c.iso === selectedDial.iso ? " is-active" : ""
+                              }`}
+                              role="option"
+                              aria-selected={c.iso === selectedDial.iso}
+                              onClick={() => {
+                                setDialIso(c.iso);
+                                setFormPhone((prev) => maskPhone(prev, c.dial));
+                                setDdiOpen(false);
+                                setDdiSearch("");
+                              }}
+                            >
+                              <span className="phone-ddi__flag">{c.flag}</span>
+                              <span className="phone-ddi__name">{c.name}</span>
+                              <span className="phone-ddi__dial">{c.dial}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    ) : null}
+                  </div>
+
+                  <input
+                    type="tel"
+                    id="contact-add-phone"
+                    name="phone"
+                    className="phone-field__number"
+                    placeholder={phonePlaceholder(selectedDial.dial)}
+                    inputMode="numeric"
+                    autoComplete="tel-national"
+                    required
+                    value={formPhone}
+                    onChange={(e) => setFormPhone(maskPhone(e.target.value, selectedDial.dial))}
+                  />
                 </div>
               </div>
 
-              <div className="contatos-header-actions">
-                <label className="page-panel__search page-panel__search--header">
-                  <Icons.Search />
-                  <input
-                    type="search"
-                    id="contatos-search"
-                    className="page-panel__search-input"
-                    placeholder="Buscar contato"
-                    aria-label="Buscar contato"
-                    value={query}
-                    onChange={(e) => {
-                      setPage(1);
-                      setQuery(e.target.value);
-                    }}
-                  />
-                </label>
-                <AddButton id="contatos-add-btn" label="Adicionar contato" />
-              </div>
-            </div>
-          </header>
+              <label className="contact-field">
+                <span className="contact-field__label">E-mail</span>
+                <input
+                  type="email"
+                  id="contact-add-email"
+                  name="email"
+                  value={formEmail}
+                  onChange={(e) => setFormEmail(e.target.value)}
+                />
+              </label>
 
-          <div className="page-panel__body">
-            <div className="page-container page-container--contacts">
-              <div
-                className="page-panel__list contact-table"
-                id="contatos-list"
-                role="list"
-                aria-busy={loading || undefined}
-                aria-label={loading ? "Carregando contatos" : undefined}
-              >
-                {loading ? (
-                  <ContatosSkeleton count={8} />
-                ) : contacts.length === 0 ? (
-                  <p className="page-panel__empty">Nenhum contato encontrado.</p>
+              <div className="contact-field">
+                <span className="contact-field__label">Etiquetas</span>
+                {!etiquetas.length ? (
+                  <p className="contact-etiqueta-picker__empty">Nenhuma etiqueta cadastrada.</p>
                 ) : (
-                  <>
-                    <div className="contact-table__head" aria-hidden="true">
-                      <span className="contact-table__col contact-table__col--person">Contato</span>
-                      <span className="contact-table__col contact-table__col--label">Etiquetas</span>
-                      <span className="contact-table__col contact-table__col--actions">Ações</span>
+                  <div className="etiqueta-select" id="contact-etiqueta-select">
+                    <div
+                      className="etiqueta-select__trigger"
+                      role="button"
+                      tabIndex={0}
+                      aria-haspopup="listbox"
+                      aria-expanded={tagMenuOpen}
+                      onClick={() => {
+                        setDdiOpen(false);
+                        setTagMenuOpen((v) => !v);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          setTagMenuOpen((v) => !v);
+                        }
+                      }}
+                    >
+                      <span className="etiqueta-select__value">
+                        {selectedTags.length === 0 ? (
+                          <span className="etiqueta-select__placeholder">Selecionar etiquetas</span>
+                        ) : (
+                          selectedTags.map((et) => (
+                            <span
+                              key={et.id}
+                              className="etiqueta-chip etiqueta-select__chip"
+                              style={{ ["--etiqueta-color" as string]: et.color }}
+                            >
+                              <span className="etiqueta-chip__bar" aria-hidden="true" />
+                              <span className="etiqueta-chip__name">{et.name}</span>
+                              <button
+                                type="button"
+                                className="etiqueta-select__chip-remove"
+                                aria-label={`Remover ${et.name}`}
+                                title="Remover"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  setTagIds((prev) => prev.filter((id) => id !== et.id));
+                                }}
+                              >
+                                <Icons.X />
+                              </button>
+                            </span>
+                          ))
+                        )}
+                      </span>
+                      <span className="etiqueta-select__chevron" aria-hidden="true">
+                        <Icons.ChevronDown />
+                      </span>
                     </div>
-                    {contacts.map((c) => (
-                      <article key={c.id} className="contact-row" data-contact-id={c.id} role="listitem">
-                        <div className="contact-row__person">
-                          <img className="contact-row__avatar" src={c.avatar} alt="" />
-                          <div className="contact-row__meta">
-                            <div className="contact-row__name">{c.name}</div>
-                            <div className="contact-row__phone">{c.phone}</div>
-                          </div>
-                        </div>
 
-                        <div className="contact-row__etiqueta">
-                          {c.tags?.length ? (
-                            <div className="contact-etiqueta-list">
-                              {c.tags.map((t) => (
+                    {tagMenuOpen ? (
+                      <div
+                        className="etiqueta-select__menu"
+                        role="listbox"
+                        aria-multiselectable="true"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <input
+                          type="search"
+                          className="etiqueta-select__search"
+                          placeholder="Pesquisar etiqueta"
+                          aria-label="Pesquisar etiqueta"
+                          value={tagSearch}
+                          onChange={(e) => setTagSearch(e.target.value)}
+                        />
+                        <button
+                          type="button"
+                          className="etiqueta-select__clear"
+                          hidden={tagIds.length === 0}
+                          onClick={() => setTagIds([])}
+                        >
+                          Limpar seleção
+                        </button>
+                        <div className="etiqueta-select__list">
+                          {filteredTags.map((et: Etiqueta) => {
+                            const on = tagIds.includes(et.id);
+                            return (
+                              <button
+                                key={et.id}
+                                type="button"
+                                className={`etiqueta-select__option${on ? " is-active" : ""}`}
+                                role="option"
+                                aria-selected={on}
+                                onClick={() => toggleTag(et.id)}
+                              >
+                                <span className="etiqueta-select__check" aria-hidden="true" />
                                 <span
-                                  key={t.id}
-                                  className="etiqueta-chip contact-row__chip"
-                                  style={{ ["--etiqueta-color" as string]: t.color || "#9ca3af" }}
+                                  className="etiqueta-chip"
+                                  style={{ ["--etiqueta-color" as string]: et.color }}
                                 >
                                   <span className="etiqueta-chip__bar" aria-hidden="true" />
-                                  <span className="etiqueta-chip__name">{t.label}</span>
+                                  <span className="etiqueta-chip__name">{et.name}</span>
                                 </span>
-                              ))}
-                            </div>
-                          ) : (
-                            <span className="contact-etiqueta contact-etiqueta--empty">—</span>
-                          )}
+                              </button>
+                            );
+                          })}
                         </div>
-
-                        <div className="contact-row__actions">
-                          <button
-                            type="button"
-                            className="contact-row__action"
-                            data-contact-action="whatsapp"
-                            aria-label="WhatsApp"
-                            title="WhatsApp"
-                          >
-                            <Icons.Whatsapp />
-                          </button>
-                          <button
-                            type="button"
-                            className="contact-row__action"
-                            data-contact-action="editar"
-                            aria-label="Editar"
-                            title="Editar"
-                          >
-                            <Icons.Edit />
-                          </button>
-                          <button
-                            type="button"
-                            className="contact-row__action contact-row__action--danger"
-                            data-contact-action="deletar"
-                            aria-label="Deletar"
-                            title="Deletar"
-                          >
-                            <Icons.X />
-                          </button>
-                        </div>
-                      </article>
-                    ))}
-                  </>
+                      </div>
+                    ) : null}
+                  </div>
                 )}
               </div>
 
-              {!loading && total > PAGE_SIZE ? (
-                <div className="contatos-pagination">
-                  <button
-                    type="button"
-                    className="contatos-pagination__btn"
-                    disabled={page <= 1}
-                    onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  >
-                    Anterior
-                  </button>
-                  <span className="contatos-pagination__info">
-                    Página {page} de {totalPages}
-                  </span>
-                  <button
-                    type="button"
-                    className="contatos-pagination__btn"
-                    disabled={page >= totalPages}
-                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  >
-                    Próxima
-                  </button>
-                </div>
-              ) : null}
-            </div>
+              <label className="contact-field">
+                <span className="contact-field__label">Observação</span>
+                <textarea
+                  id="contact-add-notes"
+                  name="notes"
+                  rows={3}
+                  value={formNotes}
+                  onChange={(e) => setFormNotes(e.target.value)}
+                />
+              </label>
+
+              {formError ? <p className="contato-form__error">{formError}</p> : null}
+
+              <div className="contact-form__actions">
+                <button
+                  type="button"
+                  className="contact-form__btn contact-form__btn--ghost"
+                  onClick={closeModal}
+                  disabled={saving}
+                >
+                  Cancelar
+                </button>
+                <button type="submit" className="contact-form__btn contact-form__btn--primary" disabled={saving}>
+                  {saving ? "Salvando…" : "Adicionar"}
+                </button>
+              </div>
+            </form>
           </div>
-        </main>
-      </div>
-    </HomeTemplate>
+        </div>
+      ) : null}
+    </InternasTemplate>
   );
 }
