@@ -9,6 +9,7 @@ export const DEMO_CHATS: ChatItemData[] = [
     id: "1",
     name: "Ana Souza",
     company: "Acme Corp",
+    phone: "+55 11 99123-4567",
     avatar: "https://i.pravatar.cc/80?u=ana",
     time: "10:42",
     preview: "Pode me enviar o orçamento?",
@@ -21,6 +22,7 @@ export const DEMO_CHATS: ChatItemData[] = [
   {
     id: "2",
     name: "Carlos Lima",
+    phone: "+55 11 98888-1122",
     avatar: "https://i.pravatar.cc/80?u=carlos",
     time: "Ontem",
     preview: "Ok, combinado!",

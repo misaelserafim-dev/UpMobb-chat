@@ -1,14 +1,82 @@
 /* ContactPanel */
-.contact-panel {
-  width: min(320px, 100%);
+.contact-panel-shell {
+  --contact-panel-w: 320px;
+  width: 0;
   flex-shrink: 0;
+  overflow: hidden;
+  z-index: 4;
+  min-height: 0;
+  align-self: stretch;
+  transition: width 0.36s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: width;
+}
+
+.contact-panel-shell.is-open {
+  width: min(var(--contact-panel-w), 100%);
+}
+
+.contact-panel {
+  width: min(var(--contact-panel-w), 100%);
+  height: 100%;
   display: flex;
   flex-direction: column;
   background: #fff;
   border-left: 1px solid rgb(0 0 0 / 0.06);
-  box-shadow: -8px 0 24px rgb(0 0 0 / 0.04);
-  z-index: 4;
+  box-shadow: -12px 0 28px rgb(0 0 0 / 0.06);
   min-height: 0;
+  opacity: 0;
+  transform: translateX(22px) scale(0.985);
+  transform-origin: right center;
+  transition:
+    opacity 0.28s ease,
+    transform 0.36s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.contact-panel-shell.is-open .contact-panel {
+  opacity: 1;
+  transform: translateX(0) scale(1);
+}
+
+.contact-panel__header,
+.contact-panel__avatar-wrap,
+.contact-panel__phone-row,
+.contact-panel__edit,
+.contact-panel__media {
+  opacity: 0;
+  transform: translateY(10px);
+  transition:
+    opacity 0.3s ease,
+    transform 0.34s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.contact-panel-shell.is-open .contact-panel__header {
+  opacity: 1;
+  transform: none;
+  transition-delay: 0.06s;
+}
+
+.contact-panel-shell.is-open .contact-panel__avatar-wrap {
+  opacity: 1;
+  transform: none;
+  transition-delay: 0.1s;
+}
+
+.contact-panel-shell.is-open .contact-panel__phone-row {
+  opacity: 1;
+  transform: none;
+  transition-delay: 0.14s;
+}
+
+.contact-panel-shell.is-open .contact-panel__edit {
+  opacity: 1;
+  transform: none;
+  transition-delay: 0.18s;
+}
+
+.contact-panel-shell.is-open .contact-panel__media {
+  opacity: 1;
+  transform: none;
+  transition-delay: 0.22s;
 }
 
 .contact-panel__header {
@@ -274,12 +342,42 @@
 }
 
 @media (max-width: 900px) {
-  .contact-panel {
+  .contact-panel-shell {
     position: absolute;
     inset: 0;
     width: 100%;
     z-index: 8;
+    transform: translateX(100%);
+    transition: transform 0.36s cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: transform;
+  }
+
+  .contact-panel-shell.is-open {
+    width: 100%;
+    transform: translateX(0);
+  }
+
+  .contact-panel {
+    width: 100%;
     border-left: none;
     box-shadow: none;
+    transform: translateX(12px);
+  }
+
+  .contact-panel-shell.is-open .contact-panel {
+    transform: translateX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .contact-panel-shell,
+  .contact-panel,
+  .contact-panel__header,
+  .contact-panel__avatar-wrap,
+  .contact-panel__phone-row,
+  .contact-panel__edit,
+  .contact-panel__media {
+    transition-duration: 0.01ms !important;
+    transition-delay: 0s !important;
   }
 }

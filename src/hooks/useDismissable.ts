@@ -3,15 +3,10 @@ import { useEffect, useEffectEvent, useRef, type RefObject } from "react";
 type UseDismissableOptions = {
   open: boolean;
   onDismiss: () => void;
-  /** Elementos que contam como "dentro" (não disparam dismiss) */
   refs: Array<RefObject<HTMLElement | null>>;
   escape?: boolean;
 };
 
-/**
- * Fecha overlays/menus com clique fora + Escape.
- * Só registra listeners enquanto `open` for true.
- */
 export function useDismissable({
   open,
   onDismiss,

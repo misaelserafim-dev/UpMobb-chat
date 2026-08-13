@@ -9,6 +9,7 @@ export type ChatItemData = {
   id: string;
   name: string;
   company?: string;
+  phone?: string;
   avatar?: string;
   time?: string;
   preview?: string;

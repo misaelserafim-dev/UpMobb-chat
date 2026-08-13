@@ -21,13 +21,14 @@
   overflow: hidden;
   border-radius: var(--radius) var(--radius) 0 0;
   box-shadow: 0 1px 2px rgb(0 0 0 / 0.04), 0 8px 24px rgb(0 0 0 / 0.04);
+  transition: border-radius 0.34s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.chat-window.has-contact-panel .chat-window__column {
+.chat-window.is-contact-open .chat-window__column {
   border-radius: var(--radius) 0 0 0;
 }
 
-.chat-window.has-contact-panel .contact-panel {
+.chat-window.has-contact-panel .contact-panel-shell {
   border-radius: 0 var(--radius) 0 0;
 }
 
@@ -383,6 +384,10 @@ button.chat-window__etiqueta-add .icon {
     display: none;
     border-radius: 0;
     width: 100%;
+  }
+
+  .chat-window__messages {
+    padding-inline: 12px;
   }
 
   .app[data-mobile-panel="list"] .chat-window {

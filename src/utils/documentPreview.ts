@@ -5,7 +5,6 @@ export type DocumentPreviewFile = {
   name: string;
   size?: string;
   pages?: string;
-  /** Tipo legado da mensagem (`pdf` | `file`) ou MIME */
   type?: string;
 };
 
@@ -19,7 +18,6 @@ function extensionOf(name = "") {
   return parts.length > 1 ? (parts.pop() || "").toLowerCase() : "";
 }
 
-/** Detecta o tipo de documento para preview/badge. */
 export function getDocumentKind(file: {
   name?: string;
   type?: string;
@@ -63,7 +61,6 @@ export function getDocumentBadge(kind: DocumentKind, name = "") {
   return (ext || "FILE").slice(0, 4);
 }
 
-/** PDF e texto dão pra pré-visualizar inline no browser. */
 export function canInlinePreview(kind: DocumentKind) {
   return kind === "pdf" || kind === "text";
 }

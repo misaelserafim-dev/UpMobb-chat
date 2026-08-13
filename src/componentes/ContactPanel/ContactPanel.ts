@@ -15,21 +15,13 @@ export type ContactPanelProps = {
   chat: ChatItemData;
   phone?: string;
   media?: ContactMediaItem[];
+  open?: boolean;
   onClose?: () => void;
+  onExited?: () => void;
   onEdit?: () => void;
   onOpenImage?: (src: string) => void;
   onOpenDocument?: (file: DocumentPreviewFile) => void;
 };
-
-/** Telefone mock estável a partir do id da conversa (até vir do backend). */
-export function mockPhoneFromChatId(chatId: string): string {
-  let hash = 0;
-  for (let i = 0; i < chatId.length; i += 1) {
-    hash = (hash * 31 + chatId.charCodeAt(i)) >>> 0;
-  }
-  const n = String(10000000 + (hash % 90000000)).slice(0, 8);
-  return `+55 (11) 9${n.slice(0, 4)}-${n.slice(4)}`;
-}
 
 export function collectChatMedia(messages: ChatMessage[]): ContactMediaItem[] {
   const items: ContactMediaItem[] = [];

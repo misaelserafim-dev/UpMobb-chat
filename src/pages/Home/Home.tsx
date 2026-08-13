@@ -6,9 +6,17 @@ import { ChatWindow } from "@/componentes/ChatWindow/ChatWindow.tsx";
 import { TopNav } from "@/componentes/TopNav/TopNav.tsx";
 import { useAuth } from "@/context/AuthContext.tsx";
 import { HomeTemplate } from "@/templates/Home/HomeTemplate.tsx";
-import { fetchChatMessages, SAMPLE_CHATS, type ChatMessage } from "@/utils/chatData.ts";
 import type { ComposerSendPayload } from "@/componentes/ChatInput/ChatInput.ts";
 import type { ChatItemData } from "@/componentes/ChatItem/ChatItem.ts";
+import {
+  deleteChat,
+  deleteChatMessage,
+  fetchChatMessages,
+  fetchChats,
+  reactChatMessage,
+  sendChatMessage,
+  type ChatMessage,
+} from "@/services/chats.ts";
 import { applyListWidth, getSavedListWidth, initListResize } from "@/utils/listResize.ts";
 import { applyTheme, getSavedThemeId } from "@/utils/theme.ts";
 import "./Home.css";
@@ -21,7 +29,7 @@ export function Home() {
   const [themeId, setThemeId] = useState(getSavedThemeId);
   const [activeFilter, setActiveFilter] = useState("todos");
   const [searchQuery, setSearchQuery] = useState("");
-  const [chatsData, setChatsData] = useState(() => SAMPLE_CHATS.map((c) => ({ ...c })));
+  const [chatsData, setChatsData] = useState<ChatItemData[]>([]);
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
   const [activeChat, setActiveChat] = useState<ChatItemData | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -45,8 +53,22 @@ export function Home() {
   }, [listLoading]);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => setListLoading(false), 600);
-    return () => window.clearTimeout(timer);
+    let cancelled = false;
+    setListLoading(true);
+    fetchChats()
+      .then((res) => {
+        if (cancelled) return;
+        setChatsData(res.items);
+        setListLoading(false);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setChatsData([]);
+        setListLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const q = searchQuery.trim().toLowerCase();
@@ -59,7 +81,8 @@ export function Home() {
       if (!q) return true;
       return (
         chat.name.toLowerCase().includes(q) ||
-        (chat.preview || "").toLowerCase().includes(q)
+        (chat.preview || "").toLowerCase().includes(q) ||
+        (chat.phone || "").toLowerCase().includes(q)
       );
     });
 
@@ -96,7 +119,9 @@ export function Home() {
     setChatLoading(false);
   }
 
-  function handleSend({ text, html, attachments, replyTo }: ComposerSendPayload) {
+  async function handleSend({ text, html, attachments, replyTo }: ComposerSendPayload) {
+    if (!activeChat) return;
+
     const now = new Date();
     const time = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
     const stamp = Date.now();
@@ -148,24 +173,39 @@ export function Home() {
       });
     }
 
-    setMessages((prev) => [...prev, ...batch]);
+    const chatId = activeChat.id;
+    const saved: ChatMessage[] = [];
+    for (const msg of batch) {
+      saved.push(await sendChatMessage({ chatId, message: msg }));
+    }
+    setMessages((prev) => [...prev, ...saved]);
+    setChatsData((prev) =>
+      prev.map((c) =>
+        c.id === chatId
+          ? {
+              ...c,
+              preview: saved.at(-1)?.text || saved.at(-1)?.attachment?.name || c.preview,
+              time: saved.at(-1)?.time || c.time,
+            }
+          : c,
+      ),
+    );
   }
 
-  function handleDeleteMessage(messageId: string) {
+  async function handleDeleteMessage(messageId: string) {
+    if (!activeChat) return;
+    await deleteChatMessage({ chatId: activeChat.id, messageId });
     setMessages((prev) => prev.filter((m) => m.id !== messageId));
   }
 
-  function handleReactMessage(messageId: string, emoji: string) {
-    setMessages((prev) =>
-      prev.map((m) => {
-        if (m.id !== messageId) return m;
-        const reactions = [...(m.reactions || [])];
-        const existing = reactions.find((r) => r.emoji === emoji);
-        if (existing) existing.count += 1;
-        else reactions.push({ emoji, count: 1 });
-        return { ...m, reactions };
-      }),
-    );
+  async function handleReactMessage(messageId: string, emoji: string) {
+    if (!activeChat) return;
+    const updated = await reactChatMessage({
+      chatId: activeChat.id,
+      messageId,
+      emoji,
+    });
+    setMessages((prev) => prev.map((m) => (m.id === messageId ? updated : m)));
   }
 
   function handleLogout() {
@@ -209,8 +249,10 @@ export function Home() {
         onAction={(action) => {
           if (action === "deletar") {
             const id = activeChat.id;
-            setChatsData((prev) => prev.filter((c) => c.id !== id));
-            closeChat();
+            void deleteChat({ id }).then(() => {
+              setChatsData((prev) => prev.filter((c) => c.id !== id));
+              closeChat();
+            });
           }
         }}
       />

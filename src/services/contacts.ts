@@ -36,6 +36,20 @@ export type CreateContactPayload = {
   tags?: ContactTag[];
 };
 
+export type UpdateContactPayload = {
+  id: string;
+  name: string;
+  phone: string;
+  dialCode?: string;
+  email?: string;
+  notes?: string;
+  tags?: ContactTag[];
+};
+
+export type DeleteContactPayload = {
+  id: string;
+};
+
 function wait(ms: number) {
   return new Promise((resolve) => window.setTimeout(resolve, ms));
 }
@@ -159,4 +173,35 @@ export async function createContact(payload: CreateContactPayload): Promise<Cont
     ...created,
     tags: created.tags ? created.tags.map((t) => ({ ...t })) : undefined,
   };
+}
+
+/** Futuro: PUT /contacts/:id  Body: UpdateContactPayload */
+export async function updateContact(payload: UpdateContactPayload): Promise<Contact> {
+  await wait(280);
+  const current = ALL_CONTACTS.find((c) => c.id === payload.id);
+  if (!current) {
+    throw new Error("Contato não encontrado");
+  }
+  const next: Contact = {
+    ...current,
+    name: payload.name.trim(),
+    phone: payload.phone.trim(),
+    email: payload.email?.trim() || undefined,
+    notes: payload.notes?.trim() || undefined,
+    tags: payload.tags?.length ? payload.tags.map((t) => ({ ...t })) : undefined,
+  };
+  const idx = ALL_CONTACTS.findIndex((c) => c.id === payload.id);
+  ALL_CONTACTS[idx] = next;
+  return {
+    ...next,
+    tags: next.tags ? next.tags.map((t) => ({ ...t })) : undefined,
+  };
+}
+
+/** Futuro: DELETE /contacts/:id */
+export async function deleteContact(payload: DeleteContactPayload): Promise<{ id: string }> {
+  await wait(280);
+  const idx = ALL_CONTACTS.findIndex((c) => c.id === payload.id);
+  if (idx >= 0) ALL_CONTACTS.splice(idx, 1);
+  return { id: payload.id };
 }

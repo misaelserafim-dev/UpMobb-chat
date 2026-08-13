@@ -2,15 +2,12 @@ import { useEffect, useId, useMemo, useRef, useState, type FormEvent } from "rea
 import { ContatosSkeleton } from "@/componentes/ContatosSkeleton/ContatosSkeleton.tsx";
 import { Icons } from "@/componentes/Icons/Icons.tsx";
 import { InternasTemplate } from "@/templates/Internas/InternasTemplate.tsx";
-import {
-  createContact,
-  fetchContacts,
-  type Contact,
-  type ContactTag,
-} from "@/services/contacts.ts";
+import { ConfirmModal } from "@/componentes/ConfirmModal/ConfirmModal.tsx";
+import { createContact, deleteContact, fetchContacts, type Contact, type ContactTag } from "@/services/contacts.ts";
 import { listEtiquetas, type Etiqueta } from "@/services/etiquetas.ts";
 import { DIAL_CODES, getDialCode } from "@/utils/dialCodes.ts";
 import { maskPhone, phonePlaceholder } from "@/utils/phone.ts";
+import "@/componentes/ConfirmModal/ConfirmModal.css";
 import "./Contatos.css";
 
 const PAGE_SIZE = 40;
@@ -40,6 +37,7 @@ export function Contatos() {
   const [tagIds, setTagIds] = useState<string[]>([]);
   const [tagMenuOpen, setTagMenuOpen] = useState(false);
   const [tagSearch, setTagSearch] = useState("");
+  const [pendingDelete, setPendingDelete] = useState<Contact | null>(null);
 
   const selectedDial = useMemo(() => getDialCode("+55", dialIso), [dialIso]);
   const etiquetas = useMemo(() => listEtiquetas(), [modalOpen]);
@@ -105,6 +103,19 @@ export function Contatos() {
 
   function toggleTag(id: string) {
     setTagIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  }
+
+  async function confirmDelete() {
+    if (!pendingDelete) return;
+    const id = pendingDelete.id;
+    setPendingDelete(null);
+    try {
+      await deleteContact({ id });
+      setContacts((prev) => prev.filter((c) => c.id !== id));
+      setTotal((t) => Math.max(0, t - 1));
+    } catch {
+      /* mock — ignore */
+    }
   }
 
   async function handleSubmit(e: FormEvent) {
@@ -255,6 +266,7 @@ export function Contatos() {
                     data-contact-action="deletar"
                     aria-label="Deletar"
                     title="Deletar"
+                    onClick={() => setPendingDelete(c)}
                   >
                     <Icons.X />
                   </button>
@@ -545,6 +557,21 @@ export function Contatos() {
           </div>
         </div>
       ) : null}
+
+      <ConfirmModal
+        open={Boolean(pendingDelete)}
+        title="Remover contato?"
+        description={
+          pendingDelete
+            ? `O contato "${pendingDelete.name}" será removido. Essa ação não pode ser desfeita.`
+            : ""
+        }
+        cancelLabel="Cancelar"
+        confirmLabel="Remover"
+        danger
+        onCancel={() => setPendingDelete(null)}
+        onConfirm={confirmDelete}
+      />
     </InternasTemplate>
   );
 }

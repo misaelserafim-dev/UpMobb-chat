@@ -73,6 +73,7 @@ export function ChatWindow({
   const [msgSearchQuery, setMsgSearchQuery] = useState("");
   const [moreOpen, setMoreOpen] = useState(false);
   const [contactOpen, setContactOpen] = useState(false);
+  const [contactMounted, setContactMounted] = useState(false);
   const [tagMenuOpen, setTagMenuOpen] = useState(false);
   const [tagSearch, setTagSearch] = useState("");
   const [tagIds, setTagIds] = useState<string[]>(() => seedTagIds(activeChat.tag?.label));
@@ -138,6 +139,7 @@ export function ChatWindow({
     setMsgMenu(null);
     setMoreOpen(false);
     setContactOpen(false);
+    setContactMounted(false);
     setTagMenuOpen(false);
     setTagSearch("");
     setTagIds(seeded);
@@ -183,7 +185,15 @@ export function ChatWindow({
     setMoreOpen(false);
     setMsgMenu(null);
     setTagMenuOpen(false);
-    setContactOpen((v) => !v);
+    setContactOpen((v) => {
+      const next = !v;
+      if (next) setContactMounted(true);
+      return next;
+    });
+  }
+
+  function closeContactPanel() {
+    setContactOpen(false);
   }
 
   useEffect(() => {
@@ -234,8 +244,8 @@ export function ChatWindow({
   return (
     <main
       className={`chat-window${isDropTarget ? " is-drop-target" : ""}${
-        contactOpen ? " has-contact-panel" : ""
-      }`}
+        contactMounted ? " has-contact-panel" : ""
+      }${contactOpen ? " is-contact-open" : ""}`}
       id="chat-window"
       aria-label={`Conversa com ${activeChat.name}`}
     >
@@ -516,11 +526,13 @@ export function ChatWindow({
       />
       </div>
 
-      {contactOpen ? (
+      {contactMounted ? (
         <ContactPanel
           chat={activeChat}
           media={contactMedia}
-          onClose={() => setContactOpen(false)}
+          open={contactOpen}
+          onClose={closeContactPanel}
+          onExited={() => setContactMounted(false)}
           onEdit={() => navigate("/contatos")}
           onOpenImage={setLightboxSrc}
           onOpenDocument={setDocumentFile}

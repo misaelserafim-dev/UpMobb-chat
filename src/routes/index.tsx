@@ -4,26 +4,33 @@ import { Route, Routes } from "react-router-dom";
 const Login = lazy(() =>
   import("../pages/Login/Login.tsx").then((m) => ({ default: m.Login })),
 );
+
 const Home = lazy(() =>
   import("../pages/Home/Home.tsx").then((m) => ({ default: m.Home })),
 );
+
 const Contatos = lazy(() =>
   import("../pages/Contatos/Contatos.tsx").then((m) => ({ default: m.Contatos })),
 );
+
 const Etiquetas = lazy(() =>
   import("../pages/Etiquetas/Etiquetas.tsx").then((m) => ({ default: m.Etiquetas })),
 );
+
 const Departamentos = lazy(() =>
   import("../pages/Departamentos/Departamentos.tsx").then((m) => ({ default: m.Departamentos })),
 );
+
 const RespostasRapidas = lazy(() =>
   import("../pages/RespostasRapidas/RespostasRapidas.tsx").then((m) => ({
     default: m.RespostasRapidas,
   })),
 );
+
 const Equipe = lazy(() =>
   import("../pages/Equipe/Equipe.tsx").then((m) => ({ default: m.Equipe })),
 );
+
 const Componentes = lazy(() =>
   import("../pages/Componentes/Componentes.tsx").then((m) => ({ default: m.Componentes })),
 );

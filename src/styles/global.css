@@ -939,7 +939,6 @@ body.is-resizing-list * {
   display: inline-flex;
   align-items: stretch;
   min-width: 0;
-  flex: 1;
   max-width: 100%;
   border-radius: 8px;
   overflow: hidden;

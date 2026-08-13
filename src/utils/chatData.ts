@@ -12,6 +12,7 @@ export const SAMPLE_CHATS: ChatItemData[] = [
     id: "t-35468",
     name: "Ana Silva",
     company: "Acme Corp",
+    phone: "+55 11 99876-5432",
     avatar:
       "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face",
     time: "10:42",
@@ -30,6 +31,7 @@ export const SAMPLE_CHATS: ChatItemData[] = [
     id: "t-35102",
     name: "Marcus Johnson",
     company: "Northwind Ltd",
+    phone: "+55 21 98765-4321",
     avatar:
       "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face",
     time: "Ontem",
@@ -48,6 +50,7 @@ export const SAMPLE_CHATS: ChatItemData[] = [
     id: "t-34891",
     name: "Sarah Thompson",
     company: "Bright Agency",
+    phone: "+55 41 98995-6958",
     avatar:
       "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face",
     time: "Ter",
@@ -152,11 +155,3 @@ export const SAMPLE_MESSAGES: ChatMessage[] = [
     time: "10:42",
   },
 ];
-
-export function fetchChatMessages(_chatId: string): Promise<ChatMessage[]> {
-  return new Promise((resolve) => {
-    window.setTimeout(() => {
-      resolve(SAMPLE_MESSAGES.map((m) => ({ ...m })));
-    }, 1100);
-  });
-}
