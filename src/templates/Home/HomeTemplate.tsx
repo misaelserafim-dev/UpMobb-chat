@@ -1,5 +1,10 @@
-import type { HomeTemplateProps } from "./HomeTemplate.ts";
+import type { ReactNode } from "react";
 import "./HomeTemplate.css";
+
+export type HomeTemplateProps = {
+  children?: ReactNode;
+  mobilePanel?: "list" | "chat";
+};
 
 export function HomeTemplate({ children, mobilePanel = "list" }: HomeTemplateProps) {
   return (
