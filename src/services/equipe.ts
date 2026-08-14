@@ -1,3 +1,5 @@
+import { apiRequest } from "@/services/api.ts";
+
 export type EquipeProfileId = "user" | "admin";
 export type EquipeStatus = "online" | "offline";
 
@@ -142,181 +144,53 @@ export function emptyEquipePermissions(): EquipePermissions {
   ) as EquipePermissions;
 }
 
-function wait(ms: number) {
-  return new Promise((resolve) => window.setTimeout(resolve, ms));
-}
-
-function slugify(name: string) {
-  return name
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
-}
-
-const SEED: EquipeMember[] = [
-  {
-    id: "eq-nicoly",
-    name: "Nicoly",
-    email: "nicoly@upmobb.tech",
-    connectionId: "comercial-upmobb",
-    profile: "admin",
-    status: "online",
-    departamentoIds: ["dept-comercial", "dept-suporte"],
-    permissions: {
-      ...emptyEquipePermissions(),
-      historico: true,
-      "ver-tickets": true,
-      retornar: true,
-    },
-  },
-  {
-    id: "eq-carlos",
-    name: "Carlos",
-    email: "carlos@upmobb.tech",
-    connectionId: "qrcode-suporte",
-    profile: "user",
-    status: "offline",
-    departamentoIds: ["dept-suporte"],
-    permissions: {
-      ...emptyEquipePermissions(),
-      historico: true,
-      espiar: true,
-    },
-  },
-  {
-    id: "eq-ana",
-    name: "Ana Paula",
-    email: "ana@upmobb.tech",
-    connectionId: "comercial-upmobb",
-    profile: "user",
-    status: "online",
-    departamentoIds: ["dept-comercial"],
-    permissions: {
-      ...emptyEquipePermissions(),
-      assinar: true,
-      "ver-grupos": true,
-    },
-  },
-];
-
-let membros = SEED.map((m) => ({
-  ...m,
-  departamentoIds: [...m.departamentoIds],
-  permissions: { ...m.permissions },
-}));
-
-/**
- * Futuro: GET /equipe?page=&pageSize=&q=
- * Hoje: mock local paginado — a página só carrega quando a rota abre (lazy).
- */
-export async function fetchEquipe(
-  params: FetchEquipeParams = {},
-): Promise<FetchEquipeResult> {
-  const page = Math.max(1, params.page || 1);
-  const pageSize = Math.min(100, Math.max(10, params.pageSize || 40));
-  const q = (params.query || "").trim().toLowerCase();
-
-  await wait(420);
-
-  const filtered = q
-    ? membros.filter(
-        (m) =>
-          m.name.toLowerCase().includes(q) ||
-          m.email.toLowerCase().includes(q) ||
-          m.profile.toLowerCase().includes(q),
-      )
-    : membros;
-
-  const start = (page - 1) * pageSize;
-  const items = filtered.slice(start, start + pageSize).map((m) => ({
-    ...m,
-    departamentoIds: [...m.departamentoIds],
-    permissions: { ...m.permissions },
-  }));
-
-  return {
-    items,
-    total: filtered.length,
-    page,
-    pageSize,
-  };
-}
-
-/** Futuro: POST /equipe  Body: CreateEquipePayload */
-export async function createEquipeMember(
-  payload: CreateEquipePayload,
-): Promise<EquipeMember> {
-  await wait(280);
-  const name = payload.name.trim();
-  const email = payload.email.trim();
-  const base = slugify(name) || "membro";
-  let id = `eq-${base}`;
-  let n = 1;
-  while (membros.some((m) => m.id === id)) {
-    n += 1;
-    id = `eq-${base}-${n}`;
-  }
-
-  const created: EquipeMember = {
-    id,
-    name,
-    email,
-    connectionId: payload.connectionId,
-    profile: payload.profile,
-    status: "offline",
-    departamentoIds: [...payload.departamentoIds],
-    permissions: { ...emptyEquipePermissions(), ...payload.permissions },
-  };
-  membros = [...membros, created];
-  return {
-    ...created,
-    departamentoIds: [...created.departamentoIds],
-    permissions: { ...created.permissions },
-  };
-}
-
-/** Futuro: PUT /equipe/:id  Body: UpdateEquipePayload */
-export async function updateEquipeMember(
-  payload: UpdateEquipePayload,
-): Promise<EquipeMember> {
-  await wait(280);
-  const current = membros.find((m) => m.id === payload.id);
-  if (!current) {
-    throw new Error("Membro não encontrado");
-  }
-
-  const next: EquipeMember = {
-    ...current,
-    name: payload.name.trim(),
-    email: payload.email.trim(),
-    connectionId: payload.connectionId,
-    profile: payload.profile,
-    departamentoIds: [...payload.departamentoIds],
-    permissions: { ...emptyEquipePermissions(), ...payload.permissions },
-  };
-  membros = membros.map((m) => (m.id === payload.id ? next : m));
-  return {
-    ...next,
-    departamentoIds: [...next.departamentoIds],
-    permissions: { ...next.permissions },
-  };
-}
-
-/** Futuro: DELETE /equipe/:id */
-export async function deleteEquipeMember(
-  payload: DeleteEquipePayload,
-): Promise<{ id: string }> {
-  await wait(280);
-  membros = membros.filter((m) => m.id !== payload.id);
-  return { id: payload.id };
-}
-
 export function connectionLabel(id: string) {
   return EQUIPE_CONNECTIONS.find((c) => c.id === id)?.label || id || "—";
 }
 
 export function profileLabel(id: string) {
   return EQUIPE_PROFILES.find((p) => p.id === id)?.label || id || "—";
+}
+
+export async function fetchEquipe(
+  params: FetchEquipeParams = {},
+): Promise<FetchEquipeResult> {
+  const page = Math.max(1, params.page || 1);
+  const pageSize = Math.min(100, Math.max(10, params.pageSize || 40));
+  const q = (params.query || "").trim();
+
+  const search = new URLSearchParams({
+    page: String(page),
+    pageSize: String(pageSize),
+  });
+  if (q) search.set("q", q);
+
+  return apiRequest<FetchEquipeResult>(`/equipe?${search}`);
+}
+
+export async function createEquipeMember(
+  payload: CreateEquipePayload,
+): Promise<EquipeMember> {
+  return apiRequest<EquipeMember>("/equipe", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function updateEquipeMember(
+  payload: UpdateEquipePayload,
+): Promise<EquipeMember> {
+  const { id, ...body } = payload;
+  return apiRequest<EquipeMember>(`/equipe/${encodeURIComponent(id)}`, {
+    method: "PUT",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function deleteEquipeMember(
+  payload: DeleteEquipePayload,
+): Promise<{ id: string }> {
+  return apiRequest<{ id: string }>(`/equipe/${encodeURIComponent(payload.id)}`, {
+    method: "DELETE",
+  });
 }

@@ -1,9 +1,6 @@
 import type { ChatItemData } from "@/componentes/ChatItem/ChatItem.ts";
-import {
-  SAMPLE_CHATS,
-  SAMPLE_MESSAGES,
-  type ChatMessage,
-} from "@/utils/chatData.ts";
+import type { ChatMessage } from "@/utils/chatData.ts";
+import { apiRequest } from "@/services/api.ts";
 
 export type { ChatMessage };
 
@@ -54,180 +51,73 @@ export type ReactChatMessagePayload = {
   emoji: string;
 };
 
-function wait(ms: number) {
-  return new Promise((resolve) => window.setTimeout(resolve, ms));
-}
-
-let chats = SAMPLE_CHATS.map((c) => ({ ...c }));
-const messagesByChat = new Map<string, ChatMessage[]>();
-
-function cloneMessage(msg: ChatMessage): ChatMessage {
-  return {
-    ...msg,
-    replyTo: msg.replyTo ? { ...msg.replyTo, attachment: msg.replyTo.attachment ? { ...msg.replyTo.attachment } : undefined } : undefined,
-    reactions: msg.reactions?.map((r) => ({ ...r })),
-    image: msg.image ? { ...msg.image } : undefined,
-    video: msg.video ? { ...msg.video } : undefined,
-    attachment: msg.attachment ? { ...msg.attachment } : undefined,
-  };
-}
-
-function getMessages(chatId: string): ChatMessage[] {
-  let list = messagesByChat.get(chatId);
-  if (!list) {
-    list = SAMPLE_MESSAGES.map(cloneMessage);
-    messagesByChat.set(chatId, list);
-  }
-  return list;
-}
-
-/**
- * Futuro: GET /chats?page=&pageSize=&q=
- * Hoje: mock local — a Home só troca a implementação aqui.
- */
+/** GET /chats?page=&pageSize=&q= */
 export async function fetchChats(params: FetchChatsParams = {}): Promise<FetchChatsResult> {
   const page = Math.max(1, params.page || 1);
   const pageSize = Math.min(100, Math.max(10, params.pageSize || 40));
-  const q = (params.query || "").trim().toLowerCase();
+  const q = (params.query || "").trim();
 
-  await wait(420);
+  const search = new URLSearchParams({
+    page: String(page),
+    pageSize: String(pageSize),
+  });
+  if (q) search.set("q", q);
 
-  const filtered = q
-    ? chats.filter(
-        (c) =>
-          c.name.toLowerCase().includes(q) ||
-          (c.preview || "").toLowerCase().includes(q) ||
-          (c.phone || "").toLowerCase().includes(q) ||
-          (c.company || "").toLowerCase().includes(q),
-      )
-    : chats;
-
-  const start = (page - 1) * pageSize;
-  const items = filtered.slice(start, start + pageSize).map((c) => ({ ...c }));
-
-  return {
-    items,
-    total: filtered.length,
-    page,
-    pageSize,
-  };
+  return apiRequest<FetchChatsResult>(`/chats?${search}`);
 }
 
-/**
- * Futuro: DELETE /chat/delet/:id  (ou DELETE /chats/:id)
- * Hoje: remove do mock em memória.
- */
+/** DELETE /chats/:id */
 export async function deleteChat(payload: DeleteChatPayload): Promise<{ id: string }> {
-  await wait(280);
-  chats = chats.filter((c) => c.id !== payload.id);
-  messagesByChat.delete(payload.id);
-  return { id: payload.id };
+  return apiRequest<{ id: string }>(`/chats/${encodeURIComponent(payload.id)}`, {
+    method: "DELETE",
+  });
 }
 
-/**
- * Futuro: POST /chats  Body: CreateChatPayload
- * Hoje: cria ticket no mock e inicia conversa só com aviso de sistema.
- */
+/** POST /chats */
 export async function createChat(payload: CreateChatPayload): Promise<ChatItemData> {
-  await wait(320);
-  const now = new Date();
-  const time = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
-  const id = `t-${Date.now()}`;
-  const ticketNo = id.replace(/\D/g, "") || String(Date.now());
-  const dateLabel = now.toLocaleDateString("pt-BR");
-
-  const created: ChatItemData = {
-    id,
-    name: payload.name.trim(),
-    phone: payload.phone?.trim() || undefined,
-    avatar: payload.avatar,
-    time,
-    preview: `Atendimento iniciado · #${ticketNo}`,
-    unread: 0,
-    active: false,
-    color: payload.departamentoColor,
-    assignee: payload.assignee || "Você",
-    tag: payload.etiquetaId
-      ? {
-          type: "color",
-          label: payload.etiquetaName || "",
-          color: payload.etiquetaColor || "#9ca3af",
-        }
-      : undefined,
-  };
-
-  chats = [created, ...chats];
-  messagesByChat.set(id, [
-    {
-      id: `${id}-notice`,
-      from: "system",
-      time,
-      text: `Atendimento iniciado por: ${dateLabel} · #${ticketNo}`,
-    },
-  ]);
-
-  return { ...created };
+  return apiRequest<ChatItemData>("/chats", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
 }
 
-/**
- * Futuro: GET /chats/:id/messages
- * Hoje: mock local com delay de “loading”.
- */
+/** GET /chats/:id/messages */
 export async function fetchChatMessages(chatId: string): Promise<ChatMessage[]> {
-  await wait(1100);
-  return getMessages(chatId).map(cloneMessage);
+  return apiRequest<ChatMessage[]>(`/chats/${encodeURIComponent(chatId)}/messages`);
 }
 
-/**
- * Futuro: POST /chats/:id/messages
- * Hoje: append no mock em memória.
- */
+/** POST /chats/:id/messages */
 export async function sendChatMessage(
   payload: SendChatMessagePayload,
 ): Promise<ChatMessage> {
-  await wait(180);
-  const list = getMessages(payload.chatId);
-  const created = cloneMessage(payload.message);
-  list.push(created);
-  const chat = chats.find((c) => c.id === payload.chatId);
-  if (chat) {
-    chat.preview = created.text || created.attachment?.name || chat.preview;
-    chat.time = created.time;
-  }
-  return cloneMessage(created);
+  return apiRequest<ChatMessage>(
+    `/chats/${encodeURIComponent(payload.chatId)}/messages`,
+    {
+      method: "POST",
+      body: JSON.stringify({ message: payload.message }),
+    },
+  );
 }
 
-/**
- * Futuro: DELETE /chats/:chatId/messages/:messageId
- */
+/** DELETE /chats/:chatId/messages/:messageId */
 export async function deleteChatMessage(
   payload: DeleteChatMessagePayload,
 ): Promise<{ id: string }> {
-  await wait(200);
-  const list = getMessages(payload.chatId);
-  messagesByChat.set(
-    payload.chatId,
-    list.filter((m) => m.id !== payload.messageId),
+  return apiRequest<{ id: string }>(
+    `/chats/${encodeURIComponent(payload.chatId)}/messages/${encodeURIComponent(payload.messageId)}`,
+    { method: "DELETE" },
   );
-  return { id: payload.messageId };
 }
 
-/**
- * Futuro: POST /chats/:chatId/messages/:messageId/reactions
- */
+/** POST /chats/:chatId/messages/:messageId/reactions */
 export async function reactChatMessage(
   payload: ReactChatMessagePayload,
 ): Promise<ChatMessage> {
-  await wait(160);
-  const list = getMessages(payload.chatId);
-  const msg = list.find((m) => m.id === payload.messageId);
-  if (!msg) {
-    throw new Error("Mensagem não encontrada");
-  }
-  const reactions = [...(msg.reactions || [])];
-  const existing = reactions.find((r) => r.emoji === payload.emoji);
-  if (existing) existing.count += 1;
-  else reactions.push({ emoji: payload.emoji, count: 1 });
-  msg.reactions = reactions;
-  return cloneMessage(msg);
+  return apiRequest<ChatMessage>(
+    `/chats/${encodeURIComponent(payload.chatId)}/messages/${encodeURIComponent(payload.messageId)}/reactions`,
+    {
+      method: "POST",
+      body: JSON.stringify({ emoji: payload.emoji }),
+    },
+  );
 }

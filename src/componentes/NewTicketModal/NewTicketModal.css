@@ -242,3 +242,7 @@
   width: 12px;
   height: 12px;
 }
+
+input.etiqueta-select__search {
+  width: auto;
+}

@@ -59,7 +59,6 @@ export function ContactPanel({
   open = true,
   onClose,
   onExited,
-  onEdit,
   onOpenImage,
   onOpenDocument,
 }: ContactPanelProps) {
@@ -174,10 +173,6 @@ export function ContactPanel({
               </button>
             ) : null}
           </div>
-
-          <button type="button" className="contact-panel__edit" onClick={onEdit}>
-            Editar Contato
-          </button>
 
           <section className="contact-panel__media" aria-label="Mídias, docs e links">
             <button type="button" className="contact-panel__media-head">

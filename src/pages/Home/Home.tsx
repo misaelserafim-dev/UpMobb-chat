@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useEffectEvent, useRef, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { ChatEmpty } from "@/componentes/ChatEmpty/ChatEmpty.tsx";
 import { ChatList } from "@/componentes/ChatList/ChatList.tsx";
 import { ChatWindow } from "@/componentes/ChatWindow/ChatWindow.tsx";
@@ -21,10 +21,16 @@ import { applyListWidth, getSavedListWidth, initListResize } from "@/utils/listR
 import { applyTheme, getSavedThemeId } from "@/utils/theme.ts";
 import "./Home.css";
 
+type HomeLocationState = {
+  openChatId?: string;
+};
+
 export function Home() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { logout } = useAuth();
   const chatLoadToken = useRef(0);
+  const pendingOpenChatId = useRef<string | null>(null);
 
   const [themeId, setThemeId] = useState(getSavedThemeId);
   const [activeFilter, setActiveFilter] = useState("todos");
@@ -87,6 +93,8 @@ export function Home() {
     });
 
   async function selectChat(id: string, chatOverride?: ChatItemData) {
+    if (id === activeChatId && !chatLoading) return;
+
     const selected = chatOverride || chatsData.find((c) => c.id === id);
     if (!selected) return;
 
@@ -110,6 +118,26 @@ export function Home() {
       setActiveChatId(null);
     }
   }
+
+  const openPendingChat = useEffectEvent((id: string) => {
+    void selectChat(id);
+  });
+
+  useEffect(() => {
+    const state = location.state as HomeLocationState | null;
+    if (state?.openChatId) {
+      pendingOpenChatId.current = state.openChatId;
+      navigate("/", { replace: true, state: null });
+    }
+
+    if (listLoading) return;
+    const id = pendingOpenChatId.current;
+    if (!id) return;
+    if (!chatsData.some((c) => c.id === id)) return;
+
+    pendingOpenChatId.current = null;
+    openPendingChat(id);
+  }, [location.state, listLoading, chatsData, navigate]);
 
   function closeChat() {
     chatLoadToken.current += 1;

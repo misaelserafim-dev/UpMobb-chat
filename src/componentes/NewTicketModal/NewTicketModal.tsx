@@ -1,4 +1,4 @@
-import { useEffect, useEffectEvent, useId, useMemo, useRef, useState, type FormEvent } from "react";
+import { useEffect, useEffectEvent, useId, useRef, useState, type FormEvent } from "react";
 import { createPortal } from "react-dom";
 import { Icons } from "@/componentes/Icons/Icons.tsx";
 import { useDismissable } from "@/hooks/useDismissable.ts";
@@ -9,7 +9,12 @@ import { createChat } from "@/services/chats.ts";
 import type { NewTicketModalProps } from "./NewTicketModal.ts";
 import "./NewTicketModal.css";
 
-export function NewTicketModal({ open = false, onClose, onCreated }: NewTicketModalProps) {
+export function NewTicketModal({
+  open = false,
+  initialContact = null,
+  onClose,
+  onCreated,
+}: NewTicketModalProps) {
   const titleId = useId();
   const dialogRef = useRef<HTMLDivElement>(null);
   const contactInputRef = useRef<HTMLInputElement>(null);
@@ -27,9 +32,9 @@ export function NewTicketModal({ open = false, onClose, onCreated }: NewTicketMo
 
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState("");
+  const [departamentos, setDepartamentos] = useState<Departamento[]>([]);
+  const [etiquetas, setEtiquetas] = useState<Etiqueta[]>([]);
 
-  const departamentos = useMemo(() => listDepartamentos(), [open]);
-  const etiquetas = useMemo(() => listEtiquetas(), [open]);
   const selectedEtiqueta = etiquetas.find((e) => e.id === etiquetaId) || null;
   const filteredEtiquetas = etiquetas.filter((e) =>
     e.name.toLowerCase().includes(etiquetaSearch.trim().toLowerCase()),
@@ -49,6 +54,23 @@ export function NewTicketModal({ open = false, onClose, onCreated }: NewTicketMo
     setFormError("");
   });
 
+  const applyInitialContact = useEffectEvent((contact: Contact, tags: Etiqueta[]) => {
+    setSelectedContact(contact);
+    setContactQuery(contact.name);
+    setContactMenuOpen(false);
+    setContactResults([]);
+    const firstTag = contact.tags?.[0];
+    if (!firstTag) {
+      setEtiquetaId("");
+      return;
+    }
+    const match = tags.find(
+      (e) =>
+        e.id === firstTag.id || e.name.toLowerCase() === firstTag.label.toLowerCase(),
+    );
+    setEtiquetaId(match?.id || "");
+  });
+
   useDismissable({
     open,
     onDismiss: () => {
@@ -63,9 +85,34 @@ export function NewTicketModal({ open = false, onClose, onCreated }: NewTicketMo
       reset();
       return;
     }
-    const t = window.setTimeout(() => contactInputRef.current?.focus(), 40);
-    return () => window.clearTimeout(t);
-  }, [open]);
+
+    let cancelled = false;
+
+    Promise.all([listDepartamentos(), listEtiquetas()])
+      .then(([depts, tags]) => {
+        if (cancelled) return;
+        setDepartamentos(depts);
+        setEtiquetas(tags);
+        if (initialContact) applyInitialContact(initialContact, tags);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setDepartamentos([]);
+        setEtiquetas([]);
+      });
+
+    if (!initialContact) {
+      const t = window.setTimeout(() => contactInputRef.current?.focus(), 40);
+      return () => {
+        cancelled = true;
+        window.clearTimeout(t);
+      };
+    }
+
+    return () => {
+      cancelled = true;
+    };
+  }, [open, initialContact]);
 
   useEffect(() => {
     if (!open || selectedContact) return;

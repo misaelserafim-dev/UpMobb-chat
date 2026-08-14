@@ -157,16 +157,25 @@ export function ChatInput({
       return;
     }
 
-    const matches = filterRespostasRapidas({ query: state.query, limit: 8 });
-    const queryChanged = slashQueryRef.current !== state.query;
-    slashQueryRef.current = state.query;
-    setSlashMatches(matches);
-    setSlashOpen(true);
-    setSlashIndex((prev) => {
-      if (queryChanged) return 0;
-      if (!matches.length) return 0;
-      return Math.min(prev, matches.length - 1);
-    });
+    const query = state.query;
+    const queryChanged = slashQueryRef.current !== query;
+    slashQueryRef.current = query;
+
+    void filterRespostasRapidas({ query, limit: 8 })
+      .then((matches) => {
+        if (slashQueryRef.current !== query) return;
+        setSlashMatches(matches);
+        setSlashOpen(true);
+        setSlashIndex((prev) => {
+          if (queryChanged) return 0;
+          if (!matches.length) return 0;
+          return Math.min(prev, matches.length - 1);
+        });
+      })
+      .catch(() => {
+        if (slashQueryRef.current !== query) return;
+        closeSlash();
+      });
   }
 
   function applySlash(reply: RespostaRapida) {

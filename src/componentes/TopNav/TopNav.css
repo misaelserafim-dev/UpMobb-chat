@@ -7,7 +7,7 @@
   justify-content: space-between;
   gap: 16px;
   min-height: 56px;
-  padding: 0 20px 0 0;
+  padding: 0 var(--panel-gap) 0 0;
   background: transparent;
   border-bottom: none;
   z-index: 5;
@@ -36,7 +36,7 @@
 .top-nav__links {
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 4px;
   padding: 4px;
   background: #fff;
   border-radius: 999px;

@@ -144,7 +144,14 @@ export function ChatList({
           <ChatListSkeleton count={6} />
         ) : chats.length ? (
           chats.map((chat) => (
-            <ChatItem key={chat.id} chat={chat} onClick={() => onChatSelect?.(chat.id)} />
+            <ChatItem
+              key={chat.id}
+              chat={chat}
+              onClick={() => {
+                if (chat.active) return;
+                onChatSelect?.(chat.id);
+              }}
+            />
           ))
         ) : (
           <li className="chat-list__empty" />

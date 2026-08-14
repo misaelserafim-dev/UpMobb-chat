@@ -604,6 +604,9 @@ body.is-resizing-list * {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
 }
 
 .dept-row__color {
@@ -620,6 +623,9 @@ body.is-resizing-list * {
 }
 
 .dept-row__greeting {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
   font-size: 0.875rem;
   color: var(--text);
   overflow: hidden;

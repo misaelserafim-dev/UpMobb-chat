@@ -251,7 +251,7 @@ export function Etiquetas() {
 
       {modal.open ? (
         <div className="page-modal is-open" id="etiqueta-modal">
-          <div className="page-modal__backdrop" onClick={closeModal} />
+          <div className="page-modal__backdrop" />
           <div
             className="page-modal__dialog"
             role="dialog"

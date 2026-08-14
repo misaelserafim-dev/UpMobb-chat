@@ -35,7 +35,7 @@
   padding: 0 6px;
   border-radius: 999px;
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 500;
   background: color-mix(in srgb, var(--accent) 16%, transparent);
   color: var(--accent);
   line-height: 1;

@@ -1,4 +1,4 @@
-import { useEffect, useId, useMemo, useRef, useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { ConfirmModal } from "@/componentes/ConfirmModal/ConfirmModal.tsx";
 import { Icons } from "@/componentes/Icons/Icons.tsx";
 import { LetterAvatar } from "@/componentes/LetterAvatar/LetterAvatar.tsx";
@@ -67,7 +67,7 @@ export function Equipe() {
 
   const [pendingDelete, setPendingDelete] = useState<EquipeMember | null>(null);
 
-  const departamentos = useMemo(() => listDepartamentos(), [modal.open]);
+  const [departamentos, setDepartamentos] = useState<Departamento[]>([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -97,8 +97,21 @@ export function Equipe() {
 
   useEffect(() => {
     if (!modal.open) return;
+
+    let cancelled = false;
+    listDepartamentos()
+      .then((items) => {
+        if (!cancelled) setDepartamentos(items);
+      })
+      .catch(() => {
+        if (!cancelled) setDepartamentos([]);
+      });
+
     const t = window.setTimeout(() => nameRef.current?.focus(), 40);
-    return () => window.clearTimeout(t);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(t);
+    };
   }, [modal]);
 
   function resetForm(item?: EquipeMember) {
@@ -350,7 +363,7 @@ export function Equipe() {
 
       {modal.open ? (
         <div className="page-modal is-open" id="equipe-modal">
-          <div className="page-modal__backdrop" onClick={closeModal} />
+          <div className="page-modal__backdrop" />
           <div
             className="page-modal__dialog page-modal__dialog--wide"
             role="dialog"

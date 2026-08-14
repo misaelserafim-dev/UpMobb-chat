@@ -28,9 +28,9 @@ import "../MessageMenu/MessageMenu.css";
 import "../DocumentPreview/DocumentPreview.css";
 import "../ContactPanel/ContactPanel.css";
 
-function seedTagIds(label?: string): string[] {
+function seedTagIds(etiquetas: Etiqueta[], label?: string): string[] {
   if (!label) return [];
-  const match = listEtiquetas().find(
+  const match = etiquetas.find(
     (e) => e.name.toLowerCase() === label.trim().toLowerCase(),
   );
   return match ? [match.id] : [];
@@ -76,8 +76,9 @@ export function ChatWindow({
   const [contactMounted, setContactMounted] = useState(false);
   const [tagMenuOpen, setTagMenuOpen] = useState(false);
   const [tagSearch, setTagSearch] = useState("");
-  const [tagIds, setTagIds] = useState<string[]>(() => seedTagIds(activeChat.tag?.label));
-  const [draftTagIds, setDraftTagIds] = useState<string[]>(() => seedTagIds(activeChat.tag?.label));
+  const [etiquetas, setEtiquetas] = useState<Etiqueta[]>([]);
+  const [tagIds, setTagIds] = useState<string[]>([]);
+  const [draftTagIds, setDraftTagIds] = useState<string[]>([]);
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
   const [documentFile, setDocumentFile] = useState<DocumentPreviewFile | null>(null);
   const [hasComposerPreview, setHasComposerPreview] = useState(false);
@@ -86,7 +87,6 @@ export function ChatWindow({
   const [msgMenu, setMsgMenu] = useState<MsgMenuState>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
-  const etiquetas = listEtiquetas();
   const selectedTags = etiquetas.filter((e) => tagIds.includes(e.id));
   const contactMedia = collectChatMedia(messages);
   const tagQ = tagSearch.trim().toLowerCase();
@@ -134,7 +134,20 @@ export function ChatWindow({
   }, [hasComposerPreview]);
 
   useEffect(() => {
-    const seeded = seedTagIds(activeChat.tag?.label);
+    let cancelled = false;
+    listEtiquetas()
+      .then((items) => {
+        if (!cancelled) setEtiquetas(items);
+      })
+      .catch(() => {
+        if (!cancelled) setEtiquetas([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
     setReplyTo(null);
     setMsgMenu(null);
     setMoreOpen(false);
@@ -142,14 +155,18 @@ export function ChatWindow({
     setContactMounted(false);
     setTagMenuOpen(false);
     setTagSearch("");
-    setTagIds(seeded);
-    setDraftTagIds(seeded);
     setMsgSearchOpen(false);
     setMsgSearchQuery("");
     setConfirmDelete(false);
     setDocumentFile(null);
     setLightboxSrc(null);
-  }, [activeChat.id, activeChat.tag?.label]);
+  }, [activeChat.id]);
+
+  useEffect(() => {
+    const seeded = seedTagIds(etiquetas, activeChat.tag?.label);
+    setTagIds(seeded);
+    setDraftTagIds(seeded);
+  }, [activeChat.id, activeChat.tag?.label, etiquetas]);
 
   useEffect(() => {
     if (!msgSearchOpen) return;

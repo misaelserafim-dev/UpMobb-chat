@@ -100,7 +100,7 @@ export const SYSTEM_MAP_FLOWS: SystemMapFlow[] = [
       },
       {
         title: "Lista de conversas",
-        detail: "ChatList + FilterChip + skeleton; dados de SAMPLE_CHATS (mock).",
+        detail: "ChatList + FilterChip + skeleton; dados via services/chats (mock em data/chats).",
         files: [
           "src/componentes/ChatList/ChatList.tsx",
           "src/componentes/ChatItem/ChatItem.tsx",
@@ -115,7 +115,7 @@ export const SYSTEM_MAP_FLOWS: SystemMapFlow[] = [
     ],
     notes: [
       "Import lazy em routes/index.tsx — Home não puxa ContatosPage.",
-      "Lista de chats: mock local (SAMPLE_CHATS).",
+      "Lista de chats: services/chats → mock em data/chats (ou VITE_API_URL).",
     ],
   },
   {
@@ -130,7 +130,7 @@ export const SYSTEM_MAP_FLOWS: SystemMapFlow[] = [
       },
       {
         title: "Service",
-        detail: "fetchContacts({ page, pageSize, query }) — mock local; futuro GET /contacts.",
+        detail: "fetchContacts({ page, pageSize, query }) — GET /contacts (mock em data/contacts).",
         files: ["src/services/contacts.ts"],
       },
       {
@@ -352,7 +352,7 @@ DELETE /equipe/:id`,
       },
       {
         title: "Fetch mensagens",
-        detail: "fetchChatMessages(id) — Promise mock ~1.1s com SAMPLE_MESSAGES.",
+        detail: "fetchChatMessages(id) — GET /chats/:id/messages (mock em data/chats).",
         files: ["src/utils/chatData.ts"],
       },
       {

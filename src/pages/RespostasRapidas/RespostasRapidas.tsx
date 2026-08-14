@@ -260,7 +260,7 @@ export function RespostasRapidas() {
 
       {modal.open ? (
         <div className="page-modal is-open" id="resposta-rapida-modal">
-          <div className="page-modal__backdrop" onClick={closeModal} />
+          <div className="page-modal__backdrop" />
           <div
             className="page-modal__dialog"
             role="dialog"

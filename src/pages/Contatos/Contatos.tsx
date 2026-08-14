@@ -1,18 +1,46 @@
 import { useEffect, useId, useMemo, useRef, useState, type FormEvent } from "react";
+import { useNavigate } from "react-router-dom";
 import { ContatosSkeleton } from "@/componentes/ContatosSkeleton/ContatosSkeleton.tsx";
 import { Icons } from "@/componentes/Icons/Icons.tsx";
 import { InternasTemplate } from "@/templates/Internas/InternasTemplate.tsx";
 import { ConfirmModal } from "@/componentes/ConfirmModal/ConfirmModal.tsx";
-import { createContact, deleteContact, fetchContacts, type Contact, type ContactTag } from "@/services/contacts.ts";
+import { NewTicketModal } from "@/componentes/NewTicketModal/NewTicketModal.tsx";
+import {
+  createContact,
+  deleteContact,
+  fetchContacts,
+  updateContact,
+  type Contact,
+  type ContactTag,
+} from "@/services/contacts.ts";
 import { listEtiquetas, type Etiqueta } from "@/services/etiquetas.ts";
 import { DIAL_CODES, getDialCode } from "@/utils/dialCodes.ts";
 import { maskPhone, phonePlaceholder } from "@/utils/phone.ts";
 import "@/componentes/ConfirmModal/ConfirmModal.css";
+import "@/componentes/NewTicketModal/NewTicketModal.css";
 import "./Contatos.css";
 
 const PAGE_SIZE = 40;
 
+type ModalState =
+  | { open: false }
+  | { open: true; mode: "create" }
+  | { open: true; mode: "edit"; item: Contact };
+
+function parseStoredPhone(phone: string): { iso: string; dial: string; national: string } {
+  const trimmed = phone.trim();
+  const sorted = [...DIAL_CODES].sort((a, b) => b.dial.length - a.dial.length);
+  for (const code of sorted) {
+    if (trimmed.startsWith(code.dial)) {
+      const rest = trimmed.slice(code.dial.length).trim();
+      return { iso: code.iso, dial: code.dial, national: maskPhone(rest, code.dial) };
+    }
+  }
+  return { iso: "BR", dial: "+55", national: maskPhone(trimmed, "+55") };
+}
+
 export function Contatos() {
+  const navigate = useNavigate();
   const titleId = useId();
   const nameRef = useRef<HTMLInputElement>(null);
 
@@ -22,7 +50,7 @@ export function Contatos() {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  const [modalOpen, setModalOpen] = useState(false);
+  const [modal, setModal] = useState<ModalState>({ open: false });
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState("");
 
@@ -38,9 +66,11 @@ export function Contatos() {
   const [tagMenuOpen, setTagMenuOpen] = useState(false);
   const [tagSearch, setTagSearch] = useState("");
   const [pendingDelete, setPendingDelete] = useState<Contact | null>(null);
+  const [ticketOpen, setTicketOpen] = useState(false);
+  const [ticketContact, setTicketContact] = useState<Contact | null>(null);
 
   const selectedDial = useMemo(() => getDialCode("+55", dialIso), [dialIso]);
-  const etiquetas = useMemo(() => listEtiquetas(), [modalOpen]);
+  const [etiquetas, setEtiquetas] = useState<Etiqueta[]>([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -69,10 +99,23 @@ export function Contatos() {
   }, [page, query]);
 
   useEffect(() => {
-    if (!modalOpen) return;
+    if (!modal.open) return;
+
+    let cancelled = false;
+    listEtiquetas()
+      .then((items) => {
+        if (!cancelled) setEtiquetas(items);
+      })
+      .catch(() => {
+        if (!cancelled) setEtiquetas([]);
+      });
+
     const t = window.setTimeout(() => nameRef.current?.focus(), 40);
-    return () => window.clearTimeout(t);
-  }, [modalOpen]);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(t);
+    };
+  }, [modal]);
 
   function resetForm() {
     setFormName("");
@@ -90,12 +133,28 @@ export function Contatos() {
 
   function openCreate() {
     resetForm();
-    setModalOpen(true);
+    setModal({ open: true, mode: "create" });
+  }
+
+  function openEdit(item: Contact) {
+    const parsed = parseStoredPhone(item.phone);
+    setFormName(item.name);
+    setFormEmail(item.email || "");
+    setFormNotes(item.notes || "");
+    setDialIso(parsed.iso);
+    setFormPhone(parsed.national);
+    setDdiOpen(false);
+    setDdiSearch("");
+    setTagIds((item.tags || []).map((t) => t.id));
+    setTagMenuOpen(false);
+    setTagSearch("");
+    setFormError("");
+    setModal({ open: true, mode: "edit", item });
   }
 
   function closeModal() {
     if (saving) return;
-    setModalOpen(false);
+    setModal({ open: false });
     setFormError("");
     setDdiOpen(false);
     setTagMenuOpen(false);
@@ -135,23 +194,38 @@ export function Contatos() {
       .filter((et) => tagIds.includes(et.id))
       .map((et) => ({ id: et.id, label: et.name, color: et.color }));
 
+    const phone = `${selectedDial.dial} ${phoneNumber}`.trim();
+
     setSaving(true);
     setFormError("");
     try {
-      const created = await createContact({
-        name,
-        phone: `${selectedDial.dial} ${phoneNumber}`.trim(),
-        dialCode: selectedDial.dial,
-        email: formEmail.trim() || undefined,
-        notes: formNotes.trim() || undefined,
-        tags: selectedTags,
-      });
+      if (modal.open && modal.mode === "edit") {
+        const updated = await updateContact({
+          id: modal.item.id,
+          name,
+          phone,
+          dialCode: selectedDial.dial,
+          email: formEmail.trim() || undefined,
+          notes: formNotes.trim() || undefined,
+          tags: selectedTags,
+        });
+        setContacts((prev) => prev.map((c) => (c.id === updated.id ? updated : c)));
+      } else {
+        const created = await createContact({
+          name,
+          phone,
+          dialCode: selectedDial.dial,
+          email: formEmail.trim() || undefined,
+          notes: formNotes.trim() || undefined,
+          tags: selectedTags,
+        });
 
-      if (page === 1) {
-        setContacts((prev) => [created, ...prev].slice(0, PAGE_SIZE));
+        if (page === 1) {
+          setContacts((prev) => [created, ...prev].slice(0, PAGE_SIZE));
+        }
+        setTotal((t) => t + 1);
       }
-      setTotal((t) => t + 1);
-      setModalOpen(false);
+      setModal({ open: false });
     } catch {
       setFormError("Não foi possível salvar. Tente de novo.");
     } finally {
@@ -247,7 +321,11 @@ export function Contatos() {
                     className="contact-row__action"
                     data-contact-action="whatsapp"
                     aria-label="WhatsApp"
-                    title="WhatsApp"
+                    title="Abrir ticket no WhatsApp"
+                    onClick={() => {
+                      setTicketContact(c);
+                      setTicketOpen(true);
+                    }}
                   >
                     <Icons.Whatsapp />
                   </button>
@@ -257,6 +335,7 @@ export function Contatos() {
                     data-contact-action="editar"
                     aria-label="Editar"
                     title="Editar"
+                    onClick={() => openEdit(c)}
                   >
                     <Icons.Edit />
                   </button>
@@ -301,9 +380,9 @@ export function Contatos() {
         </div>
       ) : null}
 
-      {modalOpen ? (
-        <div className="page-modal is-open" id="contact-add-modal">
-          <div className="page-modal__backdrop" onClick={closeModal} />
+      {modal.open ? (
+        <div className="page-modal is-open" id="contact-modal">
+          <div className="page-modal__backdrop" />
           <div
             className="page-modal__dialog"
             role="dialog"
@@ -315,7 +394,7 @@ export function Contatos() {
             </button>
 
             <h2 className="page-modal__title" id={titleId}>
-              Novo contato
+              {modal.mode === "edit" ? "Editar contato" : "Novo contato"}
             </h2>
 
             <form className="contact-form" autoComplete="off" onSubmit={handleSubmit}>
@@ -550,7 +629,7 @@ export function Contatos() {
                   Cancelar
                 </button>
                 <button type="submit" className="contact-form__btn contact-form__btn--primary" disabled={saving}>
-                  {saving ? "Salvando…" : "Adicionar"}
+                  {saving ? "Salvando…" : modal.mode === "edit" ? "Salvar" : "Adicionar"}
                 </button>
               </div>
             </form>
@@ -571,6 +650,20 @@ export function Contatos() {
         danger
         onCancel={() => setPendingDelete(null)}
         onConfirm={confirmDelete}
+      />
+
+      <NewTicketModal
+        open={ticketOpen}
+        initialContact={ticketContact}
+        onClose={() => {
+          setTicketOpen(false);
+          setTicketContact(null);
+        }}
+        onCreated={(chat) => {
+          setTicketOpen(false);
+          setTicketContact(null);
+          navigate("/", { state: { openChatId: chat.id } });
+        }}
       />
     </InternasTemplate>
   );
