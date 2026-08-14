@@ -528,9 +528,6 @@
   list-style: none;
 }
 
-.components-demo-topnav {
-  background: var(--app-bg);
-}
 
 .components-demo-topnav .top-nav {
   position: relative;

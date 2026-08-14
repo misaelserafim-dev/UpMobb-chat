@@ -27,9 +27,12 @@ export function ChatList({
   filters = DEFAULT_FILTERS,
   activeFilter = "todos",
   loading = false,
+  morphPhase = "idle",
+  resizeVersion = 0,
   onFilterChange,
   onChatSelect,
   onCreateTicket,
+  ref,
 }: ChatListProps) {
   const viewportRef = useRef<HTMLDivElement>(null);
   const emblaRef = useRef<EmblaCarouselType | null>(null);
@@ -69,12 +72,9 @@ export function ChatList({
   }, [loading, filters]);
 
   useEffect(() => {
-    function onListResized() {
-      emblaRef.current?.reInit();
-    }
-    window.addEventListener("chat-list-resized", onListResized);
-    return () => window.removeEventListener("chat-list-resized", onListResized);
-  }, []);
+    if (!resizeVersion) return;
+    emblaRef.current?.reInit();
+  }, [resizeVersion]);
 
   const filtersClass = [
     "embla",
@@ -87,7 +87,12 @@ export function ChatList({
     .join(" ");
 
   return (
-    <aside className="chat-list" aria-label="Lista de conversas">
+    <aside
+      ref={ref}
+      className="chat-list"
+      data-morph={morphPhase === "idle" ? undefined : morphPhase}
+      aria-label="Lista de conversas"
+    >
       <div
         className={filtersClass}
         id="filters-carousel"
@@ -143,10 +148,12 @@ export function ChatList({
         {loading ? (
           <ChatListSkeleton count={6} />
         ) : chats.length ? (
-          chats.map((chat) => (
+          chats.map((chat, index) => (
             <ChatItem
               key={chat.id}
               chat={chat}
+              morphIndex={index}
+              morphPhase={morphPhase}
               onClick={() => {
                 if (chat.active) return;
                 onChatSelect?.(chat.id);

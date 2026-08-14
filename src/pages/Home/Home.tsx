@@ -17,8 +17,8 @@ import {
   sendChatMessage,
   type ChatMessage,
 } from "@/services/chats.ts";
-import { applyListWidth, getSavedListWidth, initListResize } from "@/utils/listResize.ts";
 import { applyTheme, getSavedThemeId } from "@/utils/theme.ts";
+import { useListResize } from "@/hooks/useListResize.ts";
 import "./Home.css";
 
 type HomeLocationState = {
@@ -31,6 +31,7 @@ export function Home() {
   const { logout } = useAuth();
   const chatLoadToken = useRef(0);
   const pendingOpenChatId = useRef<string | null>(null);
+  const listRef = useRef<HTMLElement>(null);
 
   const [themeId, setThemeId] = useState(getSavedThemeId);
   const [activeFilter, setActiveFilter] = useState("todos");
@@ -42,21 +43,17 @@ export function Home() {
   const [chatLoading, setChatLoading] = useState(false);
   const [listLoading, setListLoading] = useState(true);
 
+  const { morphPhase, resizeVersion, handleProps } = useListResize({
+    listRef,
+    enabled: !listLoading,
+  });
+
   useEffect(() => {
     document.title = activeChat?.name
       ? `conversando com ${activeChat.name}`
       : "Upmobb | Chat";
     applyTheme(themeId);
   }, [themeId, activeChat]);
-
-  useEffect(() => {
-    applyListWidth(getSavedListWidth());
-  }, []);
-
-  useEffect(() => {
-    if (listLoading) return;
-    return initListResize();
-  }, [listLoading]);
 
   useEffect(() => {
     let cancelled = false;
@@ -302,9 +299,12 @@ export function Home() {
 
       <div className="workspace" id="workspace">
         <ChatList
+          ref={listRef}
           chats={chats}
           activeFilter={activeFilter}
           loading={listLoading}
+          morphPhase={morphPhase}
+          resizeVersion={resizeVersion}
           onFilterChange={setActiveFilter}
           onChatSelect={selectChat}
           onCreateTicket={(chat) => {
@@ -315,11 +315,11 @@ export function Home() {
 
         <div
           className="list-resize-handle"
-          id="list-resize-handle"
           role="separator"
           aria-orientation="vertical"
           aria-label="Redimensionar lista de conversas"
           title="Arraste para redimensionar"
+          {...handleProps}
         >
           <span className="list-resize-handle__grip" aria-hidden="true">
             <span />

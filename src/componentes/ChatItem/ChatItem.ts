@@ -23,4 +23,6 @@ export type ChatItemData = {
 export type ChatItemProps = {
   chat: ChatItemData;
   onClick?: () => void;
+  morphIndex?: number;
+  morphPhase?: "idle" | "drag" | "settle";
 };

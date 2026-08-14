@@ -12,6 +12,33 @@
   padding: var(--panel-gap) 0 0;
 }
 
+.chat-list[data-morph="drag"] .chat-item:not(.chat-item--active) {
+  transform: scale(var(--morph-sx, 1), var(--morph-sy, 1));
+  margin-top: var(--morph-m, 4px);
+  margin-bottom: var(--morph-m, 4px);
+  transform-origin: left center;
+  transition: transform 0.08s linear, margin 0.08s linear;
+}
+
+.chat-list[data-morph="settle"] .chat-item:not(.chat-item--active) {
+  transform: scale(1, 1);
+  margin-top: 4px;
+  margin-bottom: 4px;
+  transform-origin: left center;
+  transition:
+    transform 0.48s cubic-bezier(0.22, 1.45, 0.36, 1),
+    margin 0.48s cubic-bezier(0.22, 1.45, 0.36, 1);
+  transition-delay: var(--morph-delay, 0ms);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chat-list[data-morph="drag"] .chat-item:not(.chat-item--active),
+  .chat-list[data-morph="settle"] .chat-item:not(.chat-item--active) {
+    transition: none;
+    transform: none;
+  }
+}
+
 
 /* Embla — filtros (mesmo padrão do React) */
 .chat-filters.embla {

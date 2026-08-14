@@ -1,4 +1,5 @@
-﻿import type { ChatItemData, ChatItemProps, ChatTag } from "./ChatItem.ts";
+﻿import type { CSSProperties } from "react";
+import type { ChatItemData, ChatItemProps, ChatTag } from "./ChatItem.ts";
 import "./ChatItem.css";
 
 function TagBadge({ tag }: { tag?: ChatTag }) {
@@ -21,7 +22,14 @@ function TagBadge({ tag }: { tag?: ChatTag }) {
   );
 }
 
-export function ChatItem({ chat, onClick }: ChatItemProps) {
+export function ChatItem({ chat, onClick, morphIndex = 0, morphPhase = "idle" }: ChatItemProps) {
+  const style = {
+    ...(chat.color ? { borderLeftColor: chat.color } : {}),
+    ...(morphPhase === "settle" && !chat.active
+      ? { ["--morph-delay" as string]: `${morphIndex * 16}ms` }
+      : {}),
+  } as CSSProperties;
+
   return (
     <li
       className={`chat-item${chat.active ? " chat-item--active" : ""}`}
@@ -29,7 +37,7 @@ export function ChatItem({ chat, onClick }: ChatItemProps) {
       role="button"
       tabIndex={0}
       title={chat.preview || undefined}
-      style={chat.color ? { borderLeftColor: chat.color } : undefined}
+      style={style}
       onClick={onClick}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
