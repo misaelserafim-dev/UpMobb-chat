@@ -167,13 +167,13 @@
 
 .nav-submenu__item:hover .nav-submenu__icon,
 .nav-submenu__item.is-active .nav-submenu__icon {
-  color: var(--accent);
+  color: var(--menu-hover-fg);
 }
 
 .nav-submenu__item:hover,
 .nav-submenu__item.is-active {
-  background: color-mix(in srgb, var(--accent) 12%, transparent);
-  color: var(--accent);
+  background: var(--menu-hover-bg);
+  color: var(--menu-hover-fg);
 }
 
 .nav-submenu__item--danger:hover {

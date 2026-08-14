@@ -122,8 +122,8 @@
 }
 
 .contact-panel__close:hover {
-  background: rgb(0 0 0 / 0.05);
-  color: var(--text);
+  background: var(--menu-hover-bg);
+  color: var(--menu-hover-fg);
 }
 
 .contact-panel__body {
@@ -185,8 +185,8 @@
 }
 
 .contact-panel__copy:hover {
-  background: rgb(0 0 0 / 0.05);
-  color: var(--text);
+  background: var(--menu-hover-bg);
+  color: var(--menu-hover-fg);
 }
 
 .contact-panel__copy .icon {
@@ -265,7 +265,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: color-mix(in srgb, var(--accent) 16%, #fff);
+  background: color-mix(in srgb, var(--accent) 25%, #fff);
   color: var(--accent);
   font-size: 0.75rem;
   font-weight: 500;

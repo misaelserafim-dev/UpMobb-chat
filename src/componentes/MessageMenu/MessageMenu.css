@@ -35,7 +35,7 @@
 }
 
 .msg-menu__emoji:hover {
-  background: #f3f3f5;
+  background: var(--menu-hover-bg);
   transform: scale(1.12);
 }
 
@@ -70,11 +70,17 @@
 }
 
 .msg-menu__item:hover {
-  background: #f5f5f7;
+  background: var(--menu-hover-bg);
+  color: var(--menu-hover-fg);
 }
 
 .msg-menu__item--danger {
   color: #dc2626;
+}
+
+.msg-menu__item--danger:hover {
+  background: color-mix(in srgb, var(--danger) 12%, transparent);
+  color: var(--danger);
 }
 
 .msg-menu__icon {

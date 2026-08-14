@@ -312,8 +312,8 @@ button.chat-window__etiqueta-add .icon {
 }
 
 .chat-msg-search__close:hover {
-  background: rgb(0 0 0 / 0.06);
-  color: var(--text);
+  background: var(--menu-hover-bg);
+  color: var(--menu-hover-fg);
 }
 
 .chat-window:has(.chat-msg-search.is-open) .chat-window__messages {

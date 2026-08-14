@@ -238,8 +238,8 @@
 }
 
 .composer-btn:hover {
-  background: #f3f3f5;
-  color: var(--text);
+  background: var(--menu-hover-bg);
+  color: var(--menu-hover-fg);
 }
 
 .composer-send {
@@ -294,7 +294,13 @@
 
 .composer-slash__item:hover,
 .composer-slash__item.is-active {
-  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  background: var(--menu-hover-bg);
+  color: var(--menu-hover-fg);
+}
+
+.composer-slash__item:hover .composer-slash__text,
+.composer-slash__item.is-active .composer-slash__text {
+  color: var(--menu-hover-fg);
 }
 
 .composer-slash__shortcut {

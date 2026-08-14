@@ -159,7 +159,8 @@
 }
 
 .new-ticket-modal__option:hover {
-  background: rgb(0 0 0 / 0.05);
+  background: var(--menu-hover-bg);
+  color: var(--menu-hover-fg);
 }
 
 .new-ticket-modal__option-avatar {
