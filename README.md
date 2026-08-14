@@ -49,3 +49,46 @@ O mesmo vale para pages e templates.
 |----------|--------|
 | `/`      | Home   |
 | `/login` | Login  |
+
+## Mapa do sistema
+
+Fluxos principais (UI → service → dados). Versão interativa: página **Componentes**.
+
+```mermaid
+flowchart LR
+  subgraph Boot
+    main["main.tsx"] --> auth["AuthProvider"] --> routes["AppRoutes"]
+  end
+
+  subgraph Login
+    L["Login"] --> A["login()"] --> S["setSession()"] --> H["navigate(/)"]
+  end
+
+  subgraph Home
+    HomePage["Home"] --> FC["fetchChats()"] --> Data["data/chats ou API"]
+    Data --> List["ChatList"] --> Item["ChatItem"]
+  end
+
+  subgraph Conversa
+    Click["ChatItem click"] --> Sel["selectChat()"] --> Msgs["fetchChatMessages()"] --> Win["ChatWindow"]
+    Input["ChatInput"] --> Send["sendChatMessage()"] --> Bubble["MessageBubble"]
+  end
+
+  subgraph Ticket
+    Modal["NewTicketModal"] --> Create["createChat()"] --> Open["selectChat(id)"]
+  end
+
+  subgraph Internas
+    Tpl["InternasTemplate"] --> Pages["Contatos / Etiquetas / …"] --> Svc["services/*"] --> Mock["data/*"]
+  end
+```
+
+| Fluxo | Caminho resumido |
+|-------|------------------|
+| Boot | `main` → Auth → rotas |
+| Login | Login → `login()` → sessão → Home |
+| Lista | Home → `fetchChats()` → mock/API → ChatList |
+| Abrir | ChatItem → `selectChat()` → mensagens → ChatWindow |
+| Enviar | ChatInput → `sendChatMessage()` → MessageBubble |
+| Ticket | NewTicketModal → `createChat()` → abre conversa |
+| Internas | página → `services/*` → `data/*` (mock até ter API) |
