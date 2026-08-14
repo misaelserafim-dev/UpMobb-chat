@@ -84,8 +84,17 @@ export function Componentes() {
   useEffect(() => {
     document.title = pageView === "map" ? "Upmobb | Mapa do sistema" : "Upmobb | Componentes";
     document.body.classList.add("components-body");
+    window.scrollTo(0, 0);
+    document.body.scrollTop = 0;
+    document.documentElement.scrollTop = 0;
     return () => document.body.classList.remove("components-body");
   }, [pageView]);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    document.body.scrollTop = 0;
+    document.documentElement.scrollTop = 0;
+  }, []);
 
   useEffect(() => {
     applyTheme(themeId);
@@ -98,7 +107,7 @@ export function Componentes() {
   }
 
   return (
-    <div className="components-page">
+    <div className={`components-page${pageView === "map" ? " components-page--map" : ""}`}>
       <div className="components-page__inner">
         <header className="components-page__hero">
           <div>
@@ -108,7 +117,7 @@ export function Componentes() {
             </h1>
             <p className="components-page__lead">
               {pageView === "map"
-                ? "Trilhas de arquivos, requisições e payloads: login, dashboard, abrir chat, enviar mensagem."
+                ? "Caminho visual do app: quem chama quem (UI → service → dados)."
                 : (
                   <>
                     Peças reutilizáveis em <code>src/componentes/</code>. Referência visual do chat React.
@@ -137,10 +146,12 @@ export function Componentes() {
             Mapa do sistema
           </button>
         </nav>
+      </div>
 
-        {pageView === "map" ? <SystemMapView /> : null}
+      {pageView === "map" ? <SystemMapView /> : null}
 
-        {pageView === "components" ? (
+      {pageView === "components" ? (
+        <div className="components-page__inner">
           <>
         <Section title="TopNav" desc="componentes/TopNav" demoClassName="components-section__demo--flush">
           <div className="components-demo-topnav">
@@ -366,8 +377,8 @@ export function Componentes() {
           })}
         </Section>
           </>
-        ) : null}
-      </div>
+        </div>
+      ) : null}
 
       <Lightbox open={Boolean(lightboxSrc)} src={lightboxSrc} onClose={() => setLightboxSrc(null)} />
       <DocumentPreview open={Boolean(docFile)} file={docFile} onClose={() => setDocFile(null)} />

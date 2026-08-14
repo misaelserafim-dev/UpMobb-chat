@@ -176,9 +176,9 @@ export function ContactPanel({
 
           <section className="contact-panel__media" aria-label="Mídias, docs e links">
             <button type="button" className="contact-panel__media-head">
-              <span className="contact-panel__media-icon" aria-hidden="true">
+              {/* <span className="contact-panel__media-icon" aria-hidden="true">
                 <Icons.Image />
-              </span>
+              </span> */}
               <span className="contact-panel__media-title">Mídias, docs e links</span>
               <span className="contact-panel__media-count">{media.length}</span>
               <Icons.ChevronRight size="xs" />

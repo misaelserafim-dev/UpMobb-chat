@@ -1,74 +1,58 @@
-import { useState } from "react";
-import { SYSTEM_MAP_FLOWS } from "./SystemMap.ts";
+import { FLOW_KIND_LABEL, FLOW_PATHS, type FlowNode } from "./SystemMap.ts";
+
+function FlowCard({ node }: { node: FlowNode }) {
+  return (
+    <div className={`flow-card flow-card--${node.kind}`} title={node.file || node.label}>
+      <span className="flow-card__kind">{FLOW_KIND_LABEL[node.kind]}</span>
+      <strong className="flow-card__label">{node.label}</strong>
+      {node.file ? <code className="flow-card__file">{node.file}</code> : null}
+    </div>
+  );
+}
+
+function FlowArrow({ label }: { label?: string }) {
+  return (
+    <div className="flow-arrow" aria-hidden="true">
+      <span className="flow-arrow__line" />
+      {label ? <span className="flow-arrow__label">{label}</span> : null}
+      <span className="flow-arrow__head" />
+    </div>
+  );
+}
 
 export function SystemMapView() {
-  const [activeId, setActiveId] = useState(SYSTEM_MAP_FLOWS[0]?.id || "boot");
-  const flow = SYSTEM_MAP_FLOWS.find((f) => f.id === activeId) || SYSTEM_MAP_FLOWS[0];
-
-  if (!flow) return null;
-
   return (
-    <div className="system-map">
-      <aside className="system-map__nav" aria-label="Fluxos do sistema">
-        {SYSTEM_MAP_FLOWS.map((item) => (
-          <button
-            key={item.id}
-            type="button"
-            className={`system-map__nav-item${item.id === flow.id ? " is-active" : ""}`}
-            onClick={() => setActiveId(item.id)}
-          >
-            {item.label}
-          </button>
-        ))}
-      </aside>
+    <div className="flow-map" aria-label="Fluxo do sistema">
+      <div className="flow-map__legend" aria-hidden="true">
+        <span className="flow-map__legend-item flow-map__legend-item--page">page / ui</span>
+        <span className="flow-map__legend-item flow-map__legend-item--service">service</span>
+        <span className="flow-map__legend-item flow-map__legend-item--data">mock / api</span>
+        <span className="flow-map__legend-item flow-map__legend-item--action">fluxo</span>
+      </div>
 
-      <article className="system-map__panel">
-        <header className="system-map__header">
-          <h2 className="system-map__title">{flow.label}</h2>
-          <p className="system-map__summary">{flow.summary}</p>
-        </header>
-
-        <ol className="system-map__steps">
-          {flow.steps.map((step, index) => (
-            <li key={`${flow.id}-${index}`} className="system-map__step">
-              <div className="system-map__step-index" aria-hidden="true">
-                {index + 1}
+      <ol className="flow-map__paths">
+        {FLOW_PATHS.map((path, pathIndex) => (
+          <li key={path.id} className="flow-path">
+           
+            <header className="flow-path__header">
+              <span className="flow-path__index">{String(pathIndex + 1).padStart(2, "0")}</span>
+              <div>
+                <h2 className="flow-path__title">{path.title}</h2>
+                <p className="flow-path__summary">{path.summary}</p>
               </div>
-              <div className="system-map__step-body">
-                <h3 className="system-map__step-title">{step.title}</h3>
-                <p className="system-map__step-detail">{step.detail}</p>
-                {step.files?.length ? (
-                  <ul className="system-map__files">
-                    {step.files.map((file) => (
-                      <li key={file}>
-                        <code>{file}</code>
-                      </li>
-                    ))}
-                  </ul>
-                ) : null}
-              </div>
-            </li>
-          ))}
-        </ol>
+            </header>
 
-        {flow.payload ? (
-          <section className="system-map__payload">
-            <h3 className="system-map__block-title">Payload / contrato</h3>
-            <pre className="system-map__code">{flow.payload}</pre>
-          </section>
-        ) : null}
-
-        {flow.notes?.length ? (
-          <section className="system-map__notes">
-            <h3 className="system-map__block-title">Notas</h3>
-            <ul>
-              {flow.notes.map((note) => (
-                <li key={note}>{note}</li>
+            <div className="flow-path__track">
+              {path.nodes.map((node, i) => (
+                <div key={node.id} className="flow-path__step">
+                  {i > 0 ? <FlowArrow label={node.call} /> : null}
+                  <FlowCard node={node} />
+                </div>
               ))}
-            </ul>
-          </section>
-        ) : null}
-      </article>
+            </div>
+          </li>
+        ))}
+      </ol>
     </div>
   );
 }

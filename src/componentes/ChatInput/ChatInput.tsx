@@ -205,7 +205,7 @@ export function ChatInput({
   });
 
   useEffect(() => {
-    fieldRef.current?.focus();
+    fieldRef.current?.focus({ preventScroll: true });
   }, [conversationId]);
 
   useEffect(() => {
@@ -390,7 +390,7 @@ export function ChatInput({
     if (imageFiles.length) {
       e.preventDefault();
       addFiles(imageFiles);
-      fieldRef.current?.focus();
+      fieldRef.current?.focus({ preventScroll: true });
       return;
     }
 

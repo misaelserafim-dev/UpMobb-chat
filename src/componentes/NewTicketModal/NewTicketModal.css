@@ -57,7 +57,7 @@
 
 .new-ticket-modal__title {
   font-size: 1.125rem;
-  font-weight: 700;
+  font-weight: 500;
   margin: 0 36px 18px 0;
   color: var(--text);
 }
