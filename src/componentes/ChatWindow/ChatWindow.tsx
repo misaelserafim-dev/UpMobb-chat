@@ -465,6 +465,13 @@ export function ChatWindow({
       >
         <div className="date-separator">Hoje</div>
         {messages.map((msg) => {
+          if (msg.from === "system") {
+            return (
+              <div key={msg.id} className="chat-notice" role="status">
+                {msg.text}
+              </div>
+            );
+          }
           const hit = Boolean(searchQ) && (msg.text || "").toLowerCase().includes(searchQ);
           const searchClass = searchQ ? (hit ? "is-search-hit" : "is-search-dim") : "";
           return (

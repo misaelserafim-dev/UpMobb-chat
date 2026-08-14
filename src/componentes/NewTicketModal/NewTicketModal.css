@@ -1,0 +1,244 @@
+/* NewTicketModal */
+.new-ticket-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1400;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+}
+
+.new-ticket-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgb(15 18 24 / 0.42);
+  backdrop-filter: blur(10px) saturate(140%);
+  -webkit-backdrop-filter: blur(10px) saturate(140%);
+}
+
+.new-ticket-modal__dialog {
+  position: relative;
+  z-index: 1;
+  width: min(440px, 100%);
+  background: #fff;
+  border-radius: 18px;
+  padding: 24px 22px 20px;
+  box-shadow: 0 24px 60px rgb(0 0 0 / 0.22);
+  animation: new-ticket-in 0.2s ease;
+}
+
+@keyframes new-ticket-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.new-ticket-modal__close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: var(--text-muted);
+}
+
+.new-ticket-modal__close:hover {
+  background: rgb(0 0 0 / 0.05);
+  color: var(--text);
+}
+
+.new-ticket-modal__title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin: 0 36px 18px 0;
+  color: var(--text);
+}
+
+.new-ticket-modal__form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.new-ticket-modal__contact-wrap {
+  position: relative;
+}
+
+.new-ticket-modal__contact-input {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 10px;
+  border-radius: 10px;
+  border: 1px solid rgb(0 0 0 / 0.1);
+  background: #fff;
+}
+
+.new-ticket-modal__contact-input:focus-within {
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+}
+
+.new-ticket-modal__contact-input .icon {
+  width: 16px;
+  height: 16px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.new-ticket-modal__contact-input input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  font: inherit;
+  font-size: 0.875rem;
+  color: var(--text);
+  outline: none;
+}
+
+.new-ticket-modal__contact-input input:disabled {
+  color: var(--text);
+  opacity: 1;
+}
+
+.new-ticket-modal__clear {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.new-ticket-modal__clear:hover {
+  background: rgb(0 0 0 / 0.06);
+  color: var(--text);
+}
+
+.new-ticket-modal__menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 20;
+  max-height: 220px;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid rgb(0 0 0 / 0.08);
+  border-radius: 12px;
+  box-shadow: 0 10px 28px rgb(0 0 0 / 0.14);
+  padding: 6px;
+}
+
+.new-ticket-modal__menu-empty {
+  margin: 0;
+  padding: 12px 10px;
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+}
+
+.new-ticket-modal__option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 8px;
+  text-align: left;
+  background: transparent;
+}
+
+.new-ticket-modal__option:hover {
+  background: rgb(0 0 0 / 0.05);
+}
+
+.new-ticket-modal__option-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #ddd;
+  flex-shrink: 0;
+}
+
+.new-ticket-modal__option-meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 1px;
+}
+
+.new-ticket-modal__option-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.new-ticket-modal__option-phone {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.new-ticket-modal__select {
+  width: 100%;
+  height: 42px;
+  padding: 0 12px;
+  border-radius: 10px;
+  border: 1px solid rgb(0 0 0 / 0.1);
+  background: #fff;
+  font: inherit;
+  font-size: 0.875rem;
+  color: var(--text);
+}
+
+.new-ticket-modal__select:focus {
+  outline: none;
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+}
+
+.new-ticket-modal__error {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: #dc2626;
+}
+
+.new-ticket-modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.new-ticket-modal .etiqueta-select__chip-remove {
+  width: 18px;
+  height: 18px;
+  margin-right: 4px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+}
+
+.new-ticket-modal .etiqueta-select__chip-remove:hover {
+  background: rgb(0 0 0 / 0.08);
+  color: var(--text);
+}
+
+.new-ticket-modal .etiqueta-select__chip-remove .icon {
+  width: 12px;
+  height: 12px;
+}

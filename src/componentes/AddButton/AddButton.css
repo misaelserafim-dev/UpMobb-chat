@@ -1,4 +1,20 @@
-/* AddButton */
+.add-btn-magnet {
+  width: 64px;
+  height: 64px;
+  margin: -12px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  touch-action: manipulation;
+}
+
+.add-btn-magnet__inner {
+  display: grid;
+  place-items: center;
+  transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+
 .add-btn {
   width: 40px;
   height: 40px;
@@ -9,9 +25,17 @@
   background: var(--accent);
   color: var(--accent-text);
   transition: background 0.15s ease;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.04), 0 8px 24px rgb(0 0 0 / 0.04);
 }
 
 .add-btn:hover {
   background: var(--accent-hover);
   color: var(--accent-hover-text);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .add-btn-magnet__inner {
+    transition: none !important;
+    transform: none !important;
+  }
 }

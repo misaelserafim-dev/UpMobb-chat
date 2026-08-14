@@ -24,6 +24,20 @@ export type DeleteChatPayload = {
   id: string;
 };
 
+export type CreateChatPayload = {
+  contactId: string;
+  name: string;
+  phone?: string;
+  avatar?: string;
+  departamentoId: string;
+  departamentoName: string;
+  departamentoColor: string;
+  etiquetaId?: string;
+  etiquetaName?: string;
+  etiquetaColor?: string;
+  assignee?: string;
+};
+
 export type SendChatMessagePayload = {
   chatId: string;
   message: ChatMessage;
@@ -108,6 +122,51 @@ export async function deleteChat(payload: DeleteChatPayload): Promise<{ id: stri
   chats = chats.filter((c) => c.id !== payload.id);
   messagesByChat.delete(payload.id);
   return { id: payload.id };
+}
+
+/**
+ * Futuro: POST /chats  Body: CreateChatPayload
+ * Hoje: cria ticket no mock e inicia conversa só com aviso de sistema.
+ */
+export async function createChat(payload: CreateChatPayload): Promise<ChatItemData> {
+  await wait(320);
+  const now = new Date();
+  const time = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+  const id = `t-${Date.now()}`;
+  const ticketNo = id.replace(/\D/g, "") || String(Date.now());
+  const dateLabel = now.toLocaleDateString("pt-BR");
+
+  const created: ChatItemData = {
+    id,
+    name: payload.name.trim(),
+    phone: payload.phone?.trim() || undefined,
+    avatar: payload.avatar,
+    time,
+    preview: `Atendimento iniciado · #${ticketNo}`,
+    unread: 0,
+    active: false,
+    color: payload.departamentoColor,
+    assignee: payload.assignee || "Você",
+    tag: payload.etiquetaId
+      ? {
+          type: "color",
+          label: payload.etiquetaName || "",
+          color: payload.etiquetaColor || "#9ca3af",
+        }
+      : undefined,
+  };
+
+  chats = [created, ...chats];
+  messagesByChat.set(id, [
+    {
+      id: `${id}-notice`,
+      from: "system",
+      time,
+      text: `Atendimento iniciado por: ${dateLabel} · #${ticketNo}`,
+    },
+  ]);
+
+  return { ...created };
 }
 
 /**

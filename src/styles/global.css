@@ -347,7 +347,7 @@ body.is-resizing-list * {
   flex-direction: column;
   background:
     radial-gradient(circle, rgb(0 0 0 / 0.03) 1px, transparent 1px) 0 0 / 18px 18px,
-    #f3f3f3;
+    #f7f7f7;
 }
 
 .page-panel__body .page-container {
@@ -658,6 +658,7 @@ body.is-resizing-list * {
   background: #fff;
   border-radius: 12px;
   overflow: hidden;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.04), 0 8px 24px rgb(0 0 0 / 0.04);
 }
 
 .quick-reply-table__head {
@@ -1015,7 +1016,6 @@ body.is-resizing-list * {
 .etiqueta-card__action {
   width: 32px;
   height: 32px;
-  border: 1px solid var(--border);
   border-radius: 50%;
   display: grid;
   place-items: center;

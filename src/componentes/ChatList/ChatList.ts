@@ -14,4 +14,5 @@ export type ChatListProps = {
   loading?: boolean;
   onFilterChange?: (id: string) => void;
   onChatSelect?: (id: string) => void;
+  onCreateTicket?: (chat: ChatItemData) => void;
 };

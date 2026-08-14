@@ -128,14 +128,6 @@
   pointer-events: none;
 }
 
-.chat-list__items {
-  flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
-  /* espaço pra as curvas não cortarem no scroll */
-  padding: calc(var(--curve) + 4px) 0 calc(var(--curve) + 16px);
-}
-
 .chat-list__empty {
   list-style: none;
   margin: 24px 16px;
@@ -143,6 +135,25 @@
   text-align: center;
   font-size: 0.875rem;
   color: var(--text-muted);
+}
+
+.chat-list__footer {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: flex-end;
+  padding: 20px;
+}
+
+.chat-list__add {
+  width: 44px;
+  height: 44px;
+}
+
+.chat-list__items {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: calc(var(--curve) + 4px) 0 8px;
 }
 
 

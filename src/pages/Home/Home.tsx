@@ -86,8 +86,8 @@ export function Home() {
       );
     });
 
-  async function selectChat(id: string) {
-    const selected = chatsData.find((c) => c.id === id);
+  async function selectChat(id: string, chatOverride?: ChatItemData) {
+    const selected = chatOverride || chatsData.find((c) => c.id === id);
     if (!selected) return;
 
     const token = ++chatLoadToken.current;
@@ -279,6 +279,10 @@ export function Home() {
           loading={listLoading}
           onFilterChange={setActiveFilter}
           onChatSelect={selectChat}
+          onCreateTicket={(chat) => {
+            setChatsData((prev) => [chat, ...prev.filter((c) => c.id !== chat.id)]);
+            void selectChat(chat.id, chat);
+          }}
         />
 
         <div

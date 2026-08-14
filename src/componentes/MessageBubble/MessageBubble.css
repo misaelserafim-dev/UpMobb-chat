@@ -43,7 +43,7 @@
 }
 
 .message__bubble {
-  padding: 9px 12px 6px;
+  padding: 5px;
   border-radius: 14px;
   overflow: hidden;
   color: var(--text);
@@ -52,7 +52,7 @@
 }
 
 .message__bubble--media {
-  padding: 4px;
+  padding: 5px;
   max-width: 640px;
 }
 

@@ -1,15 +1,20 @@
 ﻿import EmblaCarousel, { type EmblaCarouselType } from "embla-carousel";
 import { useEffect, useRef, useState } from "react";
+import { AddButton } from "@/componentes/AddButton/AddButton.tsx";
 import { ChatItem } from "@/componentes/ChatItem/ChatItem.tsx";
 import { ChatListSkeleton, FiltersCarouselSkeleton } from "@/componentes/ChatListSkeleton/ChatListSkeleton.tsx";
 import { FilterChip } from "@/componentes/FilterChip/FilterChip.tsx";
 import { Icons } from "@/componentes/Icons/Icons.tsx";
+import { NewTicketModal } from "@/componentes/NewTicketModal/NewTicketModal.tsx";
+import type { ChatItemData } from "@/componentes/ChatItem/ChatItem.ts";
 import { DEFAULT_FILTERS } from "@/utils/chatData.ts";
 import type { ChatListProps } from "./ChatList.ts";
 import "./ChatList.css";
 import "../FilterChip/FilterChip.css";
 import "../ChatItem/ChatItem.css";
 import "../ChatListSkeleton/ChatListSkeleton.css";
+import "../AddButton/AddButton.css";
+import "../NewTicketModal/NewTicketModal.css";
 
 const EMBLA_OPTIONS = {
   align: "start" as const,
@@ -24,11 +29,13 @@ export function ChatList({
   loading = false,
   onFilterChange,
   onChatSelect,
+  onCreateTicket,
 }: ChatListProps) {
   const viewportRef = useRef<HTMLDivElement>(null);
   const emblaRef = useRef<EmblaCarouselType | null>(null);
   const [canScrollPrev, setCanScrollPrev] = useState(false);
   const [canScrollNext, setCanScrollNext] = useState(false);
+  const [ticketOpen, setTicketOpen] = useState(false);
 
   useEffect(() => {
     if (loading) {
@@ -143,6 +150,22 @@ export function ChatList({
           <li className="chat-list__empty" />
         )}
       </ul>
+
+      <div className="chat-list__footer">
+        <AddButton
+          id="chat-list-add-btn"
+          label="Novo ticket"
+          title="Abrir novo ticket"
+          className="chat-list__add"
+          onClick={() => setTicketOpen(true)}
+        />
+      </div>
+
+      <NewTicketModal
+        open={ticketOpen}
+        onClose={() => setTicketOpen(false)}
+        onCreated={(chat: ChatItemData) => onCreateTicket?.(chat)}
+      />
     </aside>
   );
 }

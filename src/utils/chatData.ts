@@ -69,7 +69,7 @@ export const SAMPLE_CHATS: ChatItemData[] = [
 
 export type ChatMessage = {
   id: string;
-  from: "in" | "out";
+  from: "in" | "out" | "system";
   text?: string;
   html?: string;
   time: string;
