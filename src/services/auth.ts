@@ -1,7 +1,11 @@
+import { apiRequest, setAuthToken } from "@/services/api.ts";
+import { disconnectSocket } from "@/services/socket.ts";
+
 export type AuthUser = {
   id: string;
   name: string;
   email: string;
+  role?: "admin" | "user";
 };
 
 export type LoginPayload = {
@@ -14,35 +18,43 @@ export type LoginResponse = {
   user: AuthUser;
 };
 
-function wait(ms: number) {
-  return new Promise((resolve) => window.setTimeout(resolve, ms));
+const USER_KEY = "chat.user";
+
+export function getStoredUser(): AuthUser | null {
+  const raw = localStorage.getItem(USER_KEY);
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw) as AuthUser;
+  } catch {
+    return null;
+  }
 }
 
-export async function login(payload: LoginPayload): Promise<LoginResponse> {
-  // TODO: trocar pelo fetch real, ex:
-  // return api.post<LoginResponse>("/auth/login", payload)
-  await wait(800);
+export function clearSession() {
+  disconnectSocket();
+  setAuthToken(null);
+  localStorage.removeItem(USER_KEY);
+}
 
+/** POST /auth/login — guarda token JWT + usuário para as próximas requests. */
+export async function login(payload: LoginPayload): Promise<LoginResponse> {
   if (!payload.email.trim() || !payload.password) {
     throw new Error("Informe e-mail e senha.");
   }
 
-  return {
-    token: "mock-token",
-    user: {
-      id: "1",
-      name: payload.email.trim(),
-      email: payload.email.trim(),
-    },
-  };
+  const data = await apiRequest<LoginResponse>("/auth/login", {
+    method: "POST",
+    body: JSON.stringify({ email: payload.email.trim(), password: payload.password }),
+  });
+
+  setAuthToken(data.token);
+  localStorage.setItem(USER_KEY, JSON.stringify(data.user));
+  return data;
 }
 
 export async function requestPasswordReset(email: string): Promise<void> {
-  // TODO: trocar pelo fetch real, ex:
-  // return api.post("/auth/forgot-password", { email })
-  await wait(300);
-
   if (!email.trim()) {
     throw new Error("Informe o e-mail.");
   }
+  // Backend ainda não tem redefinição de senha; a tela mostra a mensagem genérica.
 }

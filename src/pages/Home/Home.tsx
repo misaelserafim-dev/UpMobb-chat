@@ -15,8 +15,11 @@ import {
   fetchChats,
   reactChatMessage,
   sendChatMessage,
+  toChatMessage,
   type ChatMessage,
+  type MessageDto,
 } from "@/services/chats.ts";
+import { getSocket } from "@/services/socket.ts";
 import { applyTheme, getSavedThemeId } from "@/utils/theme.ts";
 import { useListResize } from "@/hooks/useListResize.ts";
 import "./Home.css";
@@ -73,6 +76,47 @@ export function Home() {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket) return;
+
+    type MessageEvent = { conversationId: string; message: MessageDto };
+
+    const onMessageNew = ({ conversationId, message }: MessageEvent) => {
+      const msg = toChatMessage(message);
+      if (conversationId === activeChatId) {
+        setMessages((prev) => (prev.some((m) => m.id === msg.id) ? prev : [...prev, msg]));
+      }
+      setChatsData((prev) =>
+        prev.map((c) =>
+          c.id === conversationId ? { ...c, preview: msg.text || c.preview, time: msg.time } : c,
+        ),
+      );
+    };
+
+    const onMessageUpdated = ({ conversationId, message }: MessageEvent) => {
+      if (conversationId !== activeChatId) return;
+      const msg = toChatMessage(message);
+      setMessages((prev) => prev.map((m) => (m.id === msg.id ? msg : m)));
+    };
+
+    const onConversationUpdated = () => {
+      void fetchChats()
+        .then((res) => setChatsData(res.items))
+        .catch(() => {});
+    };
+
+    socket.on("message:new", onMessageNew);
+    socket.on("message:updated", onMessageUpdated);
+    socket.on("conversation:updated", onConversationUpdated);
+
+    return () => {
+      socket.off("message:new", onMessageNew);
+      socket.off("message:updated", onMessageUpdated);
+      socket.off("conversation:updated", onConversationUpdated);
+    };
+  }, [activeChatId]);
 
   const q = searchQuery.trim().toLowerCase();
   const chats = chatsData
@@ -212,7 +256,8 @@ export function Home() {
     for (const msg of batch) {
       saved.push(await sendChatMessage({ chatId, message: msg }));
     }
-    setMessages((prev) => [...prev, ...saved]);
+    // O socket pode entregar a própria mensagem antes do retorno HTTP — dedup por id
+    setMessages((prev) => [...prev, ...saved.filter((s) => !prev.some((m) => m.id === s.id))]);
     setChatsData((prev) =>
       prev.map((c) =>
         c.id === chatId
