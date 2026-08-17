@@ -3,10 +3,12 @@ import { Icons } from "@/componentes/Icons/Icons.tsx";
 import { NavLink } from "@/componentes/NavLink/NavLink.tsx";
 import { ThemePickerMenu } from "@/componentes/ThemePickerMenu/ThemePickerMenu.tsx";
 import { useDismissable } from "@/hooks/useDismissable.ts";
+import { useMagnetic } from "@/hooks/useMagnetic.ts";
 import type { TopNavProps } from "./TopNav.ts";
 import "./TopNav.css";
 import "../NavLink/NavLink.css";
 import "../ThemePickerMenu/ThemePickerMenu.css";
+import "@/styles/magnetic.css";
 
 export function TopNav({
   active = "conversas",
@@ -22,6 +24,7 @@ export function TopNav({
   const [themeOpen, setThemeOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const rootRef = useRef<HTMLElement>(null);
+  const themeMagnet = useMagnetic(true);
 
   const anyMenuOpen = configOpen || themeOpen || menuOpen;
 
@@ -175,22 +178,26 @@ export function TopNav({
         </div>
 
         <div className={`theme-picker${themeOpen ? " is-open" : ""}`}>
-          <button
-            type="button"
-            className="theme-picker__btn"
-            aria-label="Cores do sistema"
-            aria-expanded={themeOpen}
-            aria-haspopup="true"
-            title="Cores do sistema"
-            onClick={(e) => {
-              e.stopPropagation();
-              setThemeOpen((v) => !v);
-              setConfigOpen(false);
-              setMenuOpen(false);
-            }}
-          >
-            <Icons.Palette />
-          </button>
+          <div className="magnet" ref={themeMagnet.magnetRef} {...themeMagnet.magnetProps}>
+            <div className="magnet__inner" style={themeMagnet.style}>
+              <button
+                type="button"
+                className="theme-picker__btn"
+                aria-label="Cores do sistema"
+                aria-expanded={themeOpen}
+                aria-haspopup="true"
+                title="Cores do sistema"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setThemeOpen((v) => !v);
+                  setConfigOpen(false);
+                  setMenuOpen(false);
+                }}
+              >
+                <Icons.Palette />
+              </button>
+            </div>
+          </div>
           <ThemePickerMenu
             open={themeOpen}
             themeId={themeId}
