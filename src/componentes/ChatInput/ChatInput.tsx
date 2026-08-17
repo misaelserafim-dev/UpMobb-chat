@@ -13,14 +13,13 @@ import {
   type RespostaRapida,
 } from "@/services/respostasRapidas.ts";
 import type { ChatInputProps, PendingAttachment, ReplyDraft } from "./ChatInput.ts";
+import { formatFileSize } from "@/utils/format.ts";
+import {
+  clearMicDenied,
+  markMicDenied,
+  watchMicAvailability,
+} from "@/utils/microphone.ts";
 import "./ChatInput.css";
-
-function formatFileSize(bytes: number) {
-  if (!bytes && bytes !== 0) return "";
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
 
 function filesToAttachments(files: File[]): PendingAttachment[] {
   return files.filter(Boolean).map((file, i) => {
@@ -51,8 +50,21 @@ function replyPreviewText(reply: ReplyDraft) {
   if (reply.text?.trim()) return reply.text;
   if (reply.image) return "Foto";
   if (reply.video) return "Vídeo";
+  if (reply.audio) return "Áudio";
   if (reply.attachment) return reply.attachment.name || "Arquivo";
   return "Mensagem";
+}
+
+function formatAudioTime(totalSec: number) {
+  const sec = Math.max(0, Math.floor(totalSec));
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  return `${m}:${String(s).padStart(2, "0")}`;
+}
+
+function pickAudioMime() {
+  const types = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4", "audio/ogg"];
+  return types.find((t) => MediaRecorder.isTypeSupported(t)) || "";
 }
 
 function getSlashState(input: HTMLElement | null) {
@@ -116,11 +128,40 @@ export function ChatInput({
   const attachmentsRef = useRef<PendingAttachment[]>([]);
   const addFilesRef = useRef<(files: File[]) => void>(() => {});
   const slashQueryRef = useRef<string | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const mediaStreamRef = useRef<MediaStream | null>(null);
+  const audioChunksRef = useRef<BlobPart[]>([]);
+  const recordStartedAtRef = useRef(0);
+  const recordTimerRef = useRef(0);
+
   const [empty, setEmpty] = useState(true);
   const [attachments, setAttachments] = useState<PendingAttachment[]>([]);
   const [slashOpen, setSlashOpen] = useState(false);
   const [slashMatches, setSlashMatches] = useState<RespostaRapida[]>([]);
   const [slashIndex, setSlashIndex] = useState(0);
+  const [recording, setRecording] = useState(false);
+  const [recordSec, setRecordSec] = useState(0);
+  const [recordError, setRecordError] = useState("");
+  const [micBlocked, setMicBlocked] = useState(false);
+
+  useEffect(() => {
+    let dispose = () => {};
+
+    void watchMicAvailability((availability) => {
+      setMicBlocked(!availability.ok);
+      setRecordError(availability.reason);
+    }).then((stop) => {
+      dispose = stop;
+    });
+
+    return () => dispose();
+  }, []);
+
+  useEffect(() => {
+    if (!recordError || micBlocked) return;
+    const timer = window.setTimeout(() => setRecordError(""), 3200);
+    return () => window.clearTimeout(timer);
+  }, [recordError, micBlocked]);
 
   function revokeAll(list: PendingAttachment[]) {
     list.forEach((a) => {
@@ -149,6 +190,129 @@ export function ChatInput({
     setSlashIndex(0);
     slashQueryRef.current = null;
   }
+
+  function stopMediaTracks() {
+    mediaStreamRef.current?.getTracks().forEach((t) => t.stop());
+    mediaStreamRef.current = null;
+  }
+
+  function clearRecordTimer() {
+    window.clearInterval(recordTimerRef.current);
+    recordTimerRef.current = 0;
+  }
+
+  function resetRecorder() {
+    clearRecordTimer();
+    mediaRecorderRef.current = null;
+    audioChunksRef.current = [];
+    recordStartedAtRef.current = 0;
+    setRecording(false);
+    setRecordSec(0);
+    stopMediaTracks();
+  }
+
+  const finishRecording = useEffectEvent(async (send: boolean) => {
+    const recorder = mediaRecorderRef.current;
+    if (!recorder || recorder.state === "inactive") {
+      resetRecorder();
+      return;
+    }
+
+    const durationSec = Math.max(
+      1,
+      Math.round((Date.now() - recordStartedAtRef.current) / 1000),
+    );
+
+    await new Promise<void>((resolve) => {
+      recorder.addEventListener(
+        "stop",
+        () => {
+          const mime = recorder.mimeType || "audio/webm";
+          const blob = new Blob(audioChunksRef.current, { type: mime });
+          resetRecorder();
+
+          if (send && blob.size > 0) {
+            const src = URL.createObjectURL(blob);
+            onSend?.({
+              text: "",
+              attachments: [],
+              audio: { src, durationSec },
+              replyTo: replyTo || null,
+            });
+            onClearReply?.();
+          }
+          resolve();
+        },
+        { once: true },
+      );
+      recorder.stop();
+    });
+  });
+
+  async function startRecording() {
+    if (recording || slashOpen) return;
+    if (!micBlocked) setRecordError("");
+    closeSlash();
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaStreamRef.current = stream;
+      clearMicDenied();
+      setMicBlocked(false);
+      setRecordError("");
+      const mime = pickAudioMime();
+      const recorder = mime
+        ? new MediaRecorder(stream, { mimeType: mime })
+        : new MediaRecorder(stream);
+
+      audioChunksRef.current = [];
+      recorder.ondataavailable = (e) => {
+        if (e.data.size) audioChunksRef.current.push(e.data);
+      };
+
+      mediaRecorderRef.current = recorder;
+      recordStartedAtRef.current = Date.now();
+      setRecordSec(0);
+      setRecording(true);
+      recorder.start(120);
+
+      clearRecordTimer();
+      recordTimerRef.current = window.setInterval(() => {
+        setRecordSec(Math.floor((Date.now() - recordStartedAtRef.current) / 1000));
+      }, 250);
+    } catch (err) {
+      stopMediaTracks();
+      const name = err instanceof DOMException ? err.name : "";
+      const denied = name === "NotAllowedError" || name === "PermissionDeniedError";
+      const missing = name === "NotFoundError" || name === "DevicesNotFoundError";
+      if (denied) {
+        markMicDenied();
+        setMicBlocked(true);
+        setRecordError("Sem acesso ao microfone");
+      } else if (missing) {
+        setMicBlocked(true);
+        setRecordError("Nenhum microfone encontrado");
+      } else {
+        setRecordError("Sem acesso ao microfone");
+      }
+      setRecording(false);
+    }
+  }
+
+  useEffect(() => {
+    return () => {
+      clearRecordTimer();
+      const recorder = mediaRecorderRef.current;
+      if (recorder && recorder.state !== "inactive") {
+        try {
+          recorder.stop();
+        } catch {
+          // ignore
+        }
+      }
+      stopMediaTracks();
+    };
+  }, []);
 
   function updateSlashMenu() {
     const state = getSlashState(fieldRef.current);
@@ -214,7 +378,8 @@ export function ChatInput({
     if (fieldRef.current) fieldRef.current.innerHTML = "";
     setEmpty(true);
     closeSlash();
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- reset only when conversation changes
+    void finishRecording(false);
+    if (!micBlocked) setRecordError("");
   }, [conversationId]);
 
   useEffect(() => {
@@ -306,7 +471,7 @@ export function ChatInput({
   }
 
   function submit() {
-    if (slashOpen) return;
+    if (slashOpen || recording) return;
     const { text, html } = getComposerContent();
     const files = [...attachments];
     if (!text && !files.length) return;
@@ -403,10 +568,12 @@ export function ChatInput({
 
   const hasPreview = attachments.length > 0;
   const hasReply = Boolean(replyTo);
+  const canSend = (!empty || hasPreview) && !recording;
+  const micUnavailable = micBlocked || Boolean(recordError);
 
   return (
     <div
-      className={`chat-composer-wrap${hasPreview ? " has-preview" : ""}${hasReply ? " has-reply" : ""}`}
+      className={`chat-composer-wrap${hasPreview ? " has-preview" : ""}${hasReply ? " has-reply" : ""}${recording ? " is-recording" : ""}`}
       id="chat-composer-wrap"
       ref={wrapRef}
     >
@@ -442,12 +609,12 @@ export function ChatInput({
               >
                 {attachment.kind === "image" ? (
                   <div className="composer-preview__media">
-                    <img src={attachment.src} alt="" />
+                    <img src={attachment.src} alt="midia do anexo" />
                   </div>
                 ) : null}
                 {attachment.kind === "video" ? (
                   <div className="composer-preview__media composer-preview__media--video">
-                    <video src={attachment.src} muted />
+                    <video src={attachment.src} muted aria-label="video do anexo" />
                   </div>
                 ) : null}
                 {attachment.kind === "file" ? (
@@ -509,29 +676,78 @@ export function ChatInput({
           className="composer-btn"
           aria-label="Anexar"
           id="composer-attach"
+          disabled={recording}
           onClick={() => fileInputRef.current?.click()}
         >
           <Icons.Plus />
         </button>
 
-        <div
-          className={`composer-field${empty ? " is-empty" : ""}`}
-          id="composer-field"
-          contentEditable
-          suppressContentEditableWarning
-          role="textbox"
-          aria-multiline="true"
-          aria-label="Mensagem"
-          data-placeholder="Digite uma mensagem"
-          ref={fieldRef}
-          onInput={handleInput}
-          onKeyDown={handleKeyDown}
-          onPaste={handlePaste}
-        />
+        {recording ? (
+          <div className="composer-recording" aria-live="polite">
+            <span className="composer-recording__dot" aria-hidden="true" />
+            <span className="composer-recording__label">Gravando</span>
+            <span className="composer-recording__time">{formatAudioTime(recordSec)}</span>
+            <button
+              type="button"
+              className="composer-btn composer-recording__cancel"
+              aria-label="Cancelar áudio"
+              onClick={() => void finishRecording(false)}
+            >
+              <Icons.X />
+            </button>
+          </div>
+        ) : (
+          <div
+            className={`composer-field${empty ? " is-empty" : ""}`}
+            id="composer-field"
+            contentEditable
+            suppressContentEditableWarning
+            role="textbox"
+            aria-multiline="true"
+            aria-label="Mensagem"
+            data-placeholder="Digite uma mensagem"
+            ref={fieldRef}
+            onInput={handleInput}
+            onKeyDown={handleKeyDown}
+            onPaste={handlePaste}
+          />
+        )}
 
-        <button type="submit" className="composer-send" aria-label="Enviar">
-          <Icons.Send />
-        </button>
+        <div className="composer-actions">
+          {recording ? (
+            <button
+              type="button"
+              className="composer-send composer-send--audio"
+              aria-label="Enviar áudio"
+              onClick={() => void finishRecording(true)}
+            >
+              <Icons.Send />
+            </button>
+          ) : (
+            <>
+              <button
+                type="button"
+                className={`composer-btn composer-audio${micUnavailable ? " composer-audio--error" : ""}`}
+                aria-label={recordError || "Gravar áudio"}
+                title={recordError || undefined}
+                id="composer-audio"
+                onClick={() => void startRecording()}
+              >
+                {micUnavailable ? <Icons.MicOff /> : <Icons.Mic />}
+              </button>
+              <button
+                type="submit"
+                className={`composer-send${canSend ? " is-ready" : ""}`}
+                aria-label="Enviar"
+                aria-hidden={!canSend}
+                tabIndex={canSend ? 0 : -1}
+                disabled={!canSend}
+              >
+                <Icons.Send />
+              </button>
+            </>
+          )}
+        </div>
 
         <input
           ref={fileInputRef}

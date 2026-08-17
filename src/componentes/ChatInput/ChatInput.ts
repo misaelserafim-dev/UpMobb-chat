@@ -16,6 +16,7 @@ export type ComposerSendPayload = {
   text: string;
   html?: string;
   attachments: PendingAttachment[];
+  audio?: { src: string; durationSec?: number } | null;
   replyTo?: ReplyDraft | null;
 };
 

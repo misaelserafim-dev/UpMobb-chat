@@ -18,11 +18,13 @@ export type ChatMessage = {
     text?: string;
     image?: boolean;
     video?: boolean;
+    audio?: boolean;
     attachment?: { name?: string };
   };
   reactions?: Array<{ emoji: string; count: number }>;
   image?: { src: string; alt?: string };
   video?: { src: string; poster?: string };
+  audio?: { src: string; durationSec?: number };
   attachment?: {
     name: string;
     size?: string;

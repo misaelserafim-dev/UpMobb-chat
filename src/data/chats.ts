@@ -122,6 +122,15 @@ export const MOCK_MESSAGES: ChatMessage[] = [
     },
   },
   {
+    id: "4c",
+    from: "in",
+    time: "10:40",
+    audio: {
+      src: "https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3",
+      durationSec: 2,
+    },
+  },
+  {
     id: "5",
     from: "in",
     text: "Thanks for the update! I'll review it.",
@@ -144,6 +153,7 @@ function cloneMessage(msg: ChatMessage): ChatMessage {
     reactions: msg.reactions?.map((r) => ({ ...r })),
     image: msg.image ? { ...msg.image } : undefined,
     video: msg.video ? { ...msg.video } : undefined,
+    audio: msg.audio ? { ...msg.audio } : undefined,
     attachment: msg.attachment ? { ...msg.attachment } : undefined,
   };
 }

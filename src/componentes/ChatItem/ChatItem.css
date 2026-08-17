@@ -7,7 +7,6 @@
   margin: 4px 0 4px 12px;
   border-radius: 7px 15px 15px 7px;
   cursor: pointer;
-  transition: background 0.15s ease, backdrop-filter 0.15s ease;
   position: relative;
   background-color: rgb(255 255 255 / 72%);
   backdrop-filter: blur(8px) saturate(1.1);
@@ -31,32 +30,36 @@
   opacity: 1;
 }
 
-.chat-item--active::before {
+.chat-item::before,
+.chat-item::after {
   content: "";
   position: absolute;
   right: 0;
-  top: calc(var(--curve) * -1);
   width: var(--curve);
   height: var(--curve);
   background: transparent;
-  border-bottom-right-radius: var(--curve);
-  box-shadow: 10px 10px 0 10px var(--chat-bg);
   pointer-events: none;
   z-index: 0;
+  box-shadow: 10px 10px 0 10px transparent;
+}
+
+.chat-item::before {
+  top: calc(var(--curve) * -1);
+  border-bottom-right-radius: var(--curve);
+}
+
+.chat-item::after {
+  bottom: calc(var(--curve) * -1);
+  border-top-right-radius: var(--curve);
+  box-shadow: 10px -10px 0 10px transparent;
+}
+
+.chat-item--active::before {
+  box-shadow: 10px 10px 0 10px var(--chat-bg);
 }
 
 .chat-item--active::after {
-  content: "";
-  position: absolute;
-  right: 0;
-  bottom: calc(var(--curve) * -1);
-  width: var(--curve);
-  height: var(--curve);
-  background: transparent;
-  border-top-right-radius: var(--curve);
   box-shadow: 10px -10px 0 10px var(--chat-bg);
-  pointer-events: none;
-  z-index: 0;
 }
 
 .chat-item__avatar-wrap {
@@ -172,8 +175,8 @@
     z-index: auto;
   }
 
-  .chat-item--active::before,
-  .chat-item--active::after {
+  .chat-item::before,
+  .chat-item::after {
     display: none !important;
     content: none !important;
   }

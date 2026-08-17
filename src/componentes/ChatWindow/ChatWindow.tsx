@@ -49,6 +49,7 @@ function buildReplyDraft(msg: ChatMessage, senderName: string): ReplyDraft {
     text: msg.text,
     image: Boolean(msg.image),
     video: Boolean(msg.video),
+    audio: Boolean(msg.audio),
     attachment: msg.attachment ? { name: msg.attachment.name } : undefined,
   };
 }
@@ -496,6 +497,7 @@ export function ChatWindow({
               key={msg.id}
               message={msg}
               senderName={senderName}
+              senderAvatar={msg.from === "in" ? activeChat.avatar : undefined}
               className={searchClass}
               onImageClick={setLightboxSrc}
               onDocumentClick={setDocumentFile}

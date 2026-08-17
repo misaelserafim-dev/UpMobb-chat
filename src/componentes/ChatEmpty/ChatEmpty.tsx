@@ -1,6 +1,7 @@
-﻿import waBackground from "../../assets/wa-background.png";
-import type { ChatEmptyProps } from "./ChatEmpty.ts";
+﻿import type { ChatEmptyProps } from "./ChatEmpty.ts";
 import "./ChatEmpty.css";
+
+const waBackground = new URL("../../assets/wa-background.png", import.meta.url).href;
 
 export function ChatEmpty({ loading = false }: ChatEmptyProps) {
   return (

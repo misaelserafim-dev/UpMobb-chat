@@ -352,6 +352,46 @@ function Image({ className, size = "sm" }: IconProps) {
   );
 }
 
+function Mic({ className, size = "sm" }: IconProps) {
+  return (
+    <svg className={iconClassName(size, className)} viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
+      <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+      <line x1="12" x2="12" y1="19" y2="22" />
+    </svg>
+  );
+}
+
+function MicOff({ className, size = "sm" }: IconProps) {
+  return (
+    <svg className={iconClassName(size, className)} viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M9 9v3a3 3 0 0 0 5.12 2.12" />
+      <path d="M15 9.34V5a3 3 0 0 0-5.94-.6" />
+      <path d="M17 14.95A7 7 0 0 1 5 12v-2" />
+      <path d="M19 10v2a7 7 0 0 1-.11 1.23" />
+      <line x1="12" x2="12" y1="19" y2="22" />
+      <line x1="2" x2="22" y1="2" y2="22" />
+    </svg>
+  );
+}
+
+function Pause({ className, size = "sm" }: IconProps) {
+  return (
+    <svg className={iconClassName(size, className)} viewBox="0 0 24 24" aria-hidden="true">
+      <rect width="4" height="16" x="6" y="4" rx="1" />
+      <rect width="4" height="16" x="14" y="4" rx="1" />
+    </svg>
+  );
+}
+
+function Square({ className, size = "sm" }: IconProps) {
+  return (
+    <svg className={iconClassName(size, className)} viewBox="0 0 24 24" aria-hidden="true">
+      <rect width="14" height="14" x="5" y="5" rx="2" />
+    </svg>
+  );
+}
+
 function LogOut({ className, size = "xs" }: IconProps) {
   return (
     <svg className={iconClassName(size, className)} viewBox="0 0 24 24" aria-hidden="true">
@@ -397,5 +437,9 @@ export const Icons = {
   Team,
   Copy,
   Image,
+  Mic,
+  MicOff,
+  Pause,
+  Square,
   LogOut,
 };

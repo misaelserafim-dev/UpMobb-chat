@@ -144,7 +144,7 @@ export function Home() {
     setChatLoading(false);
   }
 
-  async function handleSend({ text, html, attachments, replyTo }: ComposerSendPayload) {
+  async function handleSend({ text, html, attachments, audio, replyTo }: ComposerSendPayload) {
     if (!activeChat) return;
 
     const now = new Date();
@@ -153,7 +153,16 @@ export function Home() {
     const batch: ChatMessage[] = [];
     const replyPayload = replyTo ? { ...replyTo } : undefined;
 
-    if (!attachments.length) {
+    if (audio?.src) {
+      batch.push({
+        id: `local-${stamp}`,
+        from: "out",
+        time,
+        read: false,
+        audio: { src: audio.src, durationSec: audio.durationSec },
+        ...(replyPayload ? { replyTo: replyPayload } : {}),
+      });
+    } else if (!attachments.length) {
       batch.push({
         id: `local-${stamp}`,
         from: "out",
@@ -209,7 +218,11 @@ export function Home() {
         c.id === chatId
           ? {
               ...c,
-              preview: saved.at(-1)?.text || saved.at(-1)?.attachment?.name || c.preview,
+              preview:
+                saved.at(-1)?.text ||
+                (saved.at(-1)?.audio ? "Áudio" : undefined) ||
+                saved.at(-1)?.attachment?.name ||
+                c.preview,
               time: saved.at(-1)?.time || c.time,
             }
           : c,
