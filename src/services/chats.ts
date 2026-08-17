@@ -65,7 +65,7 @@ type ConversationDto = {
   departmentColor: string | null;
 };
 
-type MessageDto = {
+export type MessageDto = {
   id: string;
   direction: "inbound" | "outbound";
   type: string;
@@ -93,7 +93,7 @@ function toChatItem(dto: ConversationDto): ChatItemData {
   };
 }
 
-function toChatMessage(dto: MessageDto): ChatMessage {
+export function toChatMessage(dto: MessageDto): ChatMessage {
   return {
     id: dto.id,
     from: dto.type === "system" ? "system" : dto.direction === "inbound" ? "in" : "out",

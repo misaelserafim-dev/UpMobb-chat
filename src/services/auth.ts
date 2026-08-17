@@ -1,4 +1,5 @@
 import { apiRequest, setAuthToken } from "@/services/api.ts";
+import { disconnectSocket } from "@/services/socket.ts";
 
 export type AuthUser = {
   id: string;
@@ -30,6 +31,7 @@ export function getStoredUser(): AuthUser | null {
 }
 
 export function clearSession() {
+  disconnectSocket();
   setAuthToken(null);
   localStorage.removeItem(USER_KEY);
 }
