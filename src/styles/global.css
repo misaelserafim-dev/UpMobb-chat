@@ -22,13 +22,15 @@
   --sand: #d2c6b7;
   --app-bg: #e8e8ec;
   --list-bg: var(--app-bg);
-  --chat-bg: #ffffff;
+  --chat-bg: #f7f7f7;
+  --chat-bg-pattern: radial-gradient(circle, rgb(0 0 0 / 0.03) 1px, transparent 1px) 0 0 / 18px 18px,
+    var(--chat-bg);
   --surface: #ffffff;
   --text: #1a1a1a;
   --text-muted: #6b6b73;
   --text-soft: #9a9aa3;
   --border: #e8e8ec;
-  --bubble-in: #f7f8fa;
+  --bubble-in: #ffffff;
   --bubble-out: #e8e8ec;
   --bubble-out-text: #1f2937;
   --accent: #0063a3;

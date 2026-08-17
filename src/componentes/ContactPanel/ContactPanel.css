@@ -84,10 +84,10 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: 16px 14px 19px 18px;
+  padding: 8px 14px 8px 18px;
   flex-shrink: 0;
   border-bottom: 1px solid var(--border);
-  height: 68px;
+  height: 62px;
 }
 
 .contact-panel__title-row {

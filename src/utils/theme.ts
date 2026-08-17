@@ -173,7 +173,7 @@ export function applyTheme(id: string): ThemeColor {
   root.setProperty("--accent-hover", theme.accentHover);
   root.setProperty("--accent-text", theme.accentText);
   root.setProperty("--accent-hover-text", theme.accentHoverText || theme.accentText);
-  root.setProperty("--bubble-in", theme.bubbleIn || "#f7f8fa");
+  root.setProperty("--bubble-in", "#ffffff");
   root.setProperty("--bubble-out", theme.background);
   root.setProperty("--bubble-out-text", theme.color || "#1F2937");
 
