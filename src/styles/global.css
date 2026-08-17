@@ -118,7 +118,7 @@ img {
   min-height: 0;
   overflow: hidden;
   /* sobra do painel só em cima e direita — embaixo vai até o fim */
-  padding: var(--panel-gap) var(--panel-gap) 0 0;
+  padding: 0 var(--panel-gap) 0 0;
 }
 
 
@@ -1386,6 +1386,8 @@ body.is-resizing-list * {
   min-width: 0;
   align-items: center;
   padding: 2px 0;
+  margin-top: auto;
+  margin-bottom: auto;
 }
 
 .etiqueta-select__placeholder {

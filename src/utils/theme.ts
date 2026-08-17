@@ -131,7 +131,7 @@ export const SYSTEM_COLORS: ThemeColor[] = [
   {
     id: "whatsapp",
     label: "WhatsApp",
-    background: "#fcf5eb",
+    background: "#f5e9d8",
     color: "#1D1F1F",
     accent: "#1DAA61",
     accentHover: "#169352",
@@ -142,7 +142,7 @@ export const SYSTEM_COLORS: ThemeColor[] = [
   {
     id: "sand",
     label: "Areia",
-    background: "#D8CCBB",
+    background: "#ebcda1",
     color: "#1F2937",
     accent: "#8E7358",
     accentHover: "#795F46",

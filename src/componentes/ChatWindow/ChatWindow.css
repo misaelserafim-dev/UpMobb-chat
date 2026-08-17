@@ -333,7 +333,7 @@ button.chat-window__etiqueta-add .icon {
   flex: 1;
   overflow-y: auto;
   overflow-anchor: none;
-  padding: 84px 28px 110px;
+  padding: 84px 24px 110px;
   display: flex;
   flex-direction: column;
   gap: 8px;

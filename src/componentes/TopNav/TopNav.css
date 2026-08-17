@@ -6,7 +6,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  min-height: 56px;
+  min-height: 60px;
   padding: 0 var(--panel-gap) 0 0;
   background: transparent;
   border-bottom: none;

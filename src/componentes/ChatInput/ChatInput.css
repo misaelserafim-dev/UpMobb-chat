@@ -5,13 +5,19 @@
   left: 0;
   right: 0;
   bottom: 0;
-  padding: 0 24px 22px;
+  padding: 0 20px 20px;
   pointer-events: none;
   background: linear-gradient(to top, var(--chat-bg) 35%, transparent);
   display: flex;
   flex-direction: column;
   gap: 10px;
   align-items: stretch;
+}
+
+@media (max-width: 800px) {
+  .chat-composer-wrap {
+    padding-inline: 10px;
+  }
 }
 
 .composer-preview {

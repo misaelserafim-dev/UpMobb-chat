@@ -45,7 +45,7 @@
   position: relative;
   display: flex;
   align-items: center;
-  padding: 4px 0 12px;
+  padding: 15px 0 0;
   --slide-spacing: 6px;
   --fade-w: 36px;
 }
