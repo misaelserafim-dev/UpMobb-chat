@@ -37,21 +37,44 @@ export type DeleteDepartamentoPayload = {
   id: string;
 };
 
-/** GET /departamentos?page=&pageSize=&q= */
+// Formato do backend (/admin/departments)
+type DepartmentDto = {
+  id: string;
+  name: string;
+  color: string;
+  greetingMessage: string;
+  sortOrder: number;
+  active: boolean;
+};
+
+function toDepartamento(dto: DepartmentDto): Departamento {
+  return {
+    id: dto.id,
+    name: dto.name,
+    color: dto.color,
+    greeting: dto.greetingMessage,
+  };
+}
+
+/** GET /admin/departments — lista completa; busca e paginação aplicadas aqui. */
 export async function fetchDepartamentos(
   params: FetchDepartamentosParams = {},
 ): Promise<FetchDepartamentosResult> {
   const page = Math.max(1, params.page || 1);
   const pageSize = Math.min(100, Math.max(10, params.pageSize || 40));
-  const q = (params.query || "").trim();
+  const q = (params.query || "").trim().toLowerCase();
 
-  const search = new URLSearchParams({
-    page: String(page),
-    pageSize: String(pageSize),
-  });
-  if (q) search.set("q", q);
+  const rows = await apiRequest<DepartmentDto[]>("/admin/departments");
+  const all = rows.map(toDepartamento);
+  const filtered = q ? all.filter((d) => d.name.toLowerCase().includes(q)) : all;
+  const start = (page - 1) * pageSize;
 
-  return apiRequest<FetchDepartamentosResult>(`/departamentos?${search}`);
+  return {
+    items: filtered.slice(start, start + pageSize),
+    total: filtered.length,
+    page,
+    pageSize,
+  };
 }
 
 /** Lista completa pra selects (Equipe, Novo ticket). */
@@ -60,32 +83,46 @@ export async function listDepartamentos(): Promise<Departamento[]> {
   return res.items;
 }
 
-/** POST /departamentos */
+/** POST /admin/departments */
 export async function createDepartamento(
   payload: CreateDepartamentoPayload,
 ): Promise<Departamento> {
-  return apiRequest<Departamento>("/departamentos", {
+  const dto = await apiRequest<DepartmentDto>("/admin/departments", {
     method: "POST",
-    body: JSON.stringify(payload),
+    body: JSON.stringify({
+      name: payload.name,
+      color: payload.color,
+      greetingMessage: payload.greeting,
+    }),
   });
+  return toDepartamento(dto);
 }
 
-/** PUT /departamentos/:id */
+/** PATCH /admin/departments/:id */
 export async function updateDepartamento(
   payload: UpdateDepartamentoPayload,
 ): Promise<Departamento> {
-  const { id, ...body } = payload;
-  return apiRequest<Departamento>(`/departamentos/${encodeURIComponent(id)}`, {
-    method: "PUT",
-    body: JSON.stringify(body),
-  });
+  const dto = await apiRequest<DepartmentDto>(
+    `/admin/departments/${encodeURIComponent(payload.id)}`,
+    {
+      method: "PATCH",
+      body: JSON.stringify({
+        name: payload.name,
+        color: payload.color,
+        greetingMessage: payload.greeting,
+      }),
+    },
+  );
+  return toDepartamento(dto);
 }
 
-/** DELETE /departamentos/:id */
+/** DELETE /admin/departments/:id */
 export async function deleteDepartamento(
   payload: DeleteDepartamentoPayload,
 ): Promise<{ id: string }> {
-  return apiRequest<{ id: string }>(`/departamentos/${encodeURIComponent(payload.id)}`, {
-    method: "DELETE",
-  });
+  await apiRequest<{ deleted: boolean }>(
+    `/admin/departments/${encodeURIComponent(payload.id)}`,
+    { method: "DELETE" },
+  );
+  return { id: payload.id };
 }

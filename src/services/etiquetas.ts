@@ -34,20 +34,31 @@ export type DeleteEtiquetaPayload = {
   id: string;
 };
 
+// Formato do backend (/admin/tags)
+type TagDto = {
+  id: string;
+  name: string;
+  color: string;
+};
+
+/** GET /admin/tags — lista completa; busca e paginação aplicadas aqui. */
 export async function fetchEtiquetas(
   params: FetchEtiquetasParams = {},
 ): Promise<FetchEtiquetasResult> {
   const page = Math.max(1, params.page || 1);
   const pageSize = Math.min(100, Math.max(10, params.pageSize || 40));
-  const q = (params.query || "").trim();
+  const q = (params.query || "").trim().toLowerCase();
 
-  const search = new URLSearchParams({
-    page: String(page),
-    pageSize: String(pageSize),
-  });
-  if (q) search.set("q", q);
+  const rows = await apiRequest<TagDto[]>("/admin/tags");
+  const filtered = q ? rows.filter((t) => t.name.toLowerCase().includes(q)) : rows;
+  const start = (page - 1) * pageSize;
 
-  return apiRequest<FetchEtiquetasResult>(`/etiquetas?${search}`);
+  return {
+    items: filtered.slice(start, start + pageSize),
+    total: filtered.length,
+    page,
+    pageSize,
+  };
 }
 
 export async function listEtiquetas(): Promise<Etiqueta[]> {
@@ -55,25 +66,29 @@ export async function listEtiquetas(): Promise<Etiqueta[]> {
   return res.items;
 }
 
+/** POST /admin/tags */
 export async function createEtiqueta(payload: CreateEtiquetaPayload): Promise<Etiqueta> {
-  return apiRequest<Etiqueta>("/etiquetas", {
+  return apiRequest<Etiqueta>("/admin/tags", {
     method: "POST",
     body: JSON.stringify(payload),
   });
 }
 
+/** PATCH /admin/tags/:id */
 export async function updateEtiqueta(payload: UpdateEtiquetaPayload): Promise<Etiqueta> {
   const { id, ...body } = payload;
-  return apiRequest<Etiqueta>(`/etiquetas/${encodeURIComponent(id)}`, {
-    method: "PUT",
+  return apiRequest<Etiqueta>(`/admin/tags/${encodeURIComponent(id)}`, {
+    method: "PATCH",
     body: JSON.stringify(body),
   });
 }
 
+/** DELETE /admin/tags/:id */
 export async function deleteEtiqueta(
   payload: DeleteEtiquetaPayload,
 ): Promise<{ id: string }> {
-  return apiRequest<{ id: string }>(`/etiquetas/${encodeURIComponent(payload.id)}`, {
+  await apiRequest<{ deleted: boolean }>(`/admin/tags/${encodeURIComponent(payload.id)}`, {
     method: "DELETE",
   });
+  return { id: payload.id };
 }
