@@ -315,10 +315,6 @@ html[data-template="rounded"] .nav-submenu__item {
     display: block;
   }
 
-  .theme-picker {
-    display: none;
-  }
-
   .top-nav__links--mobile {
     display: flex;
     flex-direction: column;

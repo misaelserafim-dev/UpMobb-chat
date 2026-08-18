@@ -126,8 +126,29 @@ export function ChatWindow({
     el.scrollTop = el.scrollHeight;
   });
 
+  const scrollStateRef = useRef<{ chatId: string; length: number; lastId: string } | null>(null);
+
   useEffect(() => {
-    scrollToEnd();
+    const lastId = messages.at(-1)?.id ?? "";
+    const prev = scrollStateRef.current;
+    const next = { chatId: activeChat.id, length: messages.length, lastId };
+    scrollStateRef.current = next;
+
+    const chatChanged = !prev || prev.chatId !== next.chatId;
+    const appended =
+      Boolean(prev) &&
+      prev!.chatId === next.chatId &&
+      next.length > prev!.length;
+    const replacedTail =
+      Boolean(prev) &&
+      prev!.chatId === next.chatId &&
+      next.length === prev!.length &&
+      next.lastId !== prev!.lastId;
+
+    // Só desce em troca de chat, mensagem nova ou resposta — não em reação/edição in-place
+    if (chatChanged || appended || replacedTail) {
+      scrollToEnd();
+    }
   }, [messages, activeChat.id]);
 
   useEffect(() => {

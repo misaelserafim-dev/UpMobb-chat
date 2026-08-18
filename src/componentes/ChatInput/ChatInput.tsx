@@ -373,14 +373,14 @@ export function ChatInput({
   });
 
   useEffect(() => {
-    fieldRef.current?.focus({ preventScroll: true });
-  }, [conversationId]);
-
-  useEffect(() => {
     clearAttachments();
     onClearReply?.();
-    if (fieldRef.current) fieldRef.current.innerHTML = "";
+    if (fieldRef.current) {
+      fieldRef.current.innerHTML = "";
+      fieldRef.current.blur();
+    }
     setEmpty(true);
+    setComposerFocused(false);
     closeSlash();
     void finishRecording(false);
     if (!micBlocked) setRecordError("");
