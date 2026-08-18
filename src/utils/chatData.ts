@@ -1,8 +1,9 @@
 export const DEFAULT_FILTERS = [
-  { id: "todos", label: "Todos", count: 21, dropdown: true },
-  { id: "aguardando", label: "Aguardando", count: 11 },
-  { id: "resolvidos", label: "Resolvidos", count: 40, dropdown: true },
-  { id: "nao-lidas", label: "Não lidas", count: 5 },
+  { id: "todos", label: "Todos" },
+  { id: "meus", label: "Meus" },
+  { id: "aguardando", label: "Aguardando" },
+  { id: "resolvidos", label: "Resolvidos" },
+  { id: "grupos", label: "Grupos" },
 ];
 
 export type ChatMessage = {

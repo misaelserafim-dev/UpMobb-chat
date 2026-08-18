@@ -529,14 +529,26 @@ export function ChatWindow({
         })}
       </div>
 
-      <ChatInput
-        conversationId={activeChat.id}
-        replyTo={replyTo}
-        onClearReply={() => setReplyTo(null)}
-        onSend={onSend}
-        onPreviewChange={setHasComposerPreview}
-        onDropTargetChange={setIsDropTarget}
-      />
+      {activeChat.status === "waiting" ? (
+        <div className="chat-window__assume">
+          <button
+            type="button"
+            className="chat-window__assume-btn"
+            onClick={() => onAction?.("assumir")}
+          >
+            Assumir
+          </button>
+        </div>
+      ) : (
+        <ChatInput
+          conversationId={activeChat.id}
+          replyTo={replyTo}
+          onClearReply={() => setReplyTo(null)}
+          onSend={onSend}
+          onPreviewChange={setHasComposerPreview}
+          onDropTargetChange={setIsDropTarget}
+        />
+      )}
 
       <Lightbox
         open={Boolean(lightboxSrc)}
