@@ -5,6 +5,35 @@
   flex-shrink: 0;
 }
 
+/* Scroll na tabela, header sticky; body da página sem scroll */
+#contatos-page .page-panel__body {
+  overflow: hidden;
+}
+
+#contatos-page .page-container--contacts {
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow: hidden;
+}
+
+#contatos-page .contact-table {
+  flex: 1;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+#contatos-page .contact-table__head {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #fff;
+}
+
 .contatos-page {
   position: relative;
   height: 100%;
@@ -108,8 +137,8 @@ html[data-template="rounded"] .contatos-drop-overlay__card {
   align-items: center;
   justify-content: center;
   gap: 12px;
-  margin-top: 8px;
-  padding: 8px 8px 16px;
+  margin-top: 0;
+  padding: 4px 8px 8px;
   flex-shrink: 0;
 }
 

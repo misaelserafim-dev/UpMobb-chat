@@ -427,7 +427,7 @@ html[data-template="rounded"] .chat-msg-search {
 .contact-table {
   box-shadow: 0 1px 2px rgb(0 0 0 / 0.04), 0 8px 24px rgb(0 0 0 / 0.04);
   border-radius: var(--radius-default);
-  overflow: clip;
+  overflow: hidden;
   background: #fff;
   width: 100%;
   min-width: 0;
@@ -450,6 +450,9 @@ html[data-template="rounded"] .contact-table {
 }
 
 .contact-table__head {
+  position: sticky;
+  top: 0;
+  z-index: 2;
   font-size: 0.8125rem;
   font-weight: 600;
   color: var(--text);
