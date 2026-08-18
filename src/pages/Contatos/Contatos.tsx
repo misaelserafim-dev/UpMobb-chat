@@ -1,6 +1,7 @@
 import { useEffect, useId, useMemo, useRef, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { ContatosSkeleton } from "@/componentes/ContatosSkeleton/ContatosSkeleton.tsx";
+import { ContactImportModal } from "@/componentes/ContactImportModal/ContactImportModal.tsx";
 import { Icons } from "@/componentes/Icons/Icons.tsx";
 import { InternasTemplate } from "@/templates/Internas/InternasTemplate.tsx";
 import { ConfirmModal } from "@/componentes/ConfirmModal/ConfirmModal.tsx";
@@ -16,8 +17,14 @@ import {
 } from "@/services/contacts.ts";
 import { listEtiquetas, type Etiqueta } from "@/services/etiquetas.ts";
 import { DIAL_CODES, getDialCode } from "@/utils/dialCodes.ts";
+import {
+  fetchAllContactsForImport,
+  parseContactsWorkbook,
+  type ImportContactDraft,
+} from "@/utils/contactImport.ts";
 import { maskPhone, phonePlaceholder } from "@/utils/phone.ts";
 import "@/componentes/ConfirmModal/ConfirmModal.css";
+import "@/componentes/ContactImportModal/ContactImportModal.css";
 import "@/componentes/NewTicketModal/NewTicketModal.css";
 import "./Contatos.css";
 
@@ -40,12 +47,19 @@ function parseStoredPhone(phone: string): { iso: string; dial: string; national:
   return { iso: "BR", dial: "+55", national: maskPhone(trimmed, "+55") };
 }
 
+function formatContactPhone(phone: string) {
+  const parsed = parseStoredPhone(phone);
+  return `${parsed.dial} ${parsed.national}`.trim();
+}
+
 export function Contatos() {
   const navigate = useNavigate();
   const titleId = useId();
   const nameRef = useRef<HTMLInputElement>(null);
   const ddiRef = useRef<HTMLDivElement>(null);
   const tagSelectRef = useRef<HTMLDivElement>(null);
+  const importInputRef = useRef<HTMLInputElement>(null);
+  const dragDepthRef = useRef(0);
 
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
@@ -71,6 +85,14 @@ export function Contatos() {
   const [pendingDelete, setPendingDelete] = useState<Contact | null>(null);
   const [ticketOpen, setTicketOpen] = useState(false);
   const [ticketContact, setTicketContact] = useState<Contact | null>(null);
+
+  const [dragActive, setDragActive] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
+  const [importFileName, setImportFileName] = useState("");
+  const [importRows, setImportRows] = useState<ImportContactDraft[]>([]);
+  const [replaceDuplicates, setReplaceDuplicates] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const [importError, setImportError] = useState("");
 
   const selectedDial = useMemo(() => getDialCode("+55", dialIso), [dialIso]);
   const [etiquetas, setEtiquetas] = useState<Etiqueta[]>([]);
@@ -192,6 +214,111 @@ export function Contatos() {
     }
   }
 
+  function isImportFile(file: File | undefined | null) {
+    if (!file) return false;
+    const name = file.name.toLowerCase();
+    return (
+      name.endsWith(".xlsx") ||
+      name.endsWith(".xls") ||
+      name.endsWith(".csv") ||
+      file.type.includes("sheet") ||
+      file.type.includes("excel") ||
+      file.type === "text/csv"
+    );
+  }
+
+  async function openImportPreview(file: File) {
+    setImportError("");
+    setImportFileName(file.name);
+    setReplaceDuplicates(false);
+    try {
+      const [existing, tags] = await Promise.all([
+        fetchAllContactsForImport(fetchContacts),
+        listEtiquetas().catch(() => [] as Etiqueta[]),
+      ]);
+      setEtiquetas(tags);
+      const rows = await parseContactsWorkbook(file, existing, tags);
+      if (!rows.length) {
+        setImportError("Nenhum contato válido encontrado no arquivo.");
+        setImportRows([]);
+        setImportOpen(true);
+        return;
+      }
+      setImportRows(rows);
+      setImportOpen(true);
+    } catch {
+      setImportError("Não foi possível ler o arquivo. Use .xlsx, .xls ou .csv.");
+      setImportRows([]);
+      setImportOpen(true);
+    }
+  }
+
+  function closeImport() {
+    if (importing) return;
+    setImportOpen(false);
+    setImportRows([]);
+    setImportFileName("");
+    setImportError("");
+    setReplaceDuplicates(false);
+    if (importInputRef.current) importInputRef.current.value = "";
+  }
+
+  async function confirmImport() {
+    if (!importRows.length || importing) return;
+    setImporting(true);
+    setImportError("");
+
+    try {
+      let createdCount = 0;
+      let updatedCount = 0;
+
+      for (const row of importRows) {
+        if (row.status === "duplicate") {
+          if (!replaceDuplicates || !row.existingId) continue;
+          await updateContact({
+            id: row.existingId,
+            name: row.name,
+            phone: row.phone,
+            dialCode: row.dialCode,
+            email: row.email,
+            notes: row.notes,
+            tags: row.tags,
+          });
+          updatedCount += 1;
+          continue;
+        }
+
+        await createContact({
+          name: row.name,
+          phone: row.phone,
+          dialCode: row.dialCode,
+          email: row.email,
+          notes: row.notes,
+          tags: row.tags,
+        });
+        createdCount += 1;
+      }
+
+      const refreshed = await fetchContacts({ page, pageSize: PAGE_SIZE, query });
+      setContacts(refreshed.items);
+      setTotal(refreshed.total);
+      setImportOpen(false);
+      setImportRows([]);
+      setImportFileName("");
+      setReplaceDuplicates(false);
+      if (importInputRef.current) importInputRef.current.value = "";
+
+      if (!createdCount && !updatedCount) {
+        setImportError("Nada foi importado. Marque substituir duplicados se quiser atualizar os iguais.");
+        setImportOpen(true);
+      }
+    } catch {
+      setImportError("Falha ao importar alguns contatos. Tente de novo.");
+    } finally {
+      setImporting(false);
+    }
+  }
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     const name = formName.trim();
@@ -266,23 +393,99 @@ export function Contatos() {
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const countLabel = loading ? "…" : `${total} contato${total === 1 ? "" : "s"}`;
 
+  useEffect(() => {
+    function hasFiles(e: DragEvent) {
+      return Array.from(e.dataTransfer?.types || []).includes("Files");
+    }
+
+    function enter(e: globalThis.DragEvent) {
+      if (!hasFiles(e)) return;
+      e.preventDefault();
+      dragDepthRef.current += 1;
+      setDragActive(true);
+    }
+
+    function leave(e: globalThis.DragEvent) {
+      if (!hasFiles(e)) return;
+      e.preventDefault();
+      dragDepthRef.current = Math.max(0, dragDepthRef.current - 1);
+      if (dragDepthRef.current === 0) setDragActive(false);
+    }
+
+    function over(e: globalThis.DragEvent) {
+      if (!hasFiles(e)) return;
+      e.preventDefault();
+    }
+
+    function drop(e: globalThis.DragEvent) {
+      if (!hasFiles(e)) return;
+      e.preventDefault();
+      dragDepthRef.current = 0;
+      setDragActive(false);
+      const file = e.dataTransfer?.files?.[0];
+      if (!file || !isImportFile(file)) {
+        setImportError("Envie um arquivo Excel (.xlsx / .xls) ou CSV.");
+        setImportRows([]);
+        setImportOpen(true);
+        return;
+      }
+      void openImportPreview(file);
+    }
+
+    document.addEventListener("dragenter", enter);
+    document.addEventListener("dragleave", leave);
+    document.addEventListener("dragover", over);
+    document.addEventListener("drop", drop);
+    return () => {
+      document.removeEventListener("dragenter", enter);
+      document.removeEventListener("dragleave", leave);
+      document.removeEventListener("dragover", over);
+      document.removeEventListener("drop", drop);
+    };
+  }, []);
+
   return (
-    <InternasTemplate
-      active="contatos"
-      title="Contatos"
-      countLabel={countLabel}
-      pageId="contatos-page"
-      ariaLabel="Contatos"
-      searchPlaceholder="Buscar contato"
-      searchValue={query}
-      onSearchChange={(value) => {
-        setPage(1);
-        setQuery(value);
-      }}
-      addId="contatos-add-btn"
-      addLabel="Adicionar contato"
-      onAdd={openCreate}
-    >
+    <>
+      <input
+        ref={importInputRef}
+        type="file"
+        accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv"
+        hidden
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) void openImportPreview(file);
+        }}
+      />
+
+      {dragActive ? (
+        <div className="contatos-drop-overlay" aria-hidden="true">
+          <div className="contatos-drop-overlay__card">
+            <Icons.Upload />
+            <strong>Solte o arquivo para importar</strong>
+            <span>Excel (.xlsx) ou CSV</span>
+          </div>
+        </div>
+      ) : null}
+
+      <InternasTemplate
+        active="contatos"
+        title="Contatos"
+        countLabel={countLabel}
+        pageId="contatos-page"
+        ariaLabel="Contatos"
+        searchPlaceholder="Buscar contato"
+        searchValue={query}
+        onSearchChange={(value) => {
+          setPage(1);
+          setQuery(value);
+        }}
+        addId="contatos-add-btn"
+        addLabel="Adicionar contato"
+        onAdd={openCreate}
+        importId="contatos-import-btn"
+        importLabel="Importar contatos"
+        onImport={() => importInputRef.current?.click()}
+      >
       <div
         className="page-panel__list contact-table"
         id="contatos-list"
@@ -307,7 +510,7 @@ export function Contatos() {
                   <img className="contact-row__avatar" src={c.avatar} alt="" />
                   <div className="contact-row__meta">
                     <div className="contact-row__name">{c.name}</div>
-                    <div className="contact-row__phone">{c.phone}</div>
+                    <div className="contact-row__phone">{formatContactPhone(c.phone)}</div>
                   </div>
                 </div>
 
@@ -681,5 +884,18 @@ export function Contatos() {
         }}
       />
     </InternasTemplate>
+
+      <ContactImportModal
+        open={importOpen}
+        fileName={importFileName}
+        rows={importRows}
+        replaceDuplicates={replaceDuplicates}
+        importing={importing}
+        error={importError}
+        onReplaceChange={setReplaceDuplicates}
+        onCancel={closeImport}
+        onConfirm={() => void confirmImport()}
+      />
+    </>
   );
 }

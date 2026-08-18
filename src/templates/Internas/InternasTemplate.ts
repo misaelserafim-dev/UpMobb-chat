@@ -13,5 +13,8 @@ export type InternasTemplateProps = {
   addId?: string;
   addLabel?: string;
   onAdd?: () => void;
+  importId?: string;
+  importLabel?: string;
+  onImport?: () => void;
   children?: ReactNode;
 };

@@ -26,6 +26,9 @@ export function InternasTemplate({
   addId,
   addLabel = "Adicionar",
   onAdd,
+  importId,
+  importLabel = "Importar contatos",
+  onImport,
   children,
 }: InternasTemplateProps) {
   const navigate = useNavigate();
@@ -85,6 +88,18 @@ export function InternasTemplate({
                       onChange={(e) => onSearchChange(e.target.value)}
                     />
                   </label>
+                ) : null}
+                {onImport ? (
+                  <button
+                    type="button"
+                    id={importId}
+                    className="internas-import-btn"
+                    aria-label={importLabel}
+                    title={importLabel}
+                    onClick={onImport}
+                  >
+                    <Icons.Upload />
+                  </button>
                 ) : null}
                 {onAdd ? <AddButton id={addId} label={addLabel} onClick={onAdd} /> : null}
               </div>

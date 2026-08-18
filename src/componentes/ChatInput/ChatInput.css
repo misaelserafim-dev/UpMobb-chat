@@ -27,9 +27,14 @@
   margin: 0 auto;
   background: #fff;
   border: 1px solid #e8e8ec;
-  border-radius: 16px;
+  border-radius: var(--radius-default);
   padding: 10px 12px;
   box-shadow: var(--shadow-float);
+  transition: border-radius 0.2s ease;
+}
+
+html[data-template="rounded"] .composer-preview {
+  border-radius: 16px;
 }
 
 .composer-preview__list {

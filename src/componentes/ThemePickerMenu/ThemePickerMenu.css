@@ -7,7 +7,6 @@
   min-width: 220px;
   padding: 12px;
   background: #fff;
-  border: 1px solid var(--border);
   border-radius: var(--radius-default);
   box-shadow: 0 8px 28px rgb(0 0 0 / 0.12);
   transition: border-radius 0.2s ease;

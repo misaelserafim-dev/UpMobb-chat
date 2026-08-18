@@ -113,6 +113,7 @@ html[data-template="rounded"] .new-ticket-modal__contact-input {
   font-size: 0.875rem;
   color: var(--text);
   outline: none;
+  padding-left: 4px;
 }
 
 .new-ticket-modal__contact-input input:disabled {
