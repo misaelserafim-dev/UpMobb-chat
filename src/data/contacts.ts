@@ -54,6 +54,12 @@ function cloneContact(c: Contact): Contact {
 }
 
 let contacts = SEED.map(cloneContact);
+let contactSeq = 0;
+
+function nextContactId() {
+  contactSeq += 1;
+  return `c-${Date.now()}-${contactSeq}`;
+}
 
 function parseQuery(path: string) {
   const qIndex = path.indexOf("?");
@@ -102,7 +108,7 @@ export async function mockContactsRequest(
 
   if (m === "POST" && pathname === "/contacts") {
     const payload = body as CreateContactPayload;
-    const id = `c-${Date.now()}`;
+    const id = nextContactId();
     const created: Contact = {
       id,
       name: payload.name.trim(),
