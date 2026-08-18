@@ -355,7 +355,7 @@ html[data-template="rounded"] .chat-msg-search {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding: 84px 28px 32px;
+  padding: 84px 28px 40px;
   display: flex;
   flex-direction: column;
   background:
@@ -367,15 +367,20 @@ html[data-template="rounded"] .chat-msg-search {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  flex: 1;
-  min-height: 0;
+  flex: 1 0 auto;
+  min-height: min-content;
   width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .page-container--contacts {
   position: relative;
-  flex: 1;
-  min-height: 0;
+  flex: 1 0 auto;
+  min-height: min-content;
+  width: 100%;
+  max-width: 100%;
+  overflow: visible;
 }
 
 .page-panel:has(.page-modal.is-open) .page-panel__body {
@@ -422,7 +427,10 @@ html[data-template="rounded"] .chat-msg-search {
 .contact-table {
   box-shadow: 0 1px 2px rgb(0 0 0 / 0.04), 0 8px 24px rgb(0 0 0 / 0.04);
   border-radius: var(--radius-default);
-  overflow: hidden;
+  overflow: clip;
+  background: #fff;
+  width: 100%;
+  min-width: 0;
   transition: border-radius 0.2s ease;
 }
 
@@ -433,10 +441,12 @@ html[data-template="rounded"] .contact-table {
 .contact-table__head,
 .contact-row {
   display: grid;
-  grid-template-columns: minmax(0, 1.4fr) minmax(140px, 1fr) 120px;
+  grid-template-columns: minmax(0, 1.4fr) minmax(120px, 1fr) 148px;
   gap: 12px;
   align-items: center;
-  padding: 12px 16px;
+  padding: 12px 20px;
+  box-sizing: border-box;
+  width: 100%;
 }
 
 .contact-table__head {
@@ -504,6 +514,7 @@ html[data-template="rounded"] .contact-row__avatar {
 
 .contact-row__etiqueta {
   min-width: 0;
+  overflow: hidden;
 }
 
 .contact-etiqueta-list {
@@ -514,12 +525,15 @@ html[data-template="rounded"] .contact-row__avatar {
 
 .contact-row__chip {
   flex: 0 1 auto;
-  max-width: 160px;
+  max-width: 100%;
 }
 
 .contact-row__chip .etiqueta-chip__name {
   padding: 4px 8px;
   font-size: 0.75rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .contact-etiqueta--empty {
@@ -533,6 +547,8 @@ html[data-template="rounded"] .contact-row__avatar {
   align-items: center;
   justify-content: flex-end;
   gap: 4px;
+  flex-shrink: 0;
+  min-width: 0;
 }
 
 .contact-row__action {
@@ -1119,12 +1135,6 @@ html[data-template="rounded"] .quick-reply-table {
   flex: 1;
   margin-left: 0;
   max-width: none;
-}
-
-
-
-.page-container--contacts {
-  position: relative;
 }
 
 .page-modal {
