@@ -1,0 +1,66 @@
+.page-panel:has(.page-modal.is-open) .page-panel__body {
+  overflow: hidden;
+}
+
+.page-modal {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 24px 16px 32px;
+}
+
+.page-modal[hidden] {
+  display: none;
+}
+
+.page-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle, rgb(0 0 0 / 0.03) 1px, transparent 1px) 0 0 / 18px 18px,
+    rgb(243, 243, 243);
+}
+
+.page-modal__dialog {
+  position: relative;
+  z-index: 1;
+  width: min(440px, 100%);
+}
+
+.page-modal__dialog--wide {
+  width: min(920px, 100%);
+  max-height: calc(100% - 24px);
+  overflow-y: auto;
+}
+
+.page-modal__close {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: var(--text-muted);
+}
+
+.page-modal__close:hover {
+  background: var(--menu-hover-bg);
+  color: var(--menu-hover-fg);
+}
+
+.page-modal__title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin: 0 28px 18px 0;
+  color: var(--text);
+}
+
+@media (max-width: 720px) {
+  .page-modal__dialog {
+    padding: 0;
+  }
+}

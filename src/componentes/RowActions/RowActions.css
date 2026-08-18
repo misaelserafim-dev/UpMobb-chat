@@ -1,0 +1,34 @@
+.contact-row__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  flex-shrink: 0;
+  min-width: 0;
+}
+
+.contact-row__action {
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: var(--text-muted);
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.contact-row__action:hover {
+  color: var(--menu-hover-fg);
+  background: var(--menu-hover-bg);
+}
+
+.contact-row__action[data-contact-action="whatsapp"]:hover {
+  color: #1daa61;
+  background: color-mix(in srgb, #1daa61 12%, transparent);
+}
+
+.contact-row__action--danger:hover {
+  color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 10%, transparent);
+}

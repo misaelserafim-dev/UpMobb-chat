@@ -29,6 +29,7 @@ export function InternasTemplate({
   importId,
   importLabel = "Importar contatos",
   onImport,
+  stickyTable = false,
   children,
 }: InternasTemplateProps) {
   const navigate = useNavigate();
@@ -64,7 +65,13 @@ export function InternasTemplate({
       />
 
       <div className="workspace" id="workspace">
-        <main className="chat-window page-panel" id={pageId} aria-label={ariaLabel || title}>
+        <main
+          className={["chat-window", "page-panel", stickyTable ? "page-panel--sticky-table" : ""]
+            .filter(Boolean)
+            .join(" ")}
+          id={pageId}
+          aria-label={ariaLabel || title}
+        >
           <header className="chat-window__header">
             <div className="page-container">
               <div className="chat-window__identity">

@@ -1,0 +1,39 @@
+.contact-form__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.contact-form__btn {
+  height: 38px;
+  padding: 0 16px;
+  border-radius: var(--radius-default);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: border-radius 0.2s ease;
+}
+
+html[data-template="rounded"] .contact-form__btn {
+  border-radius: 10px;
+}
+
+.contact-form__btn--ghost {
+  background: #f3f3f5;
+  color: var(--text);
+}
+
+.contact-form__btn--ghost:hover {
+  background: #e9e9ee;
+}
+
+.contact-form__btn--primary {
+  background: var(--accent);
+  color: var(--accent-text);
+}
+
+.contact-form__btn--primary:hover {
+  background: var(--accent-hover);
+  color: var(--accent-hover-text);
+}

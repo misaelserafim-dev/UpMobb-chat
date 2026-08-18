@@ -1,12 +1,17 @@
-import { useEffect, useId, useMemo, useRef, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { ContatosSkeleton } from "@/componentes/ContatosSkeleton/ContatosSkeleton.tsx";
 import { ContactImportModal } from "@/componentes/ContactImportModal/ContactImportModal.tsx";
+import { EtiquetaSelect } from "@/componentes/EtiquetaSelect/EtiquetaSelect.tsx";
 import { Icons } from "@/componentes/Icons/Icons.tsx";
+import { PageModal } from "@/componentes/PageModal/PageModal.tsx";
+import { Pagination } from "@/componentes/Pagination/Pagination.tsx";
+import { PhoneDdi } from "@/componentes/PhoneDdi/PhoneDdi.tsx";
+import { RowActions } from "@/componentes/RowActions/RowActions.tsx";
+import { FormActions } from "@/componentes/FormActions/FormActions.tsx";
 import { InternasTemplate } from "@/templates/Internas/InternasTemplate.tsx";
 import { ConfirmModal } from "@/componentes/ConfirmModal/ConfirmModal.tsx";
 import { NewTicketModal } from "@/componentes/NewTicketModal/NewTicketModal.tsx";
-import { useDismissable } from "@/hooks/useDismissable.ts";
 import {
   createContact,
   deleteContact,
@@ -89,10 +94,7 @@ function ContactRowAvatar({ name, src }: { name: string; src?: string }) {
 
 export function Contatos() {
   const navigate = useNavigate();
-  const titleId = useId();
   const nameRef = useRef<HTMLInputElement>(null);
-  const ddiRef = useRef<HTMLDivElement>(null);
-  const tagSelectRef = useRef<HTMLDivElement>(null);
   const importInputRef = useRef<HTMLInputElement>(null);
   const dragDepthRef = useRef(0);
 
@@ -111,12 +113,8 @@ export function Contatos() {
   const [formNotes, setFormNotes] = useState("");
   const [formPhone, setFormPhone] = useState("");
   const [dialIso, setDialIso] = useState("BR");
-  const [ddiOpen, setDdiOpen] = useState(false);
-  const [ddiSearch, setDdiSearch] = useState("");
 
   const [tagIds, setTagIds] = useState<string[]>([]);
-  const [tagMenuOpen, setTagMenuOpen] = useState(false);
-  const [tagSearch, setTagSearch] = useState("");
   const [pendingDelete, setPendingDelete] = useState<Contact | null>(null);
   const [ticketOpen, setTicketOpen] = useState(false);
   const [ticketContact, setTicketContact] = useState<Contact | null>(null);
@@ -131,18 +129,6 @@ export function Contatos() {
 
   const selectedDial = useMemo(() => getDialCode("+55", dialIso), [dialIso]);
   const [etiquetas, setEtiquetas] = useState<Etiqueta[]>([]);
-
-  useDismissable({
-    open: ddiOpen,
-    onDismiss: () => setDdiOpen(false),
-    refs: [ddiRef],
-  });
-
-  useDismissable({
-    open: tagMenuOpen,
-    onDismiss: () => setTagMenuOpen(false),
-    refs: [tagSelectRef],
-  });
 
   useEffect(() => {
     let cancelled = false;
@@ -195,11 +181,7 @@ export function Contatos() {
     setFormNotes("");
     setFormPhone("");
     setDialIso("BR");
-    setDdiOpen(false);
-    setDdiSearch("");
     setTagIds([]);
-    setTagMenuOpen(false);
-    setTagSearch("");
     setFormError("");
   }
 
@@ -215,11 +197,7 @@ export function Contatos() {
     setFormNotes(item.notes || "");
     setDialIso(parsed.iso);
     setFormPhone(parsed.national);
-    setDdiOpen(false);
-    setDdiSearch("");
     setTagIds((item.tags || []).map((t) => t.id));
-    setTagMenuOpen(false);
-    setTagSearch("");
     setFormError("");
     setModal({ open: true, mode: "edit", item });
   }
@@ -228,12 +206,6 @@ export function Contatos() {
     if (saving) return;
     setModal({ open: false });
     setFormError("");
-    setDdiOpen(false);
-    setTagMenuOpen(false);
-  }
-
-  function toggleTag(id: string) {
-    setTagIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
   }
 
   async function confirmDelete() {
@@ -424,21 +396,6 @@ export function Contatos() {
     }
   }
 
-  const filteredDialCodes = DIAL_CODES.filter((c) => {
-    const q = ddiSearch.trim().toLowerCase();
-    if (!q) return true;
-    return (
-      c.name.toLowerCase().includes(q) ||
-      c.dial.includes(q) ||
-      c.iso.toLowerCase().includes(q)
-    );
-  });
-
-  const selectedTags = etiquetas.filter((et) => tagIds.includes(et.id));
-  const filteredTags = etiquetas.filter((et) =>
-    et.name.toLowerCase().includes(tagSearch.trim().toLowerCase()),
-  );
-
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const countLabel = loading ? "…" : `${total} contato${total === 1 ? "" : "s"}`;
 
@@ -534,9 +491,10 @@ export function Contatos() {
         importId="contatos-import-btn"
         importLabel="Importar contatos"
         onImport={() => importInputRef.current?.click()}
+        stickyTable
       >
       <div
-        className="page-panel__list contact-table"
+        className="page-panel__list contact-table sticky-table"
         id="contatos-list"
         role="list"
         aria-busy={loading || undefined}
@@ -582,88 +540,31 @@ export function Contatos() {
                   )}
                 </div>
 
-                <div className="contact-row__actions">
-                  <button
-                    type="button"
-                    className="contact-row__action"
-                    data-contact-action="whatsapp"
-                    aria-label="WhatsApp"
-                    title="Abrir ticket no WhatsApp"
-                    onClick={() => {
-                      setTicketContact(c);
-                      setTicketOpen(true);
-                    }}
-                  >
-                    <Icons.Whatsapp />
-                  </button>
-                  <button
-                    type="button"
-                    className="contact-row__action"
-                    data-contact-action="editar"
-                    aria-label="Editar"
-                    title="Editar"
-                    onClick={() => openEdit(c)}
-                  >
-                    <Icons.Edit />
-                  </button>
-                  <button
-                    type="button"
-                    className="contact-row__action contact-row__action--danger"
-                    data-contact-action="deletar"
-                    aria-label="Deletar"
-                    title="Deletar"
-                    onClick={() => setPendingDelete(c)}
-                  >
-                    <Icons.X />
-                  </button>
-                </div>
+                <RowActions
+                  onWhatsapp={() => {
+                    setTicketContact(c);
+                    setTicketOpen(true);
+                  }}
+                  onEdit={() => openEdit(c)}
+                  onDelete={() => setPendingDelete(c)}
+                />
               </article>
             ))}
           </>
         )}
       </div>
 
-      {!loading && total > PAGE_SIZE ? (
-        <div className="internas-pagination contatos-pagination">
-          <button
-            type="button"
-            className="internas-pagination__btn contatos-pagination__btn"
-            disabled={page <= 1}
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-          >
-            Anterior
-          </button>
-          <span className="internas-pagination__info contatos-pagination__info">
-            Página {page} de {totalPages}
-          </span>
-          <button
-            type="button"
-            className="internas-pagination__btn contatos-pagination__btn"
-            disabled={page >= totalPages}
-            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-          >
-            Próxima
-          </button>
-        </div>
+      {!loading ? (
+        <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
       ) : null}
 
       {modal.open ? (
-        <div className="page-modal is-open" id="contact-modal">
-          <div className="page-modal__backdrop" />
-          <div
-            className="page-modal__dialog"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby={titleId}
-          >
-            <button type="button" className="page-modal__close" aria-label="Fechar" onClick={closeModal}>
-              <Icons.X />
-            </button>
-
-            <h2 className="page-modal__title" id={titleId}>
-              {modal.mode === "edit" ? "Editar contato" : "Novo contato"}
-            </h2>
-
+        <PageModal
+          open
+          id="contact-modal"
+          title={modal.mode === "edit" ? "Editar contato" : "Novo contato"}
+          onClose={closeModal}
+        >
             <form className="contact-form" autoComplete="off" onSubmit={handleSubmit}>
               <label className="contact-field">
                 <span className="contact-field__label">Nome</span>
@@ -681,61 +582,13 @@ export function Contatos() {
               <div className="contact-field">
                 <span className="contact-field__label">Telefone</span>
                 <div className="phone-field">
-                  <div className="phone-ddi" id="phone-ddi" ref={ddiRef}>
-                    <button
-                      type="button"
-                      className="phone-ddi__trigger"
-                      id="phone-ddi-btn"
-                      aria-haspopup="listbox"
-                      aria-expanded={ddiOpen}
-                      onClick={() => {
-                        setTagMenuOpen(false);
-                        setDdiOpen((v) => !v);
-                      }}
-                    >
-                      <span className="phone-ddi__flag">{selectedDial.flag}</span>
-                      <span className="phone-ddi__chevron" aria-hidden="true">
-                        <Icons.ChevronDown />
-                      </span>
-                      <span className="phone-ddi__code">{selectedDial.dial}</span>
-                    </button>
-
-                    {ddiOpen ? (
-                      <div className="phone-ddi__menu" role="listbox">
-                        <input
-                          type="search"
-                          className="phone-ddi__search"
-                          placeholder="search"
-                          aria-label="Buscar país"
-                          value={ddiSearch}
-                          onChange={(e) => setDdiSearch(e.target.value)}
-                        />
-                        <div className="phone-ddi__list">
-                          {filteredDialCodes.map((c) => (
-                            <button
-                              key={`${c.iso}-${c.dial}`}
-                              type="button"
-                              className={`phone-ddi__option${
-                                c.iso === selectedDial.iso ? " is-active" : ""
-                              }`}
-                              role="option"
-                              aria-selected={c.iso === selectedDial.iso}
-                              onClick={() => {
-                                setDialIso(c.iso);
-                                setFormPhone((prev) => maskPhone(prev, c.dial));
-                                setDdiOpen(false);
-                                setDdiSearch("");
-                              }}
-                            >
-                              <span className="phone-ddi__flag">{c.flag}</span>
-                              <span className="phone-ddi__name">{c.name}</span>
-                              <span className="phone-ddi__dial">{c.dial}</span>
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    ) : null}
-                  </div>
+                  <PhoneDdi
+                    value={dialIso}
+                    onChange={(code) => {
+                      setDialIso(code.iso);
+                      setFormPhone((prev) => maskPhone(prev, code.dial));
+                    }}
+                  />
 
                   <input
                     type="tel"
@@ -765,112 +618,16 @@ export function Contatos() {
 
               <div className="contact-field">
                 <span className="contact-field__label">Etiquetas</span>
-                {!etiquetas.length ? (
-                  <p className="contact-etiqueta-picker__empty">Nenhuma etiqueta cadastrada.</p>
-                ) : (
-                  <div className="etiqueta-select" id="contact-etiqueta-select" ref={tagSelectRef}>
-                    <div
-                      className="etiqueta-select__trigger"
-                      role="button"
-                      tabIndex={0}
-                      aria-haspopup="listbox"
-                      aria-expanded={tagMenuOpen}
-                      onClick={() => {
-                        setDdiOpen(false);
-                        setTagMenuOpen((v) => !v);
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") {
-                          e.preventDefault();
-                          setTagMenuOpen((v) => !v);
-                        }
-                      }}
-                    >
-                      <span className="etiqueta-select__value">
-                        {selectedTags.length === 0 ? (
-                          <span className="etiqueta-select__placeholder">Selecionar etiquetas</span>
-                        ) : (
-                          selectedTags.map((et) => (
-                            <span
-                              key={et.id}
-                              className="etiqueta-chip etiqueta-select__chip"
-                              style={{ ["--etiqueta-color" as string]: et.color }}
-                            >
-                              <span className="etiqueta-chip__bar" aria-hidden="true" />
-                              <span className="etiqueta-chip__name">{et.name}</span>
-                              <button
-                                type="button"
-                                className="etiqueta-select__chip-remove"
-                                aria-label={`Remover ${et.name}`}
-                                title="Remover"
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                  setTagIds((prev) => prev.filter((id) => id !== et.id));
-                                }}
-                              >
-                                <Icons.X />
-                              </button>
-                            </span>
-                          ))
-                        )}
-                      </span>
-                      <span className="etiqueta-select__chevron" aria-hidden="true">
-                        <Icons.ChevronDown />
-                      </span>
-                    </div>
-
-                    {tagMenuOpen ? (
-                      <div
-                        className="etiqueta-select__menu"
-                        role="listbox"
-                        aria-multiselectable="true"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <input
-                          type="search"
-                          className="etiqueta-select__search"
-                          placeholder="Pesquisar etiqueta"
-                          aria-label="Pesquisar etiqueta"
-                          value={tagSearch}
-                          onChange={(e) => setTagSearch(e.target.value)}
-                        />
-                        <button
-                          type="button"
-                          className="etiqueta-select__clear"
-                          hidden={tagIds.length === 0}
-                          onClick={() => setTagIds([])}
-                        >
-                          Limpar seleção
-                        </button>
-                        <div className="etiqueta-select__list">
-                          {filteredTags.map((et: Etiqueta) => {
-                            const on = tagIds.includes(et.id);
-                            return (
-                              <button
-                                key={et.id}
-                                type="button"
-                                className={`etiqueta-select__option${on ? " is-active" : ""}`}
-                                role="option"
-                                aria-selected={on}
-                                onClick={() => toggleTag(et.id)}
-                              >
-                                <span className="etiqueta-select__check" aria-hidden="true" />
-                                <span
-                                  className="etiqueta-chip"
-                                  style={{ ["--etiqueta-color" as string]: et.color }}
-                                >
-                                  <span className="etiqueta-chip__bar" aria-hidden="true" />
-                                  <span className="etiqueta-chip__name">{et.name}</span>
-                                </span>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    ) : null}
-                  </div>
-                )}
+                <EtiquetaSelect
+                  id="contact-etiqueta-select"
+                  items={etiquetas}
+                  value={tagIds}
+                  onChange={setTagIds}
+                  placeholder="Selecionar etiquetas"
+                  searchPlaceholder="Pesquisar etiqueta"
+                  emptyMessage="Nenhuma etiqueta cadastrada."
+                  menuPlacement="above"
+                />
               </div>
 
               <label className="contact-field">
@@ -886,22 +643,13 @@ export function Contatos() {
 
               {formError ? <p className="contato-form__error">{formError}</p> : null}
 
-              <div className="contact-form__actions">
-                <button
-                  type="button"
-                  className="contact-form__btn contact-form__btn--ghost"
-                  onClick={closeModal}
-                  disabled={saving}
-                >
-                  Cancelar
-                </button>
-                <button type="submit" className="contact-form__btn contact-form__btn--primary" disabled={saving}>
-                  {saving ? "Salvando…" : modal.mode === "edit" ? "Salvar" : "Adicionar"}
-                </button>
-              </div>
+              <FormActions
+                onCancel={closeModal}
+                disabled={saving}
+                submitLabel={saving ? "Salvando…" : modal.mode === "edit" ? "Salvar" : "Adicionar"}
+              />
             </form>
-          </div>
-        </div>
+        </PageModal>
       ) : null}
 
       <ConfirmModal

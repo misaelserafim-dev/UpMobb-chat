@@ -27,6 +27,7 @@ import "../ConfirmModal/ConfirmModal.css";
 import "../MessageMenu/MessageMenu.css";
 import "../DocumentPreview/DocumentPreview.css";
 import "../ContactPanel/ContactPanel.css";
+import "../EtiquetaSelect/EtiquetaSelect.css";
 
 function seedTagIds(etiquetas: Etiqueta[], label?: string): string[] {
   if (!label) return [];

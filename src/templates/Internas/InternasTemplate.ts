@@ -16,5 +16,10 @@ export type InternasTemplateProps = {
   importId?: string;
   importLabel?: string;
   onImport?: () => void;
+  /**
+   * Liga scroll interno na lista + header sticky.
+   * Na lista use também a class `sticky-table`.
+   */
+  stickyTable?: boolean;
   children?: ReactNode;
 };

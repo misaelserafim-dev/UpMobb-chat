@@ -1,6 +1,9 @@
-import { useEffect, useId, useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { ConfirmModal } from "@/componentes/ConfirmModal/ConfirmModal.tsx";
-import { Icons } from "@/componentes/Icons/Icons.tsx";
+import { FormActions } from "@/componentes/FormActions/FormActions.tsx";
+import { PageModal } from "@/componentes/PageModal/PageModal.tsx";
+import { Pagination } from "@/componentes/Pagination/Pagination.tsx";
+import { RowActions } from "@/componentes/RowActions/RowActions.tsx";
 import { InternasTemplate } from "@/templates/Internas/InternasTemplate.tsx";
 import {
   createRespostaRapida,
@@ -21,7 +24,6 @@ type ModalState =
   | { open: true; mode: "edit"; item: RespostaRapida };
 
 export function RespostasRapidas() {
-  const titleId = useId();
   const shortcutRef = useRef<HTMLInputElement>(null);
 
   const [query, setQuery] = useState("");
@@ -167,9 +169,10 @@ export function RespostasRapidas() {
       addId="resposta-rapida-add-btn"
       addLabel="Adicionar resposta rápida"
       onAdd={openCreate}
+      stickyTable
     >
       <div
-        className="page-panel__list quick-reply-table"
+        className="page-panel__list quick-reply-table sticky-table"
         id="resposta-rapida-list"
         role="list"
         aria-busy={loading || undefined}
@@ -208,73 +211,28 @@ export function RespostasRapidas() {
                 <div className="quick-reply-row__text" title={r.text || ""}>
                   {r.text || "—"}
                 </div>
-                <div className="quick-reply-row__actions">
-                  <button
-                    type="button"
-                    className="contact-row__action"
-                    aria-label="Editar"
-                    title="Editar"
-                    onClick={() => openEdit(r)}
-                  >
-                    <Icons.Edit />
-                  </button>
-                  <button
-                    type="button"
-                    className="contact-row__action contact-row__action--danger"
-                    aria-label="Deletar"
-                    title="Deletar"
-                    onClick={() => setPendingDelete(r)}
-                  >
-                    <Icons.X />
-                  </button>
-                </div>
+                <RowActions
+                  className="quick-reply-row__actions"
+                  onEdit={() => openEdit(r)}
+                  onDelete={() => setPendingDelete(r)}
+                />
               </article>
             ))}
           </>
         )}
       </div>
 
-      {!loading && total > PAGE_SIZE ? (
-        <div className="internas-pagination">
-          <button
-            type="button"
-            className="internas-pagination__btn"
-            disabled={page <= 1}
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-          >
-            Anterior
-          </button>
-          <span className="internas-pagination__info">
-            Página {page} de {totalPages}
-          </span>
-          <button
-            type="button"
-            className="internas-pagination__btn"
-            disabled={page >= totalPages}
-            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-          >
-            Próxima
-          </button>
-        </div>
+      {!loading ? (
+        <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
       ) : null}
 
       {modal.open ? (
-        <div className="page-modal is-open" id="resposta-rapida-modal">
-          <div className="page-modal__backdrop" />
-          <div
-            className="page-modal__dialog"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby={titleId}
-          >
-            <button type="button" className="page-modal__close" aria-label="Fechar" onClick={closeModal}>
-              <Icons.X />
-            </button>
-
-            <h2 className="page-modal__title" id={titleId}>
-              {modal.mode === "edit" ? "Editar resposta rápida" : "Nova resposta rápida"}
-            </h2>
-
+        <PageModal
+          open
+          id="resposta-rapida-modal"
+          title={modal.mode === "edit" ? "Editar resposta rápida" : "Nova resposta rápida"}
+          onClose={closeModal}
+        >
             <form className="contact-form" autoComplete="off" onSubmit={handleSubmit}>
               <label className="contact-field">
                 <span className="contact-field__label">Atalho</span>
@@ -304,22 +262,13 @@ export function RespostasRapidas() {
 
               {formError ? <p className="resposta-form__error">{formError}</p> : null}
 
-              <div className="contact-form__actions">
-                <button
-                  type="button"
-                  className="contact-form__btn contact-form__btn--ghost"
-                  onClick={closeModal}
-                  disabled={saving}
-                >
-                  Cancelar
-                </button>
-                <button type="submit" className="contact-form__btn contact-form__btn--primary" disabled={saving}>
-                  {saving ? "Salvando…" : modal.mode === "edit" ? "Salvar" : "Adicionar"}
-                </button>
-              </div>
+              <FormActions
+                onCancel={closeModal}
+                disabled={saving}
+                submitLabel={saving ? "Salvando…" : modal.mode === "edit" ? "Salvar" : "Adicionar"}
+              />
             </form>
-          </div>
-        </div>
+        </PageModal>
       ) : null}
 
       <ConfirmModal

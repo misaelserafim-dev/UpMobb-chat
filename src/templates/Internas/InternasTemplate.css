@@ -68,42 +68,39 @@
   background: color-mix(in srgb, var(--accent) 8%, #fff);
 }
 
-.internas-pagination {
+/*
+  Tabela com scroll interno + header sticky.
+
+  Como usar:
+  1) <InternasTemplate stickyTable ...>
+  2) na lista: className="page-panel__list contact-table sticky-table"
+     (troque contact-table pelo nome da tabela da página)
+
+  O header (__head) já é sticky no CSS de cada tabela em global.css.
+*/
+.page-panel--sticky-table .page-panel__body {
+  overflow: hidden;
+}
+
+.page-panel--sticky-table .page-container--contacts {
+  flex: 1;
+  min-height: 0;
+  height: 100%;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
   gap: 12px;
-  margin-top: 16px;
-  padding-bottom: 8px;
+  overflow: hidden;
 }
 
-.internas-pagination__btn {
-  min-height: 36px;
-  padding: 0 14px;
-  border-radius: var(--radius-default);
-  font-size: 0.8125rem;
-  font-weight: 600;
-  background: #fff;
-  border: 1px solid var(--border);
-  color: var(--text);
-  transition: border-radius 0.2s ease;
+.sticky-table {
+  flex: 1;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
-html[data-template="rounded"] .internas-pagination__btn {
-  border-radius: 999px;
-}
-
-.internas-pagination__btn:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--accent) 8%, #fff);
-  color: var(--accent);
-}
-
-.internas-pagination__btn:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-
-.internas-pagination__info {
-  font-size: 0.8125rem;
-  color: var(--text-muted);
+.page-panel--sticky-table .pagination {
+  flex-shrink: 0;
+  margin-top: 0;
+  padding: 4px 8px 8px;
 }

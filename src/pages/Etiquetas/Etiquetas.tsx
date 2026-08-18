@@ -1,7 +1,10 @@
-import { useEffect, useId, useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { ColorPresetPicker } from "@/componentes/ColorPresetPicker/ColorPresetPicker.tsx";
 import { ConfirmModal } from "@/componentes/ConfirmModal/ConfirmModal.tsx";
-import { Icons } from "@/componentes/Icons/Icons.tsx";
+import { FormActions } from "@/componentes/FormActions/FormActions.tsx";
+import { PageModal } from "@/componentes/PageModal/PageModal.tsx";
+import { Pagination } from "@/componentes/Pagination/Pagination.tsx";
+import { RowActions } from "@/componentes/RowActions/RowActions.tsx";
 import { InternasTemplate } from "@/templates/Internas/InternasTemplate.tsx";
 import {
   createEtiqueta,
@@ -28,7 +31,6 @@ type ModalState =
   | { open: true; mode: "edit"; item: Etiqueta };
 
 export function Etiquetas() {
-  const titleId = useId();
   const nameRef = useRef<HTMLInputElement>(null);
 
   const [query, setQuery] = useState("");
@@ -198,73 +200,29 @@ export function Etiquetas() {
                   <span className="etiqueta-chip__bar" aria-hidden="true" />
                   <span className="etiqueta-chip__name">{et.name}</span>
                 </span>
-                <div className="etiqueta-card__actions">
-                  <button
-                    type="button"
-                    className="etiqueta-card__action"
-                    aria-label="Editar"
-                    title="Editar"
-                    onClick={() => openEdit(et)}
-                  >
-                    <Icons.Edit />
-                  </button>
-                  <button
-                    type="button"
-                    className="etiqueta-card__action etiqueta-card__action--danger"
-                    aria-label="Remover"
-                    title="Remover"
-                    onClick={() => setPendingDelete(et)}
-                  >
-                    <Icons.X />
-                  </button>
-                </div>
+                <RowActions
+                  className="etiqueta-card__actions"
+                  onEdit={() => openEdit(et)}
+                  onDelete={() => setPendingDelete(et)}
+                  deleteLabel="Remover"
+                />
               </article>
             ))}
           </div>
         )}
       </div>
 
-      {!loading && total > PAGE_SIZE ? (
-        <div className="internas-pagination">
-          <button
-            type="button"
-            className="internas-pagination__btn"
-            disabled={page <= 1}
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-          >
-            Anterior
-          </button>
-          <span className="internas-pagination__info">
-            Página {page} de {totalPages}
-          </span>
-          <button
-            type="button"
-            className="internas-pagination__btn"
-            disabled={page >= totalPages}
-            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-          >
-            Próxima
-          </button>
-        </div>
+      {!loading ? (
+        <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
       ) : null}
 
       {modal.open ? (
-        <div className="page-modal is-open" id="etiqueta-modal">
-          <div className="page-modal__backdrop" />
-          <div
-            className="page-modal__dialog"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby={titleId}
-          >
-            <button type="button" className="page-modal__close" aria-label="Fechar" onClick={closeModal}>
-              <Icons.X />
-            </button>
-
-            <h2 className="page-modal__title" id={titleId}>
-              {modal.mode === "edit" ? "Editar etiqueta" : "Nova etiqueta"}
-            </h2>
-
+        <PageModal
+          open
+          id="etiqueta-modal"
+          title={modal.mode === "edit" ? "Editar etiqueta" : "Nova etiqueta"}
+          onClose={closeModal}
+        >
             <form className="contact-form" autoComplete="off" onSubmit={handleSubmit}>
               <div className="contact-field departamento-name-row">
                 <span className="contact-field__label">Nome</span>
@@ -290,22 +248,13 @@ export function Etiquetas() {
 
               {formError ? <p className="etiqueta-form__error">{formError}</p> : null}
 
-              <div className="contact-form__actions">
-                <button
-                  type="button"
-                  className="contact-form__btn contact-form__btn--ghost"
-                  onClick={closeModal}
-                  disabled={saving}
-                >
-                  Cancelar
-                </button>
-                <button type="submit" className="contact-form__btn contact-form__btn--primary" disabled={saving}>
-                  {saving ? "Salvando…" : modal.mode === "edit" ? "Salvar" : "Adicionar"}
-                </button>
-              </div>
+              <FormActions
+                onCancel={closeModal}
+                disabled={saving}
+                submitLabel={saving ? "Salvando…" : modal.mode === "edit" ? "Salvar" : "Adicionar"}
+              />
             </form>
-          </div>
-        </div>
+        </PageModal>
       ) : null}
 
       <ConfirmModal

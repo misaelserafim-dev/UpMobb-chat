@@ -1,5 +1,6 @@
 import type { InternasListSkeletonProps } from "./InternasListSkeleton.ts";
 import "@/componentes/ChatListSkeleton/ChatListSkeleton.css";
+import "@/componentes/RowActions/RowActions.css";
 import "./InternasListSkeleton.css";
 
 export function InternasListSkeleton({

@@ -1,6 +1,7 @@
 import { useEffect, useEffectEvent, useId, useRef, useState, type FormEvent } from "react";
 import { createPortal } from "react-dom";
 import { Icons } from "@/componentes/Icons/Icons.tsx";
+import { FormActions } from "@/componentes/FormActions/FormActions.tsx";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue.ts";
 import { useDismissable } from "@/hooks/useDismissable.ts";
 import { fetchContacts, type Contact } from "@/services/contacts.ts";
@@ -9,6 +10,8 @@ import { listEtiquetas, type Etiqueta } from "@/services/etiquetas.ts";
 import { createChat } from "@/services/chats.ts";
 import type { NewTicketModalProps } from "./NewTicketModal.ts";
 import "./NewTicketModal.css";
+import "@/componentes/EtiquetaSelect/EtiquetaSelect.css";
+import "@/componentes/FormActions/FormActions.css";
 
 export function NewTicketModal({
   open = false,
@@ -428,19 +431,12 @@ export function NewTicketModal({
 
           {formError ? <p className="new-ticket-modal__error">{formError}</p> : null}
 
-          <div className="new-ticket-modal__actions">
-            <button
-              type="button"
-              className="contact-form__btn contact-form__btn--ghost"
-              onClick={onClose}
-              disabled={saving}
-            >
-              Cancelar
-            </button>
-            <button type="submit" className="contact-form__btn contact-form__btn--primary" disabled={saving}>
-              {saving ? "Criando…" : "Criar"}
-            </button>
-          </div>
+          <FormActions
+            className="new-ticket-modal__actions"
+            onCancel={() => onClose?.()}
+            disabled={saving}
+            submitLabel={saving ? "Criando…" : "Criar"}
+          />
         </form>
       </div>
     </div>,

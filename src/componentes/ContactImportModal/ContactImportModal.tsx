@@ -1,7 +1,10 @@
-import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import { useEffect, useState } from "react";
+import { FormActions } from "@/componentes/FormActions/FormActions.tsx";
+import { Pagination } from "@/componentes/Pagination/Pagination.tsx";
 import type { ContactImportModalProps } from "./ContactImportModal.ts";
 import "./ContactImportModal.css";
+import "@/componentes/FormActions/FormActions.css";
 
 const PAGE_SIZE = 40;
 
@@ -96,50 +99,25 @@ export function ContactImportModal({
           </table>
         </div>
 
-        {rows.length > PAGE_SIZE ? (
-          <div className="contact-import__pagination">
-            <button
-              type="button"
-              className="contact-import__page-btn"
-              disabled={importing || safePage <= 1}
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-            >
-              Anterior
-            </button>
-            <span className="contact-import__page-info">
-              Página {safePage} de {totalPages}
-            </span>
-            <button
-              type="button"
-              className="contact-import__page-btn"
-              disabled={importing || safePage >= totalPages}
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            >
-              Próxima
-            </button>
-          </div>
-        ) : null}
+        <Pagination
+          page={safePage}
+          totalPages={totalPages}
+          onPageChange={setPage}
+          disabled={importing}
+          className="contact-import__pagination"
+        />
 
         {error ? <p className="contact-import__error">{error}</p> : null}
 
-        <div className="contact-import__actions">
-          <button
-            type="button"
-            className="contact-form__btn contact-form__btn--ghost"
-            disabled={importing}
-            onClick={onCancel}
-          >
-            Cancelar
-          </button>
-          <button
-            type="button"
-            className="contact-form__btn contact-form__btn--primary"
-            disabled={importing || rows.length === 0}
-            onClick={onConfirm}
-          >
-            {importing ? "Importando…" : "Confirmar importação"}
-          </button>
-        </div>
+        <FormActions
+          className="contact-import__actions"
+          onCancel={() => onCancel?.()}
+          disabled={importing}
+          submitDisabled={rows.length === 0}
+          submitType="button"
+          onSubmitClick={() => onConfirm?.()}
+          submitLabel={importing ? "Importando…" : "Confirmar importação"}
+        />
       </div>
     </div>,
     document.body,

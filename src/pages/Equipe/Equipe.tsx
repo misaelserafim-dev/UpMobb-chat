@@ -1,9 +1,13 @@
-import { useEffect, useId, useRef, useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { ConfirmModal } from "@/componentes/ConfirmModal/ConfirmModal.tsx";
+import { EtiquetaSelect } from "@/componentes/EtiquetaSelect/EtiquetaSelect.tsx";
+import { FormActions } from "@/componentes/FormActions/FormActions.tsx";
 import { Icons } from "@/componentes/Icons/Icons.tsx";
 import { LetterAvatar } from "@/componentes/LetterAvatar/LetterAvatar.tsx";
+import { PageModal } from "@/componentes/PageModal/PageModal.tsx";
+import { Pagination } from "@/componentes/Pagination/Pagination.tsx";
+import { RowActions } from "@/componentes/RowActions/RowActions.tsx";
 import { InternasTemplate } from "@/templates/Internas/InternasTemplate.tsx";
-import { useDismissable } from "@/hooks/useDismissable.ts";
 import { listDepartamentos, type Departamento } from "@/services/departamentos.ts";
 import {
   EQUIPE_CONNECTIONS,
@@ -43,9 +47,7 @@ const PERMISSION_ICONS: Record<string, ReactNode> = {
 };
 
 export function Equipe() {
-  const titleId = useId();
   const nameRef = useRef<HTMLInputElement>(null);
-  const deptSelectRef = useRef<HTMLDivElement>(null);
 
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
@@ -63,19 +65,11 @@ export function Equipe() {
   const [formProfile, setFormProfile] = useState<EquipeProfileId>("user");
   const [formDeptIds, setFormDeptIds] = useState<string[]>([]);
   const [formPermissions, setFormPermissions] = useState<EquipePermissions>(emptyEquipePermissions);
-  const [deptMenuOpen, setDeptMenuOpen] = useState(false);
-  const [deptSearch, setDeptSearch] = useState("");
   const [formError, setFormError] = useState("");
 
   const [pendingDelete, setPendingDelete] = useState<EquipeMember | null>(null);
 
   const [departamentos, setDepartamentos] = useState<Departamento[]>([]);
-
-  useDismissable({
-    open: deptMenuOpen,
-    onDismiss: () => setDeptMenuOpen(false),
-    refs: [deptSelectRef],
-  });
 
   useEffect(() => {
     let cancelled = false;
@@ -131,8 +125,6 @@ export function Equipe() {
     setFormProfile(item?.profile || "user");
     setFormDeptIds(item?.departamentoIds ? [...item.departamentoIds] : []);
     setFormPermissions(item ? { ...emptyEquipePermissions(), ...item.permissions } : emptyEquipePermissions());
-    setDeptMenuOpen(false);
-    setDeptSearch("");
     setFormError("");
   }
 
@@ -150,7 +142,6 @@ export function Equipe() {
     if (saving) return;
     setModal({ open: false });
     setFormError("");
-    setDeptMenuOpen(false);
   }
 
   function matchesQuery(item: EquipeMember) {
@@ -160,12 +151,6 @@ export function Equipe() {
       item.name.toLowerCase().includes(q) ||
       item.email.toLowerCase().includes(q) ||
       item.profile.toLowerCase().includes(q)
-    );
-  }
-
-  function toggleDept(id: string) {
-    setFormDeptIds((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
     );
   }
 
@@ -245,11 +230,6 @@ export function Equipe() {
     }
   }
 
-  const selectedDepts = departamentos.filter((d) => formDeptIds.includes(d.id));
-  const filteredDepts = departamentos.filter((d) =>
-    d.name.toLowerCase().includes(deptSearch.trim().toLowerCase()),
-  );
-
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const countLabel = loading ? "…" : `${total} membro${total === 1 ? "" : "s"}`;
 
@@ -269,9 +249,10 @@ export function Equipe() {
       addId="equipe-add-btn"
       addLabel="Adicionar membro"
       onAdd={openCreate}
+      stickyTable
     >
       <div
-        className="page-panel__list equipe-table"
+        className="page-panel__list equipe-table sticky-table"
         id="equipe-list"
         role="list"
         aria-busy={loading || undefined}
@@ -319,73 +300,29 @@ export function Equipe() {
                 <div className="equipe-row__email">{m.email || "—"}</div>
                 <div className="equipe-row__profile">{profileLabel(m.profile)}</div>
                 <div className="equipe-row__connection">{connectionLabel(m.connectionId)}</div>
-                <div className="equipe-row__actions">
-                  <button
-                    type="button"
-                    className="contact-row__action"
-                    aria-label="Editar"
-                    title="Editar"
-                    onClick={() => openEdit(m)}
-                  >
-                    <Icons.Edit />
-                  </button>
-                  <button
-                    type="button"
-                    className="contact-row__action contact-row__action--danger"
-                    aria-label="Deletar"
-                    title="Deletar"
-                    onClick={() => setPendingDelete(m)}
-                  >
-                    <Icons.X />
-                  </button>
-                </div>
+                <RowActions
+                  className="equipe-row__actions"
+                  onEdit={() => openEdit(m)}
+                  onDelete={() => setPendingDelete(m)}
+                />
               </article>
             ))}
           </>
         )}
       </div>
 
-      {!loading && total > PAGE_SIZE ? (
-        <div className="internas-pagination">
-          <button
-            type="button"
-            className="internas-pagination__btn"
-            disabled={page <= 1}
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-          >
-            Anterior
-          </button>
-          <span className="internas-pagination__info">
-            Página {page} de {totalPages}
-          </span>
-          <button
-            type="button"
-            className="internas-pagination__btn"
-            disabled={page >= totalPages}
-            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-          >
-            Próxima
-          </button>
-        </div>
+      {!loading ? (
+        <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
       ) : null}
 
       {modal.open ? (
-        <div className="page-modal is-open" id="equipe-modal">
-          <div className="page-modal__backdrop" />
-          <div
-            className="page-modal__dialog page-modal__dialog--wide"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby={titleId}
-          >
-            <button type="button" className="page-modal__close" aria-label="Fechar" onClick={closeModal}>
-              <Icons.X />
-            </button>
-
-            <h2 className="page-modal__title" id={titleId}>
-              {modal.mode === "edit" ? "Editar membro" : "Novo membro da equipe"}
-            </h2>
-
+        <PageModal
+          open
+          id="equipe-modal"
+          wide
+          title={modal.mode === "edit" ? "Editar membro" : "Novo membro da equipe"}
+          onClose={closeModal}
+        >
             <form className="equipe-form" autoComplete="off" onSubmit={handleSubmit}>
               <div className="equipe-form__layout">
                 <div className="equipe-form__fields">
@@ -476,109 +413,16 @@ export function Equipe() {
 
                   <div className="contact-field">
                     <span className="contact-field__label">Departamentos</span>
-                    {!departamentos.length ? (
-                      <p className="contact-etiqueta-picker__empty">Nenhum departamento cadastrado.</p>
-                    ) : (
-                      <div className="etiqueta-select" id="equipe-dept-select" ref={deptSelectRef}>
-                        <div
-                          className="etiqueta-select__trigger"
-                          role="button"
-                          tabIndex={0}
-                          aria-haspopup="listbox"
-                          aria-expanded={deptMenuOpen}
-                          onClick={() => setDeptMenuOpen((v) => !v)}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter" || e.key === " ") {
-                              e.preventDefault();
-                              setDeptMenuOpen((v) => !v);
-                            }
-                          }}
-                        >
-                          <span className="etiqueta-select__value">
-                            {selectedDepts.length === 0 ? (
-                              <span className="etiqueta-select__placeholder">Selecionar departamentos</span>
-                            ) : (
-                              selectedDepts.map((d) => (
-                                <span
-                                  key={d.id}
-                                  className="etiqueta-chip etiqueta-select__chip"
-                                  style={{ ["--etiqueta-color" as string]: d.color }}
-                                >
-                                  <span className="etiqueta-chip__bar" aria-hidden="true" />
-                                  <span className="etiqueta-chip__name">{d.name}</span>
-                                  <button
-                                    type="button"
-                                    className="etiqueta-select__chip-remove"
-                                    aria-label={`Remover ${d.name}`}
-                                    title="Remover"
-                                    onClick={(e) => {
-                                      e.preventDefault();
-                                      e.stopPropagation();
-                                      setFormDeptIds((prev) => prev.filter((id) => id !== d.id));
-                                    }}
-                                  >
-                                    <Icons.X />
-                                  </button>
-                                </span>
-                              ))
-                            )}
-                          </span>
-                          <span className="etiqueta-select__chevron" aria-hidden="true">
-                            <Icons.ChevronDown />
-                          </span>
-                        </div>
-
-                        {deptMenuOpen ? (
-                          <div
-                            className="etiqueta-select__menu"
-                            role="listbox"
-                            aria-multiselectable="true"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <input
-                              type="search"
-                              className="etiqueta-select__search"
-                              placeholder="Pesquisar departamento"
-                              aria-label="Pesquisar departamento"
-                              value={deptSearch}
-                              onChange={(e) => setDeptSearch(e.target.value)}
-                            />
-                            <button
-                              type="button"
-                              className="etiqueta-select__clear"
-                              hidden={formDeptIds.length === 0}
-                              onClick={() => setFormDeptIds([])}
-                            >
-                              Limpar seleção
-                            </button>
-                            <div className="etiqueta-select__list">
-                              {filteredDepts.map((d: Departamento) => {
-                                const on = formDeptIds.includes(d.id);
-                                return (
-                                  <button
-                                    key={d.id}
-                                    type="button"
-                                    className={`etiqueta-select__option${on ? " is-active" : ""}`}
-                                    role="option"
-                                    aria-selected={on}
-                                    onClick={() => toggleDept(d.id)}
-                                  >
-                                    <span className="etiqueta-select__check" aria-hidden="true" />
-                                    <span
-                                      className="etiqueta-chip"
-                                      style={{ ["--etiqueta-color" as string]: d.color }}
-                                    >
-                                      <span className="etiqueta-chip__bar" aria-hidden="true" />
-                                      <span className="etiqueta-chip__name">{d.name}</span>
-                                    </span>
-                                  </button>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        ) : null}
-                      </div>
-                    )}
+                    <EtiquetaSelect
+                      id="equipe-dept-select"
+                      items={departamentos}
+                      value={formDeptIds}
+                      onChange={setFormDeptIds}
+                      placeholder="Selecionar departamentos"
+                      searchPlaceholder="Pesquisar departamento"
+                      emptyMessage="Nenhum departamento cadastrado."
+                      menuPlacement="above"
+                    />
                   </div>
                 </div>
 
@@ -612,22 +456,13 @@ export function Equipe() {
 
               {formError ? <p className="equipe-form__error">{formError}</p> : null}
 
-              <div className="contact-form__actions">
-                <button
-                  type="button"
-                  className="contact-form__btn contact-form__btn--ghost"
-                  onClick={closeModal}
-                  disabled={saving}
-                >
-                  Cancelar
-                </button>
-                <button type="submit" className="contact-form__btn contact-form__btn--primary" disabled={saving}>
-                  {saving ? "Salvando…" : modal.mode === "edit" ? "Salvar" : "Adicionar"}
-                </button>
-              </div>
+              <FormActions
+                onCancel={closeModal}
+                disabled={saving}
+                submitLabel={saving ? "Salvando…" : modal.mode === "edit" ? "Salvar" : "Adicionar"}
+              />
             </form>
-          </div>
-        </div>
+        </PageModal>
       ) : null}
 
       <ConfirmModal

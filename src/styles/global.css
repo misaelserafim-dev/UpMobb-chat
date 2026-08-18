@@ -425,10 +425,6 @@ html[data-template="rounded"] .chat-msg-search {
   overflow: visible;
 }
 
-.page-panel:has(.page-modal.is-open) .page-panel__body {
-  overflow: hidden;
-}
-
 .page-panel__body--center {
   justify-content: center;
 }
@@ -595,41 +591,6 @@ html[data-template="rounded"] .contact-row__avatar {
   color: var(--text-soft);
   font-weight: 500;
   font-size: 0.875rem;
-}
-
-.contact-row__actions {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 4px;
-  flex-shrink: 0;
-  min-width: 0;
-}
-
-.contact-row__action {
-  width: 34px;
-  height: 34px;
-  border: none;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  color: var(--text-muted);
-  transition: color 0.15s ease, background 0.15s ease;
-}
-
-.contact-row__action:hover {
-  color: var(--menu-hover-fg);
-  background: var(--menu-hover-bg);
-}
-
-.contact-row__action[data-contact-action="whatsapp"]:hover {
-  color: #1daa61;
-  background: color-mix(in srgb, #1daa61 12%, transparent);
-}
-
-.contact-row__action--danger:hover {
-  color: var(--danger);
-  background: color-mix(in srgb, var(--danger) 10%, transparent);
 }
 
 @media (max-width: 720px) {
@@ -1194,62 +1155,6 @@ html[data-template="rounded"] .quick-reply-table {
   max-width: none;
 }
 
-.page-modal {
-  position: absolute;
-  inset: 0;
-  z-index: 20;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  padding: 24px 16px 32px;
-}
-
-.page-modal[hidden] {
-  display: none;
-}
-
-.page-modal__backdrop {
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle, rgb(0 0 0 / 0.03) 1px, transparent 1px) 0 0 / 18px 18px, rgb(243, 243, 243);
-}
-
-.page-modal__dialog {
-  position: relative;
-  z-index: 1;
-  width: min(440px, 100%);
-}
-
-.page-modal__dialog--wide {
-  width: min(920px, 100%);
-  max-height: calc(100% - 24px);
-  overflow-y: auto;
-}
-
-.page-modal__close {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  color: var(--text-muted);
-}
-
-.page-modal__close:hover {
-  background: var(--menu-hover-bg);
-  color: var(--menu-hover-fg);
-}
-
-.page-modal__title {
-  font-size: 1.125rem;
-  font-weight: 700;
-  margin: 0 28px 18px 0;
-  color: var(--text);
-}
-
 .contact-form {
   display: flex;
   flex-direction: column;
@@ -1302,363 +1207,15 @@ html[data-template="rounded"] .quick-reply-table {
   align-items: stretch;
 }
 
-.phone-ddi {
-  position: relative;
-  flex-shrink: 0;
-}
-
-.phone-ddi__trigger {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  height: 100%;
-  min-height: 42px;
-  padding: 0 10px;
-  border-radius: var(--radius-default);
-  border: 1px solid rgb(0 0 0 / 0.1);
-  background: #fff;
-  color: var(--text);
-  font: inherit;
-  font-size: 0.875rem;
-  font-weight: 600;
-  transition: border-radius 0.2s ease;
-}
-
-.phone-ddi__trigger:hover {
-  border-color: color-mix(in srgb, var(--accent) 35%, transparent);
-}
-
-.phone-ddi__flag {
-  font-size: 1.05rem;
-  line-height: 1;
-}
-
-.phone-ddi__chevron {
-  display: inline-flex;
-  color: var(--text-muted);
-}
-
-.phone-ddi__chevron .icon {
-  width: 14px;
-  height: 14px;
-}
-
-.phone-ddi__code {
-  font-variant-numeric: tabular-nums;
-}
-
 .phone-field__number {
   flex: 1;
   min-width: 0;
-}
-
-.phone-ddi__menu {
-  position: absolute;
-  top: calc(100% + 6px);
-  left: 0;
-  z-index: 30;
-  width: min(280px, 70vw);
-  max-height: 260px;
-  display: flex;
-  flex-direction: column;
-  background: #fff;
-  border: 1px solid rgb(0 0 0 / 0.08);
-  border-radius: var(--radius-default);
-  box-shadow: 0 10px 28px rgb(0 0 0 / 0.14);
-  overflow: hidden;
-  transition: border-radius 0.2s ease;
-}
-
-.phone-ddi__menu[hidden] {
-  display: none;
-}
-
-.phone-ddi__search {
-  margin: 8px;
-  padding: 8px 10px;
-  border: 1px solid rgb(0 0 0 / 0.1);
-  border-radius: var(--radius-default);
-  font: inherit;
-  font-size: 0.875rem;
-  transition: border-radius 0.2s ease;
-}
-
-.phone-ddi__search:focus {
-  outline: none;
-  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
-}
-
-.phone-ddi__list {
-  overflow-y: auto;
-  padding: 0 6px 6px;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.phone-ddi__option {
-  display: grid;
-  grid-template-columns: 24px 1fr auto;
-  gap: 8px;
-  align-items: center;
-  width: 100%;
-  padding: 8px 10px;
-  border-radius: var(--radius-default);
-  text-align: left;
-  font: inherit;
-  font-size: 0.875rem;
-  color: var(--text);
-  background: transparent;
-  transition: border-radius 0.2s ease;
-}
-
-.phone-ddi__option:hover,
-.phone-ddi__option.is-active {
-  background: var(--menu-hover-bg);
-  color: var(--menu-hover-fg);
-}
-
-.phone-ddi__name {
-  min-width: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.phone-ddi__dial {
-  color: var(--text-muted);
-  font-variant-numeric: tabular-nums;
-}
-
-.contact-form__actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  margin-top: 4px;
-}
-
-.contact-form__btn {
-  height: 38px;
-  padding: 0 16px;
-  border-radius: var(--radius-default);
-  font: inherit;
-  font-size: 0.875rem;
-  font-weight: 600;
-  transition: border-radius 0.2s ease;
-}
-
-html[data-template="rounded"] .contact-form__btn {
-  border-radius: 10px;
-}
-
-.contact-form__btn--ghost {
-  background: #f3f3f5;
-  color: var(--text);
-}
-
-.contact-form__btn--ghost:hover {
-  background: #e9e9ee;
-}
-
-.contact-form__btn--primary {
-  background: var(--accent);
-  color: var(--accent-text);
-}
-
-.contact-form__btn--primary:hover {
-  background: var(--accent-hover);
-  color: var(--accent-hover-text);
 }
 
 .contact-etiqueta-picker__empty {
   margin: 0;
   font-size: 0.8125rem;
   color: var(--text-muted);
-}
-
-.etiqueta-select {
-  position: relative;
-  width: 100%;
-}
-
-.etiqueta-select__trigger {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 8px;
-  width: 100%;
-  min-height: 42px;
-  padding: 6px 10px;
-  border-radius: var(--radius-default);
-  border: 1px solid rgb(0 0 0 / 0.1);
-  background: #fff;
-  color: var(--text);
-  font: inherit;
-  text-align: left;
-  transition: border-radius 0.2s ease;
-}
-
-.etiqueta-select__trigger:hover {
-  border-color: color-mix(in srgb, var(--accent) 35%, transparent);
-}
-
-.etiqueta-select__value {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  flex: 1;
-  min-width: 0;
-  align-items: center;
-  padding: 2px 0;
-  margin-top: auto;
-  margin-bottom: auto;
-}
-
-.etiqueta-select__placeholder {
-  color: var(--text-muted);
-  font-size: 0.875rem;
-}
-
-.etiqueta-select__chip {
-  flex: 0 1 auto;
-  min-width: 0;
-  max-width: 100%;
-}
-
-.etiqueta-select__chip .etiqueta-chip__name {
-  padding: 4px 8px;
-  font-size: 0.8125rem;
-}
-
-
-.etiqueta-select__chevron {
-  display: inline-flex;
-  flex-shrink: 0;
-  margin-top: 6px;
-  color: var(--text-muted);
-}
-
-.etiqueta-select__chevron .icon {
-  width: 14px;
-  height: 14px;
-}
-
-.etiqueta-select__menu {
-  position: absolute;
-  top: calc(100% + 6px);
-  left: 0;
-  right: 0;
-  z-index: 30;
-  max-height: 280px;
-  display: flex;
-  flex-direction: column;
-  background: #fff;
-  border: 1px solid rgb(0 0 0 / 0.08);
-  border-radius: var(--radius-default);
-  box-shadow: 0 10px 28px rgb(0 0 0 / 0.14);
-  overflow: hidden;
-  transition: border-radius 0.2s ease;
-}
-
-.etiqueta-select__menu[hidden] {
-  display: none;
-}
-
-.etiqueta-select__search {
-  margin: 8px 8px 4px;
-  padding: 8px 10px;
-  border: 1px solid rgb(0 0 0 / 0.1);
-  border-radius: var(--radius-default);
-  font: inherit;
-  font-size: 0.875rem;
-  transition: border-radius 0.2s ease;
-}
-
-.etiqueta-select__search:focus {
-  outline: none;
-  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
-}
-
-.etiqueta-select__clear {
-  margin: 0 8px 4px;
-  padding: 6px 10px;
-  border-radius: 8px;
-  text-align: left;
-  font: inherit;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: var(--text-muted);
-  background: transparent;
-}
-
-.etiqueta-select__clear:hover {
-  background: var(--menu-hover-bg);
-  color: var(--menu-hover-fg);
-}
-
-.etiqueta-select__clear[hidden] {
-  display: none;
-}
-
-.etiqueta-select__list {
-  overflow-y: auto;
-  padding: 0 6px 6px;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.etiqueta-select__option {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  padding: 2px 10px;
-  border-radius: var(--radius-default);
-  text-align: left;
-  font: inherit;
-  font-size: 0.875rem;
-  color: var(--text);
-  background: transparent;
-  transition: border-radius 0.2s ease;
-}
-
-.etiqueta-select__option:hover {
-  background: var(--menu-hover-bg);
-  color: var(--menu-hover-fg);
-}
-
-.etiqueta-select__check {
-  width: 16px;
-  height: 16px;
-  flex-shrink: 0;
-  border-radius: 4px;
-  border: 1.5px solid rgb(0 0 0 / 0.2);
-  background: #fff;
-  position: relative;
-}
-
-.etiqueta-select__option.is-active .etiqueta-select__check {
-  border-color: var(--accent);
-  background: var(--accent);
-}
-
-.etiqueta-select__option.is-active .etiqueta-select__check::after {
-  content: "";
-  position: absolute;
-  left: 5px;
-  top: 2px;
-  width: 4px;
-  height: 8px;
-  border: solid var(--accent-text, #fff);
-  border-width: 0 2px 2px 0;
-  transform: rotate(45deg);
-}
-
-.etiqueta-select__option .etiqueta-chip {
-  flex: 1;
-  max-width: calc(100% - 24px);
-  pointer-events: none;
 }
 
 .equipe-table {
@@ -1953,10 +1510,6 @@ html[data-template="rounded"] .equipe-table {
     display: none;
   }
 
-  .page-modal__dialog {
-    padding: 0;
-  }
-
   .equipe-row {
     grid-template-columns: 1fr auto;
     grid-template-areas:
@@ -1979,23 +1532,12 @@ html[data-template="rounded"] .contact-field input,
 html[data-template="rounded"] .contact-field textarea,
 html[data-template="rounded"] .contact-field select,
 html[data-template="rounded"] .phone-field__number,
-html[data-template="rounded"] .phone-ddi__trigger,
 html[data-template="rounded"] .etiqueta-form__name,
-html[data-template="rounded"] .etiqueta-form__color,
-html[data-template="rounded"] .etiqueta-select__trigger {
+html[data-template="rounded"] .etiqueta-form__color {
   border-radius: 10px;
 }
 
-html[data-template="rounded"] .phone-ddi__menu,
-html[data-template="rounded"] .etiqueta-select__menu {
-  border-radius: 12px;
-}
-
-html[data-template="rounded"] .phone-ddi__search,
-html[data-template="rounded"] .etiqueta-select__search,
-html[data-template="rounded"] .etiqueta-card__name-input,
-html[data-template="rounded"] .phone-ddi__option,
-html[data-template="rounded"] .etiqueta-select__option {
+html[data-template="rounded"] .etiqueta-card__name-input {
   border-radius: 8px;
 }
 
