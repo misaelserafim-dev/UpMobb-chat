@@ -1,4 +1,4 @@
-import { apiRequest } from "@/services/api.ts";
+import { API_BASE, apiRequest } from "@/services/api.ts";
 
 export type RespostaRapida = {
   id: string;
@@ -34,13 +34,29 @@ export type DeleteRespostaRapidaPayload = {
   id: string;
 };
 
-/** Autocomplete do composer — leitura via /panel/quick-replies (admin e agente). */
+function qs(params: Record<string, string | number | undefined>) {
+  const search = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (value === undefined || value === "") continue;
+    search.set(key, String(value));
+  }
+  const s = search.toString();
+  return s ? `?${s}` : "";
+}
+
+/** Autocomplete do composer. */
 export async function filterRespostasRapidas(
   params: { query?: string; limit?: number } = {},
 ): Promise<RespostaRapida[]> {
-  const q = (params.query || "").trim().toLowerCase();
   const limit = Math.min(20, Math.max(1, params.limit || 8));
 
+  if (!API_BASE) {
+    return apiRequest<RespostaRapida[]>(
+      `/respostas-rapidas${qs({ q: params.query, limit })}`,
+    );
+  }
+
+  const q = (params.query || "").trim().toLowerCase();
   const rows = await apiRequest<RespostaRapida[]>("/panel/quick-replies");
   const filtered = q
     ? rows.filter(
@@ -50,13 +66,19 @@ export async function filterRespostasRapidas(
   return filtered.slice(0, limit);
 }
 
-/** GET /admin/quick-replies — lista completa; busca e paginação aplicadas aqui. */
+/** GET — mocks `/respostas-rapidas`; API `/admin/quick-replies`. */
 export async function fetchRespostasRapidas(
   params: FetchRespostasRapidasParams = {},
 ): Promise<FetchRespostasRapidasResult> {
   const page = Math.max(1, params.page || 1);
   const pageSize = Math.min(100, Math.max(10, params.pageSize || 40));
   const q = (params.query || "").trim().toLowerCase();
+
+  if (!API_BASE) {
+    return apiRequest<FetchRespostasRapidasResult>(
+      `/respostas-rapidas${qs({ page, pageSize, q: params.query })}`,
+    );
+  }
 
   const rows = await apiRequest<RespostaRapida[]>("/admin/quick-replies");
   const filtered = q
@@ -74,31 +96,46 @@ export async function fetchRespostasRapidas(
   };
 }
 
-/** POST /admin/quick-replies */
 export async function createRespostaRapida(
   payload: CreateRespostaRapidaPayload,
 ): Promise<RespostaRapida> {
+  if (!API_BASE) {
+    return apiRequest<RespostaRapida>("/respostas-rapidas", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  }
   return apiRequest<RespostaRapida>("/admin/quick-replies", {
     method: "POST",
     body: JSON.stringify(payload),
   });
 }
 
-/** PATCH /admin/quick-replies/:id */
 export async function updateRespostaRapida(
   payload: UpdateRespostaRapidaPayload,
 ): Promise<RespostaRapida> {
   const { id, ...body } = payload;
+  if (!API_BASE) {
+    return apiRequest<RespostaRapida>(`/respostas-rapidas/${encodeURIComponent(id)}`, {
+      method: "PUT",
+      body: JSON.stringify(body),
+    });
+  }
   return apiRequest<RespostaRapida>(`/admin/quick-replies/${encodeURIComponent(id)}`, {
     method: "PATCH",
     body: JSON.stringify(body),
   });
 }
 
-/** DELETE /admin/quick-replies/:id */
 export async function deleteRespostaRapida(
   payload: DeleteRespostaRapidaPayload,
 ): Promise<{ id: string }> {
+  if (!API_BASE) {
+    return apiRequest<{ id: string }>(
+      `/respostas-rapidas/${encodeURIComponent(payload.id)}`,
+      { method: "DELETE" },
+    );
+  }
   await apiRequest<{ deleted: boolean }>(
     `/admin/quick-replies/${encodeURIComponent(payload.id)}`,
     { method: "DELETE" },

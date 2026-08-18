@@ -12,8 +12,13 @@
   padding: 6px;
   background: #fff;
   border: 1px solid rgb(0 0 0 / 0.06);
-  border-radius: 12px;
+  border-radius: var(--radius-default);
   box-shadow: 0 10px 28px rgb(0 0 0 / 0.14);
+  transition: border-radius 0.2s ease;
+}
+
+html[data-template="rounded"] .chat-more__menu {
+  border-radius: 12px;
 }
 
 .chat-more__menu[hidden] {
@@ -25,10 +30,14 @@
   display: block;
   text-align: left;
   padding: 11px 14px;
-  border-radius: 8px;
+  border-radius: var(--radius-default);
   font-size: 0.875rem;
   color: var(--text);
-  transition: background 0.12s ease;
+  transition: background 0.12s ease, border-radius 0.2s ease;
+}
+
+html[data-template="rounded"] .chat-more__item {
+  border-radius: 8px;
 }
 
 .chat-more__item:hover {

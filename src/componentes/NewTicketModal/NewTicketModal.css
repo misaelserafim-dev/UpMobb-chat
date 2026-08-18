@@ -78,9 +78,14 @@
   gap: 8px;
   min-height: 42px;
   padding: 0 10px;
-  border-radius: 10px;
+  border-radius: var(--radius-default);
   border: 1px solid rgb(0 0 0 / 0.1);
   background: #fff;
+  transition: border-radius 0.2s ease;
+}
+
+html[data-template="rounded"] .new-ticket-modal__contact-input {
+  border-radius: 10px;
 }
 
 .new-ticket-modal__contact-input:focus-within {
@@ -197,12 +202,17 @@
   width: 100%;
   height: 42px;
   padding: 0 12px;
-  border-radius: 10px;
+  border-radius: var(--radius-default);
   border: 1px solid rgb(0 0 0 / 0.1);
   background: #fff;
   font: inherit;
   font-size: 0.875rem;
   color: var(--text);
+  transition: border-radius 0.2s ease;
+}
+
+html[data-template="rounded"] .new-ticket-modal__select {
+  border-radius: 10px;
 }
 
 .new-ticket-modal__select:focus {

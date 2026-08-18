@@ -7,14 +7,18 @@
   max-width: none;
   flex-shrink: 0;
   padding: 4px 5px 4px 12px;
-  border-radius: 999px;
+  border-radius: var(--radius-default);
   font-size: 0.75rem;
   font-weight: 600;
   line-height: 1.2;
   background: #fff;
   color: #2a2a2e;
   white-space: nowrap;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition: background 0.15s ease, color 0.15s ease, border-radius 0.2s ease;
+}
+
+html[data-template="rounded"] .filter-chip {
+  border-radius: 999px;
 }
 
 .filter-chip:hover:not(.filter-chip--active) {
@@ -33,12 +37,17 @@
   min-width: 22px;
   height: 22px;
   padding: 0 6px;
-  border-radius: 999px;
+  border-radius: var(--radius-default);
   font-size: 0.75rem;
   font-weight: 500;
   background: color-mix(in srgb, var(--accent) 16%, transparent);
   color: var(--accent);
   line-height: 1;
+  transition: border-radius 0.2s ease;
+}
+
+html[data-template="rounded"] .filter-chip__count {
+  border-radius: 999px;
 }
 
 .filter-chip__chevron {

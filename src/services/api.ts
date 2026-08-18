@@ -89,7 +89,7 @@ async function realRequest(path: string, init?: RequestInit) {
   return payload;
 }
 
-/** Devolve só o `data` do envelope. */
+/** Devolve só o `data` do envelope (API) ou o retorno direto do mock. */
 export async function apiRequest<T>(path: string, init?: RequestInit): Promise<T> {
   if (API_BASE) {
     const payload = await realRequest(path, init);
@@ -101,8 +101,12 @@ export async function apiRequest<T>(path: string, init?: RequestInit): Promise<T
   return (await mockRequest(method, path, body)) as T;
 }
 
-/** Devolve `data` + `page` (rotas de lista paginada do backend). */
+/** Devolve `data` + `page` (rotas de lista paginada do backend). Em mock, não usa. */
 export async function apiListRequest<T>(path: string, init?: RequestInit): Promise<ApiListResult<T>> {
+  if (!API_BASE) {
+    throw new Error("apiListRequest exige VITE_API_URL — use apiRequest com mocks.");
+  }
+
   const payload = await realRequest(path, init);
   return {
     data: (payload?.data ?? []) as T[],

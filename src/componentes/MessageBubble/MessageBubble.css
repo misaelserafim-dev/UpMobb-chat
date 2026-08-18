@@ -424,10 +424,15 @@
   gap: 10px;
   background: #fff;
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: var(--radius-default);
   padding: 10px;
   margin: 2px 2px 8px;
   max-width: 100%;
+  transition: border-radius 0.2s ease;
+}
+
+html[data-template="rounded"] .message__attachment {
+  border-radius: 10px;
 }
 
 .attachment__preview-btn {

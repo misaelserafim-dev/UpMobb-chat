@@ -1,6 +1,6 @@
 import type { ChatItemData } from "@/componentes/ChatItem/ChatItem.ts";
 import type { ChatMessage } from "@/utils/chatData.ts";
-import { apiListRequest, apiRequest } from "@/services/api.ts";
+import { API_BASE, apiListRequest, apiRequest } from "@/services/api.ts";
 import { getStoredUser } from "@/services/auth.ts";
 
 export type { ChatMessage };
@@ -103,12 +103,28 @@ export function toChatMessage(dto: MessageDto): ChatMessage {
   };
 }
 
-/** GET /panel/conversations — admin vê "todos"; agente vê "meus". */
+function qs(params: Record<string, string | number | undefined>) {
+  const search = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (value === undefined || value === "") continue;
+    search.set(key, String(value));
+  }
+  const s = search.toString();
+  return s ? `?${s}` : "";
+}
+
+/** GET — mocks `/chats`; API `/panel/conversations`. */
 export async function fetchChats(params: FetchChatsParams = {}): Promise<FetchChatsResult> {
   const page = Math.max(1, params.page || 1);
   const pageSize = Math.min(100, Math.max(10, params.pageSize || 40));
-  const filter = getStoredUser()?.role === "admin" ? "todos" : "meus";
 
+  if (!API_BASE) {
+    return apiRequest<FetchChatsResult>(
+      `/chats${qs({ page, pageSize, q: params.query })}`,
+    );
+  }
+
+  const filter = getStoredUser()?.role === "admin" ? "todos" : "meus";
   const res = await apiListRequest<ConversationDto>(
     `/panel/conversations?filter=${filter}&page=${page}&limit=${pageSize}`,
   );
@@ -121,18 +137,32 @@ export async function fetchChats(params: FetchChatsParams = {}): Promise<FetchCh
   };
 }
 
-/** GET /panel/conversations/:id/messages — backend devolve das mais novas pras antigas. */
+/** GET — mocks `/chats/:id/messages`; API `/panel/conversations/:id/messages`. */
 export async function fetchChatMessages(chatId: string): Promise<ChatMessage[]> {
+  if (!API_BASE) {
+    return apiRequest<ChatMessage[]>(`/chats/${encodeURIComponent(chatId)}/messages`);
+  }
+
   const res = await apiListRequest<MessageDto>(
     `/panel/conversations/${encodeURIComponent(chatId)}/messages?page=1&limit=100`,
   );
   return res.data.map(toChatMessage).reverse();
 }
 
-/** POST /panel/conversations/:id/messages */
+/** POST — mocks `/chats/:id/messages`; API texto no painel. */
 export async function sendChatMessage(
   payload: SendChatMessagePayload,
 ): Promise<ChatMessage> {
+  if (!API_BASE) {
+    return apiRequest<ChatMessage>(
+      `/chats/${encodeURIComponent(payload.chatId)}/messages`,
+      {
+        method: "POST",
+        body: JSON.stringify({ message: payload.message }),
+      },
+    );
+  }
+
   const text = payload.message.text?.trim();
   if (!text) {
     throw new Error("Envio de mídia ainda não suportado — apenas texto.");
@@ -148,38 +178,64 @@ export async function sendChatMessage(
   return toChatMessage(dto);
 }
 
-/** POST /panel/conversations/:id/assign — agente assume a conversa. */
+/** POST /panel/conversations/:id/assign — só com API. */
 export async function assignChat(chatId: string): Promise<void> {
+  if (!API_BASE) return;
   await apiRequest(`/panel/conversations/${encodeURIComponent(chatId)}/assign`, {
     method: "POST",
   });
 }
 
-/** POST /panel/conversations/:id/resolve — encerra o atendimento. */
+/** POST /panel/conversations/:id/resolve — só com API. */
 export async function resolveChat(chatId: string): Promise<void> {
+  if (!API_BASE) return;
   await apiRequest(`/panel/conversations/${encodeURIComponent(chatId)}/resolve`, {
     method: "POST",
   });
 }
 
-// Ações abaixo não existem no backend (conversas nascem do WhatsApp; mensagem não se apaga).
-
-export async function createChat(_payload: CreateChatPayload): Promise<ChatItemData> {
+export async function createChat(payload: CreateChatPayload): Promise<ChatItemData> {
+  if (!API_BASE) {
+    return apiRequest<ChatItemData>("/chats", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  }
   throw new Error("Conversas são iniciadas pelo cliente no WhatsApp.");
 }
 
-export async function deleteChat(_payload: DeleteChatPayload): Promise<{ id: string }> {
+export async function deleteChat(payload: DeleteChatPayload): Promise<{ id: string }> {
+  if (!API_BASE) {
+    return apiRequest<{ id: string }>(`/chats/${encodeURIComponent(payload.id)}`, {
+      method: "DELETE",
+    });
+  }
   throw new Error("Excluir conversa não é suportado — use resolver.");
 }
 
 export async function deleteChatMessage(
-  _payload: DeleteChatMessagePayload,
+  payload: DeleteChatMessagePayload,
 ): Promise<{ id: string }> {
+  if (!API_BASE) {
+    return apiRequest<{ id: string }>(
+      `/chats/${encodeURIComponent(payload.chatId)}/messages/${encodeURIComponent(payload.messageId)}`,
+      { method: "DELETE" },
+    );
+  }
   throw new Error("Apagar mensagem não é suportado pelo backend.");
 }
 
 export async function reactChatMessage(
-  _payload: ReactChatMessagePayload,
+  payload: ReactChatMessagePayload,
 ): Promise<ChatMessage> {
+  if (!API_BASE) {
+    return apiRequest<ChatMessage>(
+      `/chats/${encodeURIComponent(payload.chatId)}/messages/${encodeURIComponent(payload.messageId)}/reactions`,
+      {
+        method: "POST",
+        body: JSON.stringify({ emoji: payload.emoji }),
+      },
+    );
+  }
   throw new Error("Reações ainda não são suportadas pelo backend.");
 }

@@ -26,10 +26,15 @@
   z-index: 1;
   width: min(400px, 100%);
   background: #fff;
-  border-radius: 18px;
+  border-radius: var(--radius-default);
   padding: 24px 22px 18px;
   box-shadow: 0 24px 60px rgb(0 0 0 / 0.22);
   animation: confirm-in 0.18s ease;
+  transition: border-radius 0.2s ease;
+}
+
+html[data-template="rounded"] .confirm-modal__dialog {
+  border-radius: 18px;
 }
 
 @keyframes confirm-in {
@@ -66,10 +71,14 @@
 .confirm-modal__btn {
   min-height: 40px;
   padding: 0 16px;
-  border-radius: 999px;
+  border-radius: var(--radius-default);
   font-size: 0.9rem;
   font-weight: 600;
-  transition: background 0.15s ease, transform 0.15s ease;
+  transition: background 0.15s ease, transform 0.15s ease, border-radius 0.2s ease;
+}
+
+html[data-template="rounded"] .confirm-modal__btn {
+  border-radius: 999px;
 }
 
 .confirm-modal__btn:hover {

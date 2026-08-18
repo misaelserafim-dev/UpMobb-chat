@@ -1,4 +1,4 @@
-import { apiRequest } from "@/services/api.ts";
+import { API_BASE, apiRequest } from "@/services/api.ts";
 
 export type Departamento = {
   id: string;
@@ -56,13 +56,29 @@ function toDepartamento(dto: DepartmentDto): Departamento {
   };
 }
 
-/** GET /admin/departments — lista completa; busca e paginação aplicadas aqui. */
+function qs(params: Record<string, string | number | undefined>) {
+  const search = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (value === undefined || value === "") continue;
+    search.set(key, String(value));
+  }
+  const s = search.toString();
+  return s ? `?${s}` : "";
+}
+
+/** GET — mocks `/departamentos`; API `/admin/departments`. */
 export async function fetchDepartamentos(
   params: FetchDepartamentosParams = {},
 ): Promise<FetchDepartamentosResult> {
   const page = Math.max(1, params.page || 1);
   const pageSize = Math.min(100, Math.max(10, params.pageSize || 40));
   const q = (params.query || "").trim().toLowerCase();
+
+  if (!API_BASE) {
+    return apiRequest<FetchDepartamentosResult>(
+      `/departamentos${qs({ page, pageSize, q: params.query })}`,
+    );
+  }
 
   const rows = await apiRequest<DepartmentDto[]>("/admin/departments");
   const all = rows.map(toDepartamento);
@@ -77,16 +93,20 @@ export async function fetchDepartamentos(
   };
 }
 
-/** Lista completa pra selects (Equipe, Novo ticket). */
 export async function listDepartamentos(): Promise<Departamento[]> {
   const res = await fetchDepartamentos({ page: 1, pageSize: 100 });
   return res.items;
 }
 
-/** POST /admin/departments */
 export async function createDepartamento(
   payload: CreateDepartamentoPayload,
 ): Promise<Departamento> {
+  if (!API_BASE) {
+    return apiRequest<Departamento>("/departamentos", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  }
   const dto = await apiRequest<DepartmentDto>("/admin/departments", {
     method: "POST",
     body: JSON.stringify({
@@ -98,10 +118,16 @@ export async function createDepartamento(
   return toDepartamento(dto);
 }
 
-/** PATCH /admin/departments/:id */
 export async function updateDepartamento(
   payload: UpdateDepartamentoPayload,
 ): Promise<Departamento> {
+  if (!API_BASE) {
+    const { id, ...body } = payload;
+    return apiRequest<Departamento>(`/departamentos/${encodeURIComponent(id)}`, {
+      method: "PUT",
+      body: JSON.stringify(body),
+    });
+  }
   const dto = await apiRequest<DepartmentDto>(
     `/admin/departments/${encodeURIComponent(payload.id)}`,
     {
@@ -116,10 +142,15 @@ export async function updateDepartamento(
   return toDepartamento(dto);
 }
 
-/** DELETE /admin/departments/:id */
 export async function deleteDepartamento(
   payload: DeleteDepartamentoPayload,
 ): Promise<{ id: string }> {
+  if (!API_BASE) {
+    return apiRequest<{ id: string }>(
+      `/departamentos/${encodeURIComponent(payload.id)}`,
+      { method: "DELETE" },
+    );
+  }
   await apiRequest<{ deleted: boolean }>(
     `/admin/departments/${encodeURIComponent(payload.id)}`,
     { method: "DELETE" },

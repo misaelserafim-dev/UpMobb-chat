@@ -1,4 +1,4 @@
-import { apiRequest } from "@/services/api.ts";
+import { API_BASE, apiRequest } from "@/services/api.ts";
 
 export type EquipeProfileId = "user" | "admin";
 export type EquipeStatus = "online" | "offline";
@@ -80,11 +80,16 @@ export type DeleteEquipePayload = {
   id: string;
 };
 
+const MOCK_CONNECTIONS: EquipeConnectionOption[] = [
+  { id: "comercial-upmobb", label: "Comercial UpMobb" },
+  { id: "qrcode-suporte", label: "QR Code Suporte" },
+];
+
 /**
- * Preenchido com as conexões reais do backend em fetchEquipe().
+ * Preenchido com mocks ou com conexões do backend em fetchEquipe().
  * Array mutável de propósito: a tela Equipe importa a constante direto.
  */
-export const EQUIPE_CONNECTIONS: EquipeConnectionOption[] = [];
+export const EQUIPE_CONNECTIONS: EquipeConnectionOption[] = [...MOCK_CONNECTIONS];
 
 export const EQUIPE_PROFILES: EquipeProfileOption[] = [
   { id: "user", label: "User" },
@@ -178,12 +183,25 @@ function toEquipeMember(dto: TeamDto): EquipeMember {
     profile: dto.role,
     status: dto.active ? "online" : "offline",
     departamentoIds: dto.departmentIds,
-    // Permissões ainda não existem no backend; ficam locais na tela
     permissions: emptyEquipePermissions(),
   };
 }
 
+function qs(params: Record<string, string | number | undefined>) {
+  const search = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (value === undefined || value === "") continue;
+    search.set(key, String(value));
+  }
+  const s = search.toString();
+  return s ? `?${s}` : "";
+}
+
 async function refreshConnections() {
+  if (!API_BASE) {
+    EQUIPE_CONNECTIONS.splice(0, EQUIPE_CONNECTIONS.length, ...MOCK_CONNECTIONS);
+    return;
+  }
   const rows = await apiRequest<ConnectionDto[]>("/panel/connections");
   EQUIPE_CONNECTIONS.splice(
     0,
@@ -192,7 +210,7 @@ async function refreshConnections() {
   );
 }
 
-/** GET /admin/teams — lista completa; busca e paginação aplicadas aqui. */
+/** GET — mocks `/equipe`; API `/admin/teams`. */
 export async function fetchEquipe(
   params: FetchEquipeParams = {},
 ): Promise<FetchEquipeResult> {
@@ -200,7 +218,17 @@ export async function fetchEquipe(
   const pageSize = Math.min(100, Math.max(10, params.pageSize || 40));
   const q = (params.query || "").trim().toLowerCase();
 
-  const [rows] = await Promise.all([apiRequest<TeamDto[]>("/admin/teams"), refreshConnections()]);
+  if (!API_BASE) {
+    await refreshConnections();
+    return apiRequest<FetchEquipeResult>(
+      `/equipe${qs({ page, pageSize, q: params.query })}`,
+    );
+  }
+
+  const [rows] = await Promise.all([
+    apiRequest<TeamDto[]>("/admin/teams"),
+    refreshConnections(),
+  ]);
   const all = rows.map(toEquipeMember);
   const filtered = q
     ? all.filter((m) => m.name.toLowerCase().includes(q) || m.email.toLowerCase().includes(q))
@@ -215,10 +243,15 @@ export async function fetchEquipe(
   };
 }
 
-/** POST /admin/teams */
 export async function createEquipeMember(
   payload: CreateEquipePayload,
 ): Promise<EquipeMember> {
+  if (!API_BASE) {
+    return apiRequest<EquipeMember>("/equipe", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  }
   const dto = await apiRequest<TeamDto>("/admin/teams", {
     method: "POST",
     body: JSON.stringify({
@@ -233,10 +266,16 @@ export async function createEquipeMember(
   return toEquipeMember(dto);
 }
 
-/** PATCH /admin/teams/:id */
 export async function updateEquipeMember(
   payload: UpdateEquipePayload,
 ): Promise<EquipeMember> {
+  if (!API_BASE) {
+    const { id, ...body } = payload;
+    return apiRequest<EquipeMember>(`/equipe/${encodeURIComponent(id)}`, {
+      method: "PUT",
+      body: JSON.stringify(body),
+    });
+  }
   const body: Record<string, unknown> = {
     name: payload.name,
     email: payload.email,
@@ -253,10 +292,14 @@ export async function updateEquipeMember(
   return toEquipeMember(dto);
 }
 
-/** DELETE /admin/teams/:id */
 export async function deleteEquipeMember(
   payload: DeleteEquipePayload,
 ): Promise<{ id: string }> {
+  if (!API_BASE) {
+    return apiRequest<{ id: string }>(`/equipe/${encodeURIComponent(payload.id)}`, {
+      method: "DELETE",
+    });
+  }
   await apiRequest<{ deleted: boolean }>(`/admin/teams/${encodeURIComponent(payload.id)}`, {
     method: "DELETE",
   });

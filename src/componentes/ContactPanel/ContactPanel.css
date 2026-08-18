@@ -147,10 +147,15 @@
 .contact-panel__avatar {
   width: 168px;
   height: 168px;
-  border-radius: 18px;
+  border-radius: var(--radius-default);
   object-fit: cover;
   background: #e8e8ec;
   box-shadow: 0 1px 2px rgb(0 0 0 / 0.06);
+  transition: border-radius 0.2s ease;
+}
+
+html[data-template="rounded"] .contact-panel__avatar {
+  border-radius: 18px;
 }
 
 .contact-panel__avatar--empty {
@@ -213,13 +218,18 @@
   width: 100%;
   margin-top: 8px;
   padding: 12px;
-  border-radius: 8px;
+  border-radius: var(--radius-default);
   background: color-mix(in srgb, var(--accent) 12%, #fff);
   color: var(--accent);
   border: 1px solid color-mix(in srgb, var(--accent) 28%, transparent);
   display: flex;
   flex-direction: column;
   gap: 10px;
+  transition: border-radius 0.2s ease;
+}
+
+html[data-template="rounded"] .contact-panel__media {
+  border-radius: 8px;
 }
 
 .contact-panel__media-head {

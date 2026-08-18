@@ -5,7 +5,7 @@
   align-items: center;
   padding: 12px;
   margin: 4px 0 4px 12px;
-  border-radius: 7px 15px 15px 7px;
+  border-radius: var(--radius-default);
   cursor: pointer;
   position: relative;
   background-color: rgb(255 255 255 / 94%);
@@ -15,6 +15,11 @@
   border-left: 9px solid transparent;
   will-change: transform;
   box-shadow: 0 1px 2px rgb(0 0 0 / 0.04), 0 8px 24px rgb(0 0 0 / 0.04);
+  transition: border-radius 0.2s ease;
+}
+
+html[data-template="rounded"] .chat-item {
+  border-radius: 7px 15px 15px 7px;
 }
 
 .chat-item--active {
@@ -23,6 +28,12 @@
   padding-right: 18px;
   z-index: 1;
   background: var(--chat-bg-pattern);
+  /* quadrado: direita reta pra colar no painel do chat */
+  border-radius: var(--radius-default) 0 0 var(--radius-default);
+}
+
+html[data-template="rounded"] .chat-item--active {
+  border-radius: 7px 15px 15px 7px;
 }
 
 .chat-item:hover {
@@ -31,7 +42,14 @@
 
 .chat-item::before,
 .chat-item::after {
+  content: none;
+  display: none;
+}
+
+html[data-template="rounded"] .chat-item::before,
+html[data-template="rounded"] .chat-item::after {
   content: "";
+  display: block;
   position: absolute;
   right: 0;
   width: var(--curve);
@@ -42,22 +60,22 @@
   box-shadow: 10px 10px 0 10px transparent;
 }
 
-.chat-item::before {
+html[data-template="rounded"] .chat-item::before {
   top: calc(var(--curve) * -1);
   border-bottom-right-radius: var(--curve);
 }
 
-.chat-item::after {
+html[data-template="rounded"] .chat-item::after {
   bottom: calc(var(--curve) * -1);
   border-top-right-radius: var(--curve);
   box-shadow: 10px -10px 0 10px transparent;
 }
 
-.chat-item--active::before {
+html[data-template="rounded"] .chat-item--active::before {
   box-shadow: 10px 10px 0 10px var(--chat-bg);
 }
 
-.chat-item--active::after {
+html[data-template="rounded"] .chat-item--active::after {
   box-shadow: 10px -10px 0 10px var(--chat-bg);
 }
 
@@ -69,9 +87,14 @@
 .avatar {
   width: 44px;
   height: 44px;
-  border-radius: 50%;
+  border-radius: var(--radius-default);
   object-fit: cover;
   background: #ddd;
+  transition: border-radius 0.2s ease;
+}
+
+html[data-template="rounded"] .avatar {
+  border-radius: 50%;
 }
 
 .chat-tag {
@@ -170,8 +193,15 @@
     margin-left: 0;
     margin-right: 0;
     padding-right: 16px;
-    border-radius: 7px 15px 15px 7px;
+    border-radius: var(--radius-default);
     z-index: auto;
+  }
+
+  html[data-template="rounded"] .chat-item,
+  html[data-template="rounded"] .chat-item--active,
+  html[data-template="rounded"] .chat-item--active:hover,
+  html[data-template="rounded"] .chat-item:hover:not(.chat-item--active) {
+    border-radius: 7px 15px 15px 7px;
   }
 
   .chat-item::before,

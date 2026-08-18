@@ -92,12 +92,17 @@
 }
 
 .chat-window__header .icon-btn {
-  border-radius: 50%;
+  border-radius: var(--radius-default);
   background: rgb(255 255 255 / 0.35);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   border: 1px solid var(--border);
   box-shadow: 0 1px 2px rgb(0 0 0 / 0.04), 0 8px 24px rgb(0 0 0 / 0.04);
+  transition: border-radius 0.2s ease;
+}
+
+html[data-template="rounded"] .chat-window__header .icon-btn {
+  border-radius: 50%;
 }
 
 .chat-window__header .icon-btn:hover {

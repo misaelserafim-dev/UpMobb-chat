@@ -1,6 +1,7 @@
 import { useEffect, useEffectEvent, useId, useRef, useState, type FormEvent } from "react";
 import { createPortal } from "react-dom";
 import { Icons } from "@/componentes/Icons/Icons.tsx";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue.ts";
 import { useDismissable } from "@/hooks/useDismissable.ts";
 import { fetchContacts, type Contact } from "@/services/contacts.ts";
 import { listDepartamentos, type Departamento } from "@/services/departamentos.ts";
@@ -23,6 +24,7 @@ export function NewTicketModal({
   const [contactResults, setContactResults] = useState<Contact[]>([]);
   const [contactLoading, setContactLoading] = useState(false);
   const [contactMenuOpen, setContactMenuOpen] = useState(false);
+  const debouncedContactQuery = useDebouncedValue(contactQuery, 350);
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
 
   const [departamentoId, setDepartamentoId] = useState("");
@@ -116,7 +118,7 @@ export function NewTicketModal({
 
   useEffect(() => {
     if (!open || selectedContact) return;
-    const q = contactQuery.trim();
+    const q = debouncedContactQuery.trim();
     if (q.length < 1) {
       setContactResults([]);
       setContactLoading(false);
@@ -125,26 +127,23 @@ export function NewTicketModal({
 
     let cancelled = false;
     setContactLoading(true);
-    const timer = window.setTimeout(() => {
-      fetchContacts({ page: 1, pageSize: 12, query: q })
-        .then((res) => {
-          if (cancelled) return;
-          setContactResults(res.items);
-          setContactLoading(false);
-          setContactMenuOpen(true);
-        })
-        .catch(() => {
-          if (cancelled) return;
-          setContactResults([]);
-          setContactLoading(false);
-        });
-    }, 220);
+    fetchContacts({ page: 1, pageSize: 12, query: q })
+      .then((res) => {
+        if (cancelled) return;
+        setContactResults(res.items);
+        setContactLoading(false);
+        setContactMenuOpen(true);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setContactResults([]);
+        setContactLoading(false);
+      });
 
     return () => {
       cancelled = true;
-      window.clearTimeout(timer);
     };
-  }, [contactQuery, open, selectedContact]);
+  }, [debouncedContactQuery, open, selectedContact]);
 
   if (!open) return null;
 

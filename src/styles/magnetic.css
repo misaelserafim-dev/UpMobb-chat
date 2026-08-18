@@ -15,6 +15,11 @@
   will-change: transform;
 }
 
+.magnet__inner > * {
+  border-radius: var(--radius-full);
+  transition: border-radius 0.2s ease;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .magnet__inner {
     transition: none !important;

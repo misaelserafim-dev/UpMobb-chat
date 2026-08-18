@@ -1,4 +1,4 @@
-import { apiListRequest, apiRequest } from "@/services/api.ts";
+import { API_BASE, apiListRequest, apiRequest } from "@/services/api.ts";
 
 export type ContactTag = {
   id: string;
@@ -69,13 +69,29 @@ function toContact(dto: ContactDto): Contact {
   };
 }
 
-/** GET /panel/contacts?page=&limit= — busca aplicada aqui (backend não filtra por texto). */
+function qs(params: Record<string, string | number | undefined>) {
+  const search = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (value === undefined || value === "") continue;
+    search.set(key, String(value));
+  }
+  const s = search.toString();
+  return s ? `?${s}` : "";
+}
+
+/** GET — mocks `/contacts`; API `/panel/contacts`. */
 export async function fetchContacts(
   params: FetchContactsParams = {},
 ): Promise<FetchContactsResult> {
   const page = Math.max(1, params.page || 1);
   const pageSize = Math.min(100, Math.max(10, params.pageSize || 40));
   const q = (params.query || "").trim().toLowerCase();
+
+  if (!API_BASE) {
+    return apiRequest<FetchContactsResult>(
+      `/contacts${qs({ page, pageSize, q: params.query })}`,
+    );
+  }
 
   const res = await apiListRequest<ContactDto>(
     `/panel/contacts?page=${page}&limit=${pageSize}`,
@@ -95,26 +111,43 @@ export async function fetchContacts(
   };
 }
 
-/** Etiquetas do contato: GET /panel/contacts/:id/tags */
+/** Etiquetas do contato — só com API por enquanto. */
 export async function fetchContactTags(contactId: string): Promise<ContactTag[]> {
+  if (!API_BASE) return [];
   const rows = await apiRequest<Array<{ id: string; name: string; color: string }>>(
     `/panel/contacts/${encodeURIComponent(contactId)}/tags`,
   );
   return rows.map((t) => ({ id: t.id, label: t.name, color: t.color }));
 }
 
-// Contatos são sincronizados do WhatsApp; o backend não tem CRUD manual.
-
-export async function createContact(_payload: CreateContactPayload): Promise<Contact> {
+export async function createContact(payload: CreateContactPayload): Promise<Contact> {
+  if (!API_BASE) {
+    return apiRequest<Contact>("/contacts", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  }
   throw new Error("Contatos são sincronizados do WhatsApp — cadastro manual indisponível.");
 }
 
-export async function updateContact(_payload: UpdateContactPayload): Promise<Contact> {
+export async function updateContact(payload: UpdateContactPayload): Promise<Contact> {
+  if (!API_BASE) {
+    const { id, ...body } = payload;
+    return apiRequest<Contact>(`/contacts/${encodeURIComponent(id)}`, {
+      method: "PUT",
+      body: JSON.stringify(body),
+    });
+  }
   throw new Error("Contatos são sincronizados do WhatsApp — edição manual indisponível.");
 }
 
 export async function deleteContact(
-  _payload: DeleteContactPayload,
+  payload: DeleteContactPayload,
 ): Promise<{ id: string }> {
+  if (!API_BASE) {
+    return apiRequest<{ id: string }>(`/contacts/${encodeURIComponent(payload.id)}`, {
+      method: "DELETE",
+    });
+  }
   throw new Error("Contatos são sincronizados do WhatsApp — exclusão manual indisponível.");
 }

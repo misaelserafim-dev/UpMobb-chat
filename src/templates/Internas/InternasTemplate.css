@@ -53,12 +53,17 @@
 .internas-pagination__btn {
   min-height: 36px;
   padding: 0 14px;
-  border-radius: 999px;
+  border-radius: var(--radius-default);
   font-size: 0.8125rem;
   font-weight: 600;
   background: #fff;
   border: 1px solid var(--border);
   color: var(--text);
+  transition: border-radius 0.2s ease;
+}
+
+html[data-template="rounded"] .internas-pagination__btn {
+  border-radius: 999px;
 }
 
 .internas-pagination__btn:hover:not(:disabled) {

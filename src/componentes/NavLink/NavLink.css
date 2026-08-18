@@ -5,14 +5,14 @@
   display: inline-flex;
   align-items: center;
   padding: 7px 16px;
-  border-radius: 999px;
+  border-radius: var(--radius-full);
   border: none;
   font-size: 0.875rem;
   font-weight: 400;
   color: var(--text-muted);
   text-decoration: none;
   background: transparent;
-  transition: color 0.15s ease, background 0.15s ease;
+  transition: color 0.15s ease, background 0.15s ease, border-radius 0.2s ease;
 }
 
 .top-nav__link:hover {

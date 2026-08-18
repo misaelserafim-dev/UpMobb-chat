@@ -1,4 +1,4 @@
-import { apiRequest, setAuthToken } from "@/services/api.ts";
+import { API_BASE, apiRequest, setAuthToken } from "@/services/api.ts";
 import { disconnectSocket } from "@/services/socket.ts";
 
 export type AuthUser = {
@@ -40,6 +40,22 @@ export function clearSession() {
 export async function login(payload: LoginPayload): Promise<LoginResponse> {
   if (!payload.email.trim() || !payload.password) {
     throw new Error("Informe e-mail e senha.");
+  }
+
+  // Sem backend: sessão mock (websocket fica inativo via getSocket → null)
+  if (!API_BASE) {
+    const data: LoginResponse = {
+      token: "mock-token",
+      user: {
+        id: "u-mock",
+        name: payload.email.trim().split("@")[0] || "Demo",
+        email: payload.email.trim(),
+        role: "admin",
+      },
+    };
+    setAuthToken(data.token);
+    localStorage.setItem(USER_KEY, JSON.stringify(data.user));
+    return data;
   }
 
   const data = await apiRequest<LoginResponse>("/auth/login", {

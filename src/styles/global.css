@@ -41,7 +41,9 @@
   --danger: #dc2626;
   --shadow-float: 0 2px 8px rgb(0 0 0 / 0.06), 0 8px 28px rgb(0 0 0 / 0.1);
   --list-w: 520px;
-  --radius: 20px;
+  --radius: 4px;
+  --radius-default: 4px;
+  --radius-full: 4px;
   --curve: 18px;
   --panel-gap: 14px;
   --page-panel-max: 1440px;
@@ -225,10 +227,17 @@ body.is-resizing-list * {
   padding: 10px 14px;
   background: var(--surface);
   border: none;
-  border-radius: 30px;
+  border-radius: var(--radius-default);
   color: var(--text-soft);
   box-sizing: border-box;
   box-shadow: 0 1px 2px rgb(0 0 0 / 0.04), 0 8px 24px rgb(0 0 0 / 0.04);
+  transition: border-radius 0.2s ease;
+}
+
+html[data-template="rounded"] .chat-list__search,
+html[data-template="rounded"] .page-panel__search,
+html[data-template="rounded"] .chat-msg-search {
+  border-radius: 30px;
 }
 
 .chat-list__search input,
@@ -457,9 +466,14 @@ body.is-resizing-list * {
 .contact-row__avatar {
   width: 40px;
   height: 40px;
-  border-radius: 50%;
+  border-radius: var(--radius-default);
   object-fit: cover;
   flex-shrink: 0;
+  transition: border-radius 0.2s ease;
+}
+
+html[data-template="rounded"] .contact-row__avatar {
+  border-radius: 50%;
 }
 
 .contact-row__meta {
@@ -598,7 +612,8 @@ body.is-resizing-list * {
 
 .dept-row:last-child {
   border-bottom: none;
-  border-radius: 0 0 12px 12px;
+  border-radius: 0 0 var(--radius-default) var(--radius-default);
+  transition: border-radius 0.2s ease;
 }
 
 .dept-row__name {
@@ -739,13 +754,13 @@ body.is-resizing-list * {
       "greeting greeting";
     text-align: left;
     gap: 8px;
-    border-radius: 12px;
+    border-radius: var(--radius-default);
     border: 1px solid rgb(0 0 0 / 0.06);
     margin-bottom: 8px;
   }
 
   .dept-row:last-child {
-    border-radius: 12px;
+    border-radius: var(--radius-default);
   }
 
   .quick-reply-table__head {
@@ -862,13 +877,14 @@ body.is-resizing-list * {
   min-width: 0;
   height: 38px;
   padding: 0 12px;
-  border-radius: 10px;
+  border-radius: var(--radius-default);
   border: 1px solid rgb(0 0 0 / 0.08);
   background: rgb(255 255 255 / 0.9);
   font: inherit;
   font-size: 0.875rem;
   color: var(--text);
   box-shadow: 0 1px 2px rgb(0 0 0 / 0.04), 0 8px 24px rgb(0 0 0 / 0.04);
+  transition: border-radius 0.2s ease;
 }
 
 .etiqueta-form__name:focus {
@@ -880,12 +896,13 @@ body.is-resizing-list * {
   position: relative;
   width: 38px;
   height: 38px;
-  border-radius: 10px;
+  border-radius: var(--radius-default);
   overflow: hidden;
   border: 1px solid rgb(0 0 0 / 0.08);
   background: #fff;
   flex-shrink: 0;
   cursor: pointer;
+  transition: border-radius 0.2s ease;
 }
 
 .etiqueta-form__color.is-empty {
@@ -940,9 +957,10 @@ body.is-resizing-list * {
   align-items: center;
   gap: 4px;
   padding: 10px 12px;
-  border-radius: 12px;
+  border-radius: var(--radius-default);
   background: rgb(255 255 255);
   box-shadow: 0 1px 2px rgb(0 0 0 / 0.04), 0 8px 24px rgb(0 0 0 / 0.04);
+  transition: border-radius 0.2s ease;
 }
 
 .etiqueta-chip {
@@ -1001,12 +1019,13 @@ body.is-resizing-list * {
   min-width: 0;
   height: 36px;
   padding: 0 10px;
-  border-radius: 8px;
+  border-radius: var(--radius-default);
   border: 1px solid rgb(0 0 0 / 0.1);
   background: #fff;
   font: inherit;
   font-size: 0.875rem;
   color: var(--text);
+  transition: border-radius 0.2s ease;
 }
 
 .etiqueta-card__name-input:focus {
@@ -1161,12 +1180,13 @@ body.is-resizing-list * {
 .phone-field__number {
   width: 100%;
   border: 1px solid rgb(0 0 0 / 0.1);
-  border-radius: 10px;
+  border-radius: var(--radius-default);
   background: #fff;
   padding: 10px 12px;
   font: inherit;
   font-size: 0.9375rem;
   color: var(--text);
+  transition: border-radius 0.2s ease;
 }
 
 .contact-field textarea {
@@ -1200,13 +1220,14 @@ body.is-resizing-list * {
   height: 100%;
   min-height: 42px;
   padding: 0 10px;
-  border-radius: 10px;
+  border-radius: var(--radius-default);
   border: 1px solid rgb(0 0 0 / 0.1);
   background: #fff;
   color: var(--text);
   font: inherit;
   font-size: 0.875rem;
   font-weight: 600;
+  transition: border-radius 0.2s ease;
 }
 
 .phone-ddi__trigger:hover {
@@ -1261,9 +1282,10 @@ body.is-resizing-list * {
   margin: 8px;
   padding: 8px 10px;
   border: 1px solid rgb(0 0 0 / 0.1);
-  border-radius: 8px;
+  border-radius: var(--radius-default);
   font: inherit;
   font-size: 0.875rem;
+  transition: border-radius 0.2s ease;
 }
 
 .phone-ddi__search:focus {
@@ -1322,10 +1344,15 @@ body.is-resizing-list * {
 .contact-form__btn {
   height: 38px;
   padding: 0 16px;
-  border-radius: 10px;
+  border-radius: var(--radius-default);
   font: inherit;
   font-size: 0.875rem;
   font-weight: 600;
+  transition: border-radius 0.2s ease;
+}
+
+html[data-template="rounded"] .contact-form__btn {
+  border-radius: 10px;
 }
 
 .contact-form__btn--ghost {
@@ -1366,12 +1393,13 @@ body.is-resizing-list * {
   width: 100%;
   min-height: 42px;
   padding: 6px 10px;
-  border-radius: 10px;
+  border-radius: var(--radius-default);
   border: 1px solid rgb(0 0 0 / 0.1);
   background: #fff;
   color: var(--text);
   font: inherit;
   text-align: left;
+  transition: border-radius 0.2s ease;
 }
 
 .etiqueta-select__trigger:hover {
@@ -1443,9 +1471,10 @@ body.is-resizing-list * {
   margin: 8px 8px 4px;
   padding: 8px 10px;
   border: 1px solid rgb(0 0 0 / 0.1);
-  border-radius: 8px;
+  border-radius: var(--radius-default);
   font: inherit;
   font-size: 0.875rem;
+  transition: border-radius 0.2s ease;
 }
 
 .etiqueta-select__search:focus {
@@ -1832,4 +1861,37 @@ body.is-resizing-list * {
   .equipe-row__profile { grid-area: profile; }
   .equipe-row__connection { grid-area: connection; }
   .equipe-row__actions { grid-area: actions; }
+}
+
+/* Template redondo: radius atual dos inputs de cadastro/edição */
+html[data-template="rounded"] .contact-field input,
+html[data-template="rounded"] .contact-field textarea,
+html[data-template="rounded"] .contact-field select,
+html[data-template="rounded"] .phone-field__number,
+html[data-template="rounded"] .phone-ddi__trigger,
+html[data-template="rounded"] .etiqueta-form__name,
+html[data-template="rounded"] .etiqueta-form__color,
+html[data-template="rounded"] .etiqueta-select__trigger {
+  border-radius: 10px;
+}
+
+html[data-template="rounded"] .phone-ddi__search,
+html[data-template="rounded"] .etiqueta-select__search,
+html[data-template="rounded"] .etiqueta-card__name-input {
+  border-radius: 8px;
+}
+
+html[data-template="rounded"] .dept-row:last-child {
+  border-radius: 0 0 12px 12px;
+}
+
+html[data-template="rounded"] .etiqueta-card {
+  border-radius: 12px;
+}
+
+@media (max-width: 720px) {
+  html[data-template="rounded"] .dept-row,
+  html[data-template="rounded"] .dept-row:last-child {
+    border-radius: 12px;
+  }
 }
