@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, useState, type FormEvent } from "react";
+import { ColorPresetPicker } from "@/componentes/ColorPresetPicker/ColorPresetPicker.tsx";
 import { ConfirmModal } from "@/componentes/ConfirmModal/ConfirmModal.tsx";
 import { Icons } from "@/componentes/Icons/Icons.tsx";
 import { InternasTemplate } from "@/templates/Internas/InternasTemplate.tsx";
@@ -9,12 +10,17 @@ import {
   updateEtiqueta,
   type Etiqueta,
 } from "@/services/etiquetas.ts";
+import {
+  DEFAULT_ETIQUETA_COLOR,
+  ETIQUETA_COLORS,
+  resolvePresetColor,
+} from "@/utils/presetColors.ts";
 import "@/componentes/ChatListSkeleton/ChatListSkeleton.css";
 import "@/componentes/ConfirmModal/ConfirmModal.css";
+import "@/componentes/ColorPresetPicker/ColorPresetPicker.css";
 import "./Etiquetas.css";
 
 const PAGE_SIZE = 40;
-const DEFAULT_COLOR = "#0063a3";
 
 type ModalState =
   | { open: false }
@@ -34,8 +40,7 @@ export function Etiquetas() {
 
   const [modal, setModal] = useState<ModalState>({ open: false });
   const [formName, setFormName] = useState("");
-  const [formColor, setFormColor] = useState(DEFAULT_COLOR);
-  const [colorSet, setColorSet] = useState(false);
+  const [formColor, setFormColor] = useState(DEFAULT_ETIQUETA_COLOR);
   const [formError, setFormError] = useState("");
 
   const [pendingDelete, setPendingDelete] = useState<Etiqueta | null>(null);
@@ -74,16 +79,14 @@ export function Etiquetas() {
 
   function openCreate() {
     setFormName("");
-    setFormColor(DEFAULT_COLOR);
-    setColorSet(false);
+    setFormColor(DEFAULT_ETIQUETA_COLOR);
     setFormError("");
     setModal({ open: true, mode: "create" });
   }
 
   function openEdit(item: Etiqueta) {
     setFormName(item.name);
-    setFormColor(item.color);
-    setColorSet(true);
+    setFormColor(resolvePresetColor(item.color, ETIQUETA_COLORS));
     setFormError("");
     setModal({ open: true, mode: "edit", item });
   }
@@ -105,10 +108,6 @@ export function Etiquetas() {
     const name = formName.trim();
     if (!name) {
       setFormError("Informe o nome da etiqueta.");
-      return;
-    }
-    if (!colorSet) {
-      setFormError("Escolha uma cor.");
       return;
     }
 
@@ -279,21 +278,13 @@ export function Etiquetas() {
                     required
                     onChange={(e) => setFormName(e.target.value)}
                   />
-                  <label
-                    className={`etiqueta-form__color departamento-color${colorSet ? "" : " is-empty"}`}
-                    title="Cor da etiqueta"
-                  >
-                    <input
-                      type="color"
-                      id="etiqueta-color"
-                      value={formColor}
-                      aria-label="Cor da etiqueta"
-                      onChange={(e) => {
-                        setFormColor(e.target.value);
-                        setColorSet(true);
-                      }}
-                    />
-                  </label>
+                  <ColorPresetPicker
+                    colors={ETIQUETA_COLORS}
+                    value={formColor}
+                    label="Cor da etiqueta"
+                    disabled={saving}
+                    onChange={setFormColor}
+                  />
                 </div>
               </div>
 

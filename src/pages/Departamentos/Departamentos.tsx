@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, useState, type FormEvent } from "react";
+import { ColorPresetPicker } from "@/componentes/ColorPresetPicker/ColorPresetPicker.tsx";
 import { ConfirmModal } from "@/componentes/ConfirmModal/ConfirmModal.tsx";
 import { Icons } from "@/componentes/Icons/Icons.tsx";
 import { InternasTemplate } from "@/templates/Internas/InternasTemplate.tsx";
@@ -9,12 +10,17 @@ import {
   updateDepartamento,
   type Departamento,
 } from "@/services/departamentos.ts";
+import {
+  DEFAULT_DEPARTAMENTO_COLOR,
+  DEPARTAMENTO_COLORS,
+  resolvePresetColor,
+} from "@/utils/presetColors.ts";
 import "@/componentes/ChatListSkeleton/ChatListSkeleton.css";
 import "@/componentes/ConfirmModal/ConfirmModal.css";
+import "@/componentes/ColorPresetPicker/ColorPresetPicker.css";
 import "./Departamentos.css";
 
 const PAGE_SIZE = 40;
-const DEFAULT_COLOR = "#0063a3";
 
 type ModalState =
   | { open: false }
@@ -34,9 +40,8 @@ export function Departamentos() {
 
   const [modal, setModal] = useState<ModalState>({ open: false });
   const [formName, setFormName] = useState("");
-  const [formColor, setFormColor] = useState(DEFAULT_COLOR);
+  const [formColor, setFormColor] = useState(DEFAULT_DEPARTAMENTO_COLOR);
   const [formGreeting, setFormGreeting] = useState("");
-  const [colorSet, setColorSet] = useState(false);
   const [formError, setFormError] = useState("");
 
   const [pendingDelete, setPendingDelete] = useState<Departamento | null>(null);
@@ -75,18 +80,16 @@ export function Departamentos() {
 
   function openCreate() {
     setFormName("");
-    setFormColor(DEFAULT_COLOR);
+    setFormColor(DEFAULT_DEPARTAMENTO_COLOR);
     setFormGreeting("");
-    setColorSet(false);
     setFormError("");
     setModal({ open: true, mode: "create" });
   }
 
   function openEdit(item: Departamento) {
     setFormName(item.name);
-    setFormColor(item.color);
+    setFormColor(resolvePresetColor(item.color, DEPARTAMENTO_COLORS));
     setFormGreeting(item.greeting);
-    setColorSet(true);
     setFormError("");
     setModal({ open: true, mode: "edit", item });
   }
@@ -113,10 +116,6 @@ export function Departamentos() {
     const greeting = formGreeting.trim();
     if (!name) {
       setFormError("Informe o nome do departamento.");
-      return;
-    }
-    if (!colorSet) {
-      setFormError("Escolha uma cor.");
       return;
     }
     if (!greeting) {
@@ -319,21 +318,14 @@ export function Departamentos() {
                     required
                     onChange={(e) => setFormName(e.target.value)}
                   />
-                  <label
-                    className={`etiqueta-form__color departamento-color${colorSet ? "" : " is-empty"}`}
-                    title="Cor do departamento"
-                  >
-                    <input
-                      type="color"
-                      id="departamento-color"
-                      value={formColor}
-                      aria-label="Cor do departamento"
-                      onChange={(e) => {
-                        setFormColor(e.target.value);
-                        setColorSet(true);
-                      }}
-                    />
-                  </label>
+                  <ColorPresetPicker
+                    colors={DEPARTAMENTO_COLORS}
+                    value={formColor}
+                    label="Cor do departamento"
+                    disabled={saving}
+                    columns={4}
+                    onChange={setFormColor}
+                  />
                 </div>
               </div>
 
