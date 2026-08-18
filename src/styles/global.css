@@ -487,7 +487,17 @@ html[data-template="rounded"] .contact-table {
   border-radius: var(--radius-default);
   object-fit: cover;
   flex-shrink: 0;
+  background: color-mix(in srgb, var(--accent) 10%, #e8eef5);
   transition: border-radius 0.2s ease;
+}
+
+.contact-row__avatar--fallback {
+  display: grid;
+  place-items: center;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: color-mix(in srgb, var(--accent) 55%, #64748b);
+  user-select: none;
 }
 
 html[data-template="rounded"] .contact-row__avatar {

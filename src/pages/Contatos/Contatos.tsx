@@ -54,6 +54,39 @@ function formatContactPhone(phone: string) {
   return `${parsed.dial} ${parsed.national}`.trim();
 }
 
+function contactInitial(name = "") {
+  const trimmed = name.trim();
+  if (!trimmed) return "?";
+  return trimmed.charAt(0).toLocaleUpperCase("pt-BR");
+}
+
+function ContactRowAvatar({ name, src }: { name: string; src?: string }) {
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    setFailed(false);
+  }, [src]);
+
+  const showImg = Boolean(src) && !failed;
+
+  if (!showImg) {
+    return (
+      <span className="contact-row__avatar contact-row__avatar--fallback" aria-hidden="true">
+        {contactInitial(name)}
+      </span>
+    );
+  }
+
+  return (
+    <img
+      className="contact-row__avatar"
+      src={src}
+      alt=""
+      onError={() => setFailed(true)}
+    />
+  );
+}
+
 export function Contatos() {
   const navigate = useNavigate();
   const titleId = useId();
@@ -523,7 +556,7 @@ export function Contatos() {
             {contacts.map((c) => (
               <article key={c.id} className="contact-row" data-contact-id={c.id} role="listitem">
                 <div className="contact-row__person">
-                  <img className="contact-row__avatar" src={c.avatar} alt="" />
+                  <ContactRowAvatar name={c.name} src={c.avatar} />
                   <div className="contact-row__meta">
                     <div className="contact-row__name">{c.name}</div>
                     <div className="contact-row__phone">{formatContactPhone(c.phone)}</div>
