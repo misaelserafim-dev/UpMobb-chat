@@ -4,20 +4,39 @@
   min-width: 0;
   position: relative;
   z-index: 1;
+  display: grid;
+  place-items: center;
   background-color: var(--chat-bg);
-  background-image: url("../../assets/wa-background.png");
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: 180px;
   opacity: 0.5;
   border-radius: var(--radius) var(--radius) 0 0;
   overflow: hidden;
   box-shadow: 0 1px 2px rgb(0 0 0 / 0.04), 0 8px 24px rgb(0 0 0 / 0.04);
 }
 
+.chat-empty__logo {
+  width: min(220px, 55%);
+  height: auto;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+  transform-style: preserve-3d;
+  will-change: transform;
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.chat-empty:hover .chat-empty__logo {
+  transition-duration: 0.12s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chat-empty__logo {
+    transition: none !important;
+    transform: none !important;
+  }
+}
+
 .chat-empty--loading {
   opacity: 1;
-  background-image: none;
 }
 
 .chat-progress {
@@ -61,7 +80,6 @@
   }
 }
 
-
 @media (max-width: 800px) {
   .chat-empty {
     display: none;
@@ -74,6 +92,6 @@
   }
 
   .app[data-mobile-panel="chat"] .chat-empty {
-    display: flex;
+    display: grid;
   }
 }
