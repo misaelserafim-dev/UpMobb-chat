@@ -21,6 +21,10 @@ html[data-template="rounded"] .filter-chip {
   border-radius: 999px;
 }
 
+.filter-chip:not(:has(.filter-chip__count)) {
+  padding-right: 12px;
+}
+
 .filter-chip:hover:not(.filter-chip--active) {
   color: var(--accent);
 }

@@ -129,8 +129,8 @@ export function RespostasRapidas() {
         setTotal((t) => t + 1);
       }
       setModal({ open: false });
-    } catch {
-      setFormError("Não foi possível salvar. Tente de novo.");
+    } catch (err) {
+      setFormError(err instanceof Error ? err.message : "Não foi possível salvar. Tente de novo.");
     } finally {
       setSaving(false);
     }

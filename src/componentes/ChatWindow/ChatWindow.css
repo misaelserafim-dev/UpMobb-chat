@@ -381,6 +381,38 @@ button.chat-window__etiqueta-add .icon {
   padding-bottom: calc(180px + var(--keyboard-inset, 0px));
 }
 
+.chat-window__assume {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 5;
+  padding: 0 24px 22px;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+  background: linear-gradient(to top, var(--chat-bg) 35%, transparent);
+}
+
+.chat-window__assume-btn {
+  pointer-events: auto;
+  height: 44px;
+  min-width: 160px;
+  padding: 0 24px;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  background: var(--accent);
+  color: var(--accent-text);
+  box-shadow: var(--shadow-float);
+}
+
+.chat-window__assume-btn:hover {
+  background: var(--accent-hover);
+  color: var(--accent-hover-text);
+}
+
 .chat-window.is-drop-target .chat-window__column::after {
   content: "Solte o arquivo aqui";
   position: absolute;
