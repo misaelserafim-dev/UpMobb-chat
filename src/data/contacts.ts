@@ -8,66 +8,43 @@ import type {
 /**
  * Mocks de contatos — só enquanto VITE_API_URL não estiver definido.
  * Delete `src/data` ao plugar o backend.
+ * Volume grande: usar importação Excel na página Contatos.
  */
 
-const NAMES = [
-  "Ana",
-  "Bruno",
-  "Carla",
-  "Diego",
-  "Elena",
-  "Fábio",
-  "Gabi",
-  "Hugo",
-  "Iris",
-  "João",
-  "Karen",
-  "Leo",
-  "Marina",
-  "Nina",
-  "Otto",
-  "Paula",
-  "Rafa",
-  "Sofia",
-  "Tiago",
-  "Vera",
+const SEED: Contact[] = [
+  {
+    id: "c-1",
+    name: "Ana Silva",
+    phone: "+55 11 99876-5432",
+    email: "ana.silva@email.com",
+    notes: "Cliente recorrente",
+    avatar: "https://i.pravatar.cc/80?u=contact-1",
+    tags: [{ id: "vip", label: "VIP", color: "#ef4444" }],
+  },
+  {
+    id: "c-2",
+    name: "Bruno Costa",
+    phone: "+55 21 98765-4321",
+    email: "bruno.costa@empresa.com",
+    avatar: "https://i.pravatar.cc/80?u=contact-2",
+    tags: [{ id: "suporte", label: "Suporte", color: "#8b5cf6" }],
+  },
+  {
+    id: "c-3",
+    name: "Carla Mendes",
+    phone: "+55 31 99654-3210",
+    email: "carla.mendes@loja.com",
+    notes: "Preferência por WhatsApp",
+    avatar: "https://i.pravatar.cc/80?u=contact-3",
+    tags: [{ id: "vendas", label: "Vendas", color: "#dc2626" }],
+  },
+  {
+    id: "c-4",
+    name: "Diego Rocha",
+    phone: "+55 41 99123-4567",
+    avatar: "https://i.pravatar.cc/80?u=contact-4",
+  },
 ];
-
-const SURNAMES = [
-  "Silva",
-  "Souza",
-  "Lima",
-  "Costa",
-  "Alves",
-  "Rocha",
-  "Dias",
-  "Nunes",
-  "Pires",
-  "Melo",
-];
-
-function buildMockContacts(total = 420): Contact[] {
-  return Array.from({ length: total }, (_, i) => {
-    const name = `${NAMES[i % NAMES.length]} ${SURNAMES[i % SURNAMES.length]} ${i + 1}`;
-    const ddd = 11 + (i % 80);
-    const phone = `+55 ${ddd} 9${String(1000 + (i % 9000)).slice(0, 4)}-${String(1000 + ((i * 7) % 9000)).slice(0, 4)}`;
-    return {
-      id: `c-${i + 1}`,
-      name,
-      phone,
-      email: `contato${i + 1}@empresa.com`,
-      avatar: `https://i.pravatar.cc/80?u=contact-${i + 1}`,
-      tags:
-        i % 5 === 0
-          ? [{ id: "consultor", label: "Consultor / Vendedor UpMobb", color: "#9ca3af" }]
-          : i % 3 === 0
-            ? [{ id: "vip", label: "VIP", color: "#ef4444" }]
-            : i % 2 === 0
-              ? [{ id: "suporte", label: "Suporte", color: "#8b5cf6" }]
-              : undefined,
-    };
-  });
-}
 
 function cloneContact(c: Contact): Contact {
   return {
@@ -76,7 +53,7 @@ function cloneContact(c: Contact): Contact {
   };
 }
 
-let contacts = buildMockContacts();
+let contacts = SEED.map(cloneContact);
 
 function parseQuery(path: string) {
   const qIndex = path.indexOf("?");

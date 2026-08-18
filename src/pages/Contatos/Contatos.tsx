@@ -15,11 +15,13 @@ import {
   type Contact,
   type ContactTag,
 } from "@/services/contacts.ts";
-import { listEtiquetas, type Etiqueta } from "@/services/etiquetas.ts";
+import { createEtiqueta, listEtiquetas, type Etiqueta } from "@/services/etiquetas.ts";
 import { DIAL_CODES, getDialCode } from "@/utils/dialCodes.ts";
 import {
+  ensureImportEtiquetas,
   fetchAllContactsForImport,
   parseContactsWorkbook,
+  resolveRowTags,
   type ImportContactDraft,
 } from "@/utils/contactImport.ts";
 import { maskPhone, phonePlaceholder } from "@/utils/phone.ts";
@@ -272,9 +274,23 @@ export function Contatos() {
       let createdCount = 0;
       let updatedCount = 0;
 
-      for (const row of importRows) {
+      const rowsToApply = importRows.filter((row) => {
+        if (row.status === "duplicate") return Boolean(replaceDuplicates && row.existingId);
+        return true;
+      });
+
+      const currentTags = await listEtiquetas().catch(() => [] as Etiqueta[]);
+      const tagCatalog = await ensureImportEtiquetas(
+        rowsToApply.flatMap((row) => row.tagLabels),
+        currentTags,
+        createEtiqueta,
+      );
+
+      for (const row of rowsToApply) {
+        const tags = resolveRowTags(row.tagLabels, tagCatalog);
+
         if (row.status === "duplicate") {
-          if (!replaceDuplicates || !row.existingId) continue;
+          if (!row.existingId) continue;
           await updateContact({
             id: row.existingId,
             name: row.name,
@@ -282,7 +298,7 @@ export function Contatos() {
             dialCode: row.dialCode,
             email: row.email,
             notes: row.notes,
-            tags: row.tags,
+            tags,
           });
           updatedCount += 1;
           continue;
@@ -294,7 +310,7 @@ export function Contatos() {
           dialCode: row.dialCode,
           email: row.email,
           notes: row.notes,
-          tags: row.tags,
+          tags,
         });
         createdCount += 1;
       }
