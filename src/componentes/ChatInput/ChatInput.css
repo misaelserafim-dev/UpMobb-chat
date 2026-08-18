@@ -5,13 +5,15 @@
   left: 0;
   right: 0;
   bottom: 0;
-  padding: 0 20px 20px;
+  padding: 0 20px calc(20px + env(safe-area-inset-bottom, 0px));
   pointer-events: none;
   background: linear-gradient(to top, var(--chat-bg) 35%, transparent);
   display: flex;
   flex-direction: column;
   gap: 10px;
   align-items: stretch;
+  transition: bottom 0.12s ease-out;
+  z-index: 4;
 }
 
 @media (max-width: 800px) {

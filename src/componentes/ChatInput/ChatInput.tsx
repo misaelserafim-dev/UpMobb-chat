@@ -13,6 +13,7 @@ import {
   type RespostaRapida,
 } from "@/services/respostasRapidas.ts";
 import type { ChatInputProps, PendingAttachment, ReplyDraft } from "./ChatInput.ts";
+import { useKeyboardInset } from "@/hooks/useKeyboardInset.ts";
 import { formatFileSize } from "@/utils/format.ts";
 import {
   clearMicDenied,
@@ -143,6 +144,9 @@ export function ChatInput({
   const [recordSec, setRecordSec] = useState(0);
   const [recordError, setRecordError] = useState("");
   const [micBlocked, setMicBlocked] = useState(false);
+  const [composerFocused, setComposerFocused] = useState(false);
+
+  const keyboardInset = useKeyboardInset(true);
 
   useEffect(() => {
     let dispose = () => {};
@@ -387,6 +391,22 @@ export function ChatInput({
   }, [attachments.length, replyTo, onPreviewChange]);
 
   useEffect(() => {
+    const column = wrapRef.current?.closest<HTMLElement>(".chat-window__column");
+    column?.style.setProperty("--keyboard-inset", `${keyboardInset}px`);
+    return () => {
+      column?.style.setProperty("--keyboard-inset", "0px");
+    };
+  }, [keyboardInset]);
+
+  useEffect(() => {
+    if (!composerFocused || keyboardInset <= 0) return;
+    const timer = window.setTimeout(() => {
+      wrapRef.current?.scrollIntoView({ block: "end", behavior: "smooth" });
+    }, 50);
+    return () => window.clearTimeout(timer);
+  }, [composerFocused, keyboardInset]);
+
+  useEffect(() => {
     return () => {
       revokeAll(attachmentsRef.current);
       setDropTarget(false);
@@ -576,6 +596,7 @@ export function ChatInput({
       className={`chat-composer-wrap${hasPreview ? " has-preview" : ""}${hasReply ? " has-reply" : ""}${recording ? " is-recording" : ""}`}
       id="chat-composer-wrap"
       ref={wrapRef}
+      style={keyboardInset > 0 ? { bottom: keyboardInset } : undefined}
     >
       {replyTo ? (
         <div className="composer-reply" id="composer-reply">
@@ -710,6 +731,8 @@ export function ChatInput({
             onInput={handleInput}
             onKeyDown={handleKeyDown}
             onPaste={handlePaste}
+            onFocus={() => setComposerFocused(true)}
+            onBlur={() => setComposerFocused(false)}
           />
         )}
 

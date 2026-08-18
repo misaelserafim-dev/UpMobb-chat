@@ -80,6 +80,26 @@ html[data-template="rounded"] .contact-import__replace {
   overflow: auto;
   border: 1px solid rgb(0 0 0 / 0.08);
   border-radius: var(--radius-default);
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--accent) 45%, transparent) transparent;
+}
+
+.contact-import__table-wrap::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.contact-import__table-wrap::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.contact-import__table-wrap::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--accent) 40%, transparent);
+  border-radius: 999px;
+}
+
+.contact-import__table-wrap::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--accent) 70%, transparent);
 }
 
 html[data-template="rounded"] .contact-import__table-wrap {

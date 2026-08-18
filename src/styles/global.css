@@ -296,15 +296,57 @@ html[data-template="rounded"] .chat-msg-search {
 }
 
 /* Scrollbar */
+.chat-list__items,
+.chat-window__messages,
+.contact-table,
+.quick-reply-table,
+.dept-table,
+.equipe-table,
+.page-panel__body {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--accent) 45%, transparent) transparent;
+}
+
 .chat-list__items::-webkit-scrollbar,
-.chat-window__messages::-webkit-scrollbar {
+.chat-window__messages::-webkit-scrollbar,
+.contact-table::-webkit-scrollbar,
+.quick-reply-table::-webkit-scrollbar,
+.dept-table::-webkit-scrollbar,
+.equipe-table::-webkit-scrollbar,
+.page-panel__body::-webkit-scrollbar {
   width: 6px;
+  height: 6px;
+}
+
+.chat-list__items::-webkit-scrollbar-track,
+.chat-window__messages::-webkit-scrollbar-track,
+.contact-table::-webkit-scrollbar-track,
+.quick-reply-table::-webkit-scrollbar-track,
+.dept-table::-webkit-scrollbar-track,
+.equipe-table::-webkit-scrollbar-track,
+.page-panel__body::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 .chat-list__items::-webkit-scrollbar-thumb,
-.chat-window__messages::-webkit-scrollbar-thumb {
-  background: rgb(0 0 0 / 0.15);
-  border-radius: 3px;
+.chat-window__messages::-webkit-scrollbar-thumb,
+.contact-table::-webkit-scrollbar-thumb,
+.quick-reply-table::-webkit-scrollbar-thumb,
+.dept-table::-webkit-scrollbar-thumb,
+.equipe-table::-webkit-scrollbar-thumb,
+.page-panel__body::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--accent) 40%, transparent);
+  border-radius: 999px;
+}
+
+.chat-list__items::-webkit-scrollbar-thumb:hover,
+.chat-window__messages::-webkit-scrollbar-thumb:hover,
+.contact-table::-webkit-scrollbar-thumb:hover,
+.quick-reply-table::-webkit-scrollbar-thumb:hover,
+.dept-table::-webkit-scrollbar-thumb:hover,
+.equipe-table::-webkit-scrollbar-thumb:hover,
+.page-panel__body::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--accent) 70%, transparent);
 }
 
 @media (max-width: 800px) {
@@ -631,6 +673,9 @@ html[data-template="rounded"] #departamento-list {
 }
 
 .dept-table__head {
+  position: sticky;
+  top: 0;
+  z-index: 2;
   display: grid;
   grid-template-columns: minmax(140px, 1.1fr) 88px minmax(0, 1.6fr) 96px;
   gap: 4px;
@@ -641,11 +686,6 @@ html[data-template="rounded"] #departamento-list {
   color: var(--text);
   background: #fff;
   border-bottom: 1px solid rgb(0 0 0 / 0.08);
-  border-radius: var(--radius-default) var(--radius-default) 0 0;
-}
-
-html[data-template="rounded"] .dept-table__head {
-  border-radius: 12px 12px 0 0;
 }
 
 .dept-table__col--actions {
@@ -743,6 +783,9 @@ html[data-template="rounded"] .quick-reply-table {
 }
 
 .quick-reply-table__head {
+  position: sticky;
+  top: 0;
+  z-index: 2;
   display: grid;
   grid-template-columns: 140px minmax(0, 1fr) 96px;
   gap: 12px;
@@ -752,6 +795,7 @@ html[data-template="rounded"] .quick-reply-table {
   font-weight: 600;
   color: var(--text);
   border-bottom: 1px solid rgb(0 0 0 / 0.08);
+  background: #fff;
 }
 
 .quick-reply-table__col--actions {
@@ -1638,10 +1682,14 @@ html[data-template="rounded"] .equipe-table {
 }
 
 .equipe-table__head {
+  position: sticky;
+  top: 0;
+  z-index: 2;
   font-size: 0.8125rem;
   font-weight: 600;
   color: var(--text);
   border-bottom: 1px solid rgb(0 0 0 / 0.08);
+  background: #fff;
 }
 
 .equipe-table__col--actions {

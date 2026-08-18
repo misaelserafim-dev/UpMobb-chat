@@ -13,7 +13,7 @@ import "@/componentes/ChatListSkeleton/ChatListSkeleton.css";
 import "@/componentes/ConfirmModal/ConfirmModal.css";
 import "./RespostasRapidas.css";
 
-const PAGE_SIZE = 40;
+const PAGE_SIZE = 20;
 
 type ModalState =
   | { open: false }

@@ -1,3 +1,38 @@
+/* Scroll na tabela, header sticky; body da página sem scroll */
+#equipe-page .page-panel__body {
+  overflow: hidden;
+}
+
+#equipe-page .page-container--contacts {
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow: hidden;
+}
+
+#equipe-page .equipe-table {
+  flex: 1;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+#equipe-page .equipe-table__head {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #fff;
+}
+
+#equipe-page .internas-pagination {
+  flex-shrink: 0;
+  margin-top: 0;
+  padding: 4px 8px 8px;
+}
+
 .equipe-row--skeleton {
   pointer-events: none;
 }

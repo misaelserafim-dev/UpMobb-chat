@@ -10,7 +10,7 @@ import type {
  * Delete `src/data` ao plugar o backend.
  */
 
-const SEED: Departamento[] = [
+const SEED_CORE: Departamento[] = [
   {
     id: "dept-modulacao",
     name: "Alterações e Criações de Modulação",
@@ -59,6 +59,72 @@ const SEED: Departamento[] = [
     color: "#44403c",
     greeting: "Setor jurídico. Descreva sua solicitação com o máximo de detalhes.",
   },
+];
+
+const DEPT_COLORS = [
+  "#166534",
+  "#1d4ed8",
+  "#ca8a04",
+  "#0369a1",
+  "#65a30d",
+  "#7c3aed",
+  "#0f766e",
+  "#44403c",
+  "#dc2626",
+  "#db2777",
+];
+
+const EXTRA_DEPT_NAMES = [
+  "Qualidade",
+  "Logística",
+  "Marketing",
+  "RH",
+  "Compras",
+  "Produção",
+  "Projetos",
+  "Pós-venda",
+  "Onboarding",
+  "Parcerias",
+  "Expansão",
+  "Operações",
+  "TI interna",
+  "Produto",
+  "Design",
+  "Conteúdo",
+  "Relacionamento",
+  "Cobrança",
+  "Contratos",
+  "Auditoria",
+  "Facilities",
+  "Segurança",
+  "Dados",
+  "Integrações",
+  "Automação",
+  "CNC",
+  "Plugin",
+  "Otimizador",
+  "Painel Gestor",
+  "WhatsApp Business",
+  "Canais",
+  "N1",
+  "N2",
+  "N3",
+  "Plantão",
+  "VIP",
+  "Revenda",
+  "Franquias",
+  "Exportação",
+  "Importação",
+];
+
+const SEED: Departamento[] = [
+  ...SEED_CORE,
+  ...EXTRA_DEPT_NAMES.map((name, i) => ({
+    id: `dept-extra-${i + 1}`,
+    name,
+    color: DEPT_COLORS[i % DEPT_COLORS.length],
+    greeting: `Olá! Você está no setor de ${name}. Como posso ajudar?`,
+  })),
 ];
 
 let departamentos = SEED.map((d) => ({ ...d }));

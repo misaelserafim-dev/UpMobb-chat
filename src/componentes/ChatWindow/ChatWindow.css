@@ -338,7 +338,7 @@ button.chat-window__etiqueta-add .icon {
   flex: 1;
   overflow-y: auto;
   overflow-anchor: none;
-  padding: 84px 24px 110px;
+  padding: 84px 24px calc(110px + var(--keyboard-inset, 0px));
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -346,7 +346,7 @@ button.chat-window__etiqueta-add .icon {
 }
 
 .chat-window__messages.has-composer-preview {
-  padding-bottom: 190px;
+  padding-bottom: calc(190px + var(--keyboard-inset, 0px));
 }
 
 .date-separator {
@@ -378,7 +378,7 @@ button.chat-window__etiqueta-add .icon {
 }
 
 .chat-window__messages.has-composer-reply {
-  padding-bottom: 180px;
+  padding-bottom: calc(180px + var(--keyboard-inset, 0px));
 }
 
 .chat-window.is-drop-target .chat-window__column::after {
