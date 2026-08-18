@@ -144,6 +144,45 @@ html[data-template="rounded"] .contact-import__table-wrap {
   color: var(--text-muted);
 }
 
+.contact-import__pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.contact-import__page-btn {
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: var(--radius-default);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  background: #fff;
+  border: 1px solid var(--border);
+  color: var(--text);
+  transition: border-radius 0.2s ease;
+}
+
+html[data-template="rounded"] .contact-import__page-btn {
+  border-radius: 999px;
+}
+
+.contact-import__page-btn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent) 8%, #fff);
+  color: var(--accent);
+}
+
+.contact-import__page-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.contact-import__page-info {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+}
+
 .contact-import__error {
   margin: 0;
   font-size: 0.8125rem;

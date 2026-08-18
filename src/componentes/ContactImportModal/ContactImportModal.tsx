@@ -1,6 +1,9 @@
+import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import type { ContactImportModalProps } from "./ContactImportModal.ts";
 import "./ContactImportModal.css";
+
+const PAGE_SIZE = 40;
 
 export function ContactImportModal({
   open = false,
@@ -13,10 +16,20 @@ export function ContactImportModal({
   onCancel,
   onConfirm,
 }: ContactImportModalProps) {
+  const [page, setPage] = useState(1);
+
+  useEffect(() => {
+    if (open) setPage(1);
+  }, [open, rows]);
+
   if (!open) return null;
 
   const news = rows.filter((r) => r.status === "new").length;
   const dups = rows.filter((r) => r.status === "duplicate").length;
+  const totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+  const start = (safePage - 1) * PAGE_SIZE;
+  const pageRows = rows.slice(start, start + PAGE_SIZE);
 
   return createPortal(
     <div className="contact-import is-open">
@@ -66,7 +79,7 @@ export function ContactImportModal({
               </tr>
             </thead>
             <tbody>
-              {rows.slice(0, 80).map((row) => (
+              {pageRows.map((row) => (
                 <tr key={row.key} className={row.status === "duplicate" ? "is-dup" : ""}>
                   <td>
                     <span className={`contact-import__badge contact-import__badge--${row.status}`}>
@@ -81,10 +94,31 @@ export function ContactImportModal({
               ))}
             </tbody>
           </table>
-          {rows.length > 80 ? (
-            <p className="contact-import__more">Mostrando 80 de {rows.length} contatos no preview.</p>
-          ) : null}
         </div>
+
+        {rows.length > PAGE_SIZE ? (
+          <div className="contact-import__pagination">
+            <button
+              type="button"
+              className="contact-import__page-btn"
+              disabled={importing || safePage <= 1}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+            >
+              Anterior
+            </button>
+            <span className="contact-import__page-info">
+              Página {safePage} de {totalPages}
+            </span>
+            <button
+              type="button"
+              className="contact-import__page-btn"
+              disabled={importing || safePage >= totalPages}
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            >
+              Próxima
+            </button>
+          </div>
+        ) : null}
 
         {error ? <p className="contact-import__error">{error}</p> : null}
 
