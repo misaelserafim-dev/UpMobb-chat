@@ -3,6 +3,7 @@ import { ConfirmModal } from "@/componentes/ConfirmModal/ConfirmModal.tsx";
 import { Icons } from "@/componentes/Icons/Icons.tsx";
 import { LetterAvatar } from "@/componentes/LetterAvatar/LetterAvatar.tsx";
 import { InternasTemplate } from "@/templates/Internas/InternasTemplate.tsx";
+import { useDismissable } from "@/hooks/useDismissable.ts";
 import { listDepartamentos, type Departamento } from "@/services/departamentos.ts";
 import {
   EQUIPE_CONNECTIONS,
@@ -44,6 +45,7 @@ const PERMISSION_ICONS: Record<string, ReactNode> = {
 export function Equipe() {
   const titleId = useId();
   const nameRef = useRef<HTMLInputElement>(null);
+  const deptSelectRef = useRef<HTMLDivElement>(null);
 
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
@@ -68,6 +70,12 @@ export function Equipe() {
   const [pendingDelete, setPendingDelete] = useState<EquipeMember | null>(null);
 
   const [departamentos, setDepartamentos] = useState<Departamento[]>([]);
+
+  useDismissable({
+    open: deptMenuOpen,
+    onDismiss: () => setDeptMenuOpen(false),
+    refs: [deptSelectRef],
+  });
 
   useEffect(() => {
     let cancelled = false;
@@ -471,7 +479,7 @@ export function Equipe() {
                     {!departamentos.length ? (
                       <p className="contact-etiqueta-picker__empty">Nenhum departamento cadastrado.</p>
                     ) : (
-                      <div className="etiqueta-select" id="equipe-dept-select">
+                      <div className="etiqueta-select" id="equipe-dept-select" ref={deptSelectRef}>
                         <div
                           className="etiqueta-select__trigger"
                           role="button"

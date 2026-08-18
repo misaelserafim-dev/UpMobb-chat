@@ -16,9 +16,14 @@
   display: flex;
   flex-direction: column;
   background: #fff;
-  border-radius: 12px;
+  border-radius: var(--radius-default);
   overflow: hidden;
   box-shadow: 0 20px 60px rgb(0 0 0 / 0.45);
+  transition: border-radius 0.2s ease;
+}
+
+html[data-template="rounded"] .document-preview__panel {
+  border-radius: 12px;
 }
 
 .document-preview__header {

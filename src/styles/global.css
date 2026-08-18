@@ -41,9 +41,9 @@
   --danger: #dc2626;
   --shadow-float: 0 2px 8px rgb(0 0 0 / 0.06), 0 8px 28px rgb(0 0 0 / 0.1);
   --list-w: 520px;
-  --radius: 4px;
-  --radius-default: 4px;
-  --radius-full: 4px;
+  --radius: 2px;
+  --radius-default: 2px;
+  --radius-full: 2px;
   --curve: 18px;
   --panel-gap: 14px;
   --page-panel-max: 1440px;
@@ -421,8 +421,13 @@ html[data-template="rounded"] .chat-msg-search {
 
 .contact-table {
   box-shadow: 0 1px 2px rgb(0 0 0 / 0.04), 0 8px 24px rgb(0 0 0 / 0.04);
-  border-radius: 12px;
+  border-radius: var(--radius-default);
   overflow: hidden;
+  transition: border-radius 0.2s ease;
+}
+
+html[data-template="rounded"] .contact-table {
+  border-radius: 12px;
 }
 
 .contact-table__head,
@@ -583,6 +588,19 @@ html[data-template="rounded"] .contact-row__avatar {
   }
 }
 
+.dept-table {
+  background: #fff;
+  border-radius: var(--radius-default);
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.04), 0 8px 24px rgb(0 0 0 / 0.04);
+  transition: border-radius 0.2s ease;
+}
+
+html[data-template="rounded"] .dept-table,
+html[data-template="rounded"] #departamento-list {
+  border-radius: 12px;
+}
+
 .dept-table__head {
   display: grid;
   grid-template-columns: minmax(140px, 1.1fr) 88px minmax(0, 1.6fr) 96px;
@@ -594,6 +612,10 @@ html[data-template="rounded"] .contact-row__avatar {
   color: var(--text);
   background: #fff;
   border-bottom: 1px solid rgb(0 0 0 / 0.08);
+  border-radius: var(--radius-default) var(--radius-default) 0 0;
+}
+
+html[data-template="rounded"] .dept-table__head {
   border-radius: 12px 12px 0 0;
 }
 
@@ -681,9 +703,14 @@ html[data-template="rounded"] .contact-row__avatar {
   flex-direction: column;
   gap: 0;
   background: #fff;
-  border-radius: 12px;
+  border-radius: var(--radius-default);
   overflow: hidden;
   box-shadow: 0 1px 2px rgb(0 0 0 / 0.04), 0 8px 24px rgb(0 0 0 / 0.04);
+  transition: border-radius 0.2s ease;
+}
+
+html[data-template="rounded"] .quick-reply-table {
+  border-radius: 12px;
 }
 
 .quick-reply-table__head {
@@ -1178,7 +1205,7 @@ html[data-template="rounded"] .contact-row__avatar {
 .contact-field textarea,
 .contact-field select,
 .phone-field__number {
-  width: 100%;
+  width: auto;
   border: 1px solid rgb(0 0 0 / 0.1);
   border-radius: var(--radius-default);
   background: #fff;
@@ -1269,9 +1296,10 @@ html[data-template="rounded"] .contact-row__avatar {
   flex-direction: column;
   background: #fff;
   border: 1px solid rgb(0 0 0 / 0.08);
-  border-radius: 12px;
+  border-radius: var(--radius-default);
   box-shadow: 0 10px 28px rgb(0 0 0 / 0.14);
   overflow: hidden;
+  transition: border-radius 0.2s ease;
 }
 
 .phone-ddi__menu[hidden] {
@@ -1308,12 +1336,13 @@ html[data-template="rounded"] .contact-row__avatar {
   align-items: center;
   width: 100%;
   padding: 8px 10px;
-  border-radius: 8px;
+  border-radius: var(--radius-default);
   text-align: left;
   font: inherit;
   font-size: 0.875rem;
   color: var(--text);
   background: transparent;
+  transition: border-radius 0.2s ease;
 }
 
 .phone-ddi__option:hover,
@@ -1458,9 +1487,10 @@ html[data-template="rounded"] .contact-form__btn {
   flex-direction: column;
   background: #fff;
   border: 1px solid rgb(0 0 0 / 0.08);
-  border-radius: 12px;
+  border-radius: var(--radius-default);
   box-shadow: 0 10px 28px rgb(0 0 0 / 0.14);
   overflow: hidden;
+  transition: border-radius 0.2s ease;
 }
 
 .etiqueta-select__menu[hidden] {
@@ -1517,12 +1547,13 @@ html[data-template="rounded"] .contact-form__btn {
   gap: 8px;
   width: 100%;
   padding: 2px 10px;
-  border-radius: 8px;
+  border-radius: var(--radius-default);
   text-align: left;
   font: inherit;
   font-size: 0.875rem;
   color: var(--text);
   background: transparent;
+  transition: border-radius 0.2s ease;
 }
 
 .etiqueta-select__option:hover {
@@ -1565,8 +1596,13 @@ html[data-template="rounded"] .contact-form__btn {
 
 .equipe-table {
   background: #fff;
-  border-radius: 12px;
+  border-radius: var(--radius-default);
   overflow: hidden;
+  transition: border-radius 0.2s ease;
+}
+
+html[data-template="rounded"] .equipe-table {
+  border-radius: 12px;
 }
 
 .equipe-table__head,
@@ -1687,10 +1723,14 @@ html[data-template="rounded"] .contact-form__btn {
   position: relative;
   display: flex;
   align-items: center;
+  width: 100%;
 }
 
-.password-field input {
+.password-field input,
+#equipe-password {
+  width: 100%;
   padding-right: 42px;
+  box-sizing: border-box;
 }
 
 .password-field__toggle {
@@ -1875,9 +1915,16 @@ html[data-template="rounded"] .etiqueta-select__trigger {
   border-radius: 10px;
 }
 
+html[data-template="rounded"] .phone-ddi__menu,
+html[data-template="rounded"] .etiqueta-select__menu {
+  border-radius: 12px;
+}
+
 html[data-template="rounded"] .phone-ddi__search,
 html[data-template="rounded"] .etiqueta-select__search,
-html[data-template="rounded"] .etiqueta-card__name-input {
+html[data-template="rounded"] .etiqueta-card__name-input,
+html[data-template="rounded"] .phone-ddi__option,
+html[data-template="rounded"] .etiqueta-select__option {
   border-radius: 8px;
 }
 

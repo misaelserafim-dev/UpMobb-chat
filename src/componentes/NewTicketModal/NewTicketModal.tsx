@@ -19,6 +19,8 @@ export function NewTicketModal({
   const titleId = useId();
   const dialogRef = useRef<HTMLDivElement>(null);
   const contactInputRef = useRef<HTMLInputElement>(null);
+  const contactWrapRef = useRef<HTMLDivElement>(null);
+  const etiquetaSelectRef = useRef<HTMLDivElement>(null);
 
   const [contactQuery, setContactQuery] = useState("");
   const [contactResults, setContactResults] = useState<Contact[]>([]);
@@ -80,6 +82,18 @@ export function NewTicketModal({
       onClose?.();
     },
     refs: [dialogRef],
+  });
+
+  useDismissable({
+    open: contactMenuOpen,
+    onDismiss: () => setContactMenuOpen(false),
+    refs: [contactWrapRef],
+  });
+
+  useDismissable({
+    open: etiquetaMenuOpen,
+    onDismiss: () => setEtiquetaMenuOpen(false),
+    refs: [etiquetaSelectRef],
   });
 
   useEffect(() => {
@@ -227,7 +241,7 @@ export function NewTicketModal({
         <form className="new-ticket-modal__form" autoComplete="off" onSubmit={handleSubmit}>
           <div className="contact-field new-ticket-modal__contact">
             <span className="contact-field__label">Contato</span>
-            <div className="new-ticket-modal__contact-wrap">
+            <div className="new-ticket-modal__contact-wrap" ref={contactWrapRef}>
               <div className="new-ticket-modal__contact-input">
                 <Icons.Search size="xs" />
                 <input
@@ -311,7 +325,10 @@ export function NewTicketModal({
             {!etiquetas.length ? (
               <p className="contact-etiqueta-picker__empty">Nenhuma etiqueta cadastrada.</p>
             ) : (
-              <div className={`etiqueta-select${etiquetaMenuOpen ? " is-open" : ""}`}>
+              <div
+                className={`etiqueta-select${etiquetaMenuOpen ? " is-open" : ""}`}
+                ref={etiquetaSelectRef}
+              >
                 <div
                   className="etiqueta-select__trigger"
                   role="button"

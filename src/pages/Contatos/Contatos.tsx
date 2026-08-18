@@ -5,6 +5,7 @@ import { Icons } from "@/componentes/Icons/Icons.tsx";
 import { InternasTemplate } from "@/templates/Internas/InternasTemplate.tsx";
 import { ConfirmModal } from "@/componentes/ConfirmModal/ConfirmModal.tsx";
 import { NewTicketModal } from "@/componentes/NewTicketModal/NewTicketModal.tsx";
+import { useDismissable } from "@/hooks/useDismissable.ts";
 import {
   createContact,
   deleteContact,
@@ -43,6 +44,8 @@ export function Contatos() {
   const navigate = useNavigate();
   const titleId = useId();
   const nameRef = useRef<HTMLInputElement>(null);
+  const ddiRef = useRef<HTMLDivElement>(null);
+  const tagSelectRef = useRef<HTMLDivElement>(null);
 
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
@@ -71,6 +74,18 @@ export function Contatos() {
 
   const selectedDial = useMemo(() => getDialCode("+55", dialIso), [dialIso]);
   const [etiquetas, setEtiquetas] = useState<Etiqueta[]>([]);
+
+  useDismissable({
+    open: ddiOpen,
+    onDismiss: () => setDdiOpen(false),
+    refs: [ddiRef],
+  });
+
+  useDismissable({
+    open: tagMenuOpen,
+    onDismiss: () => setTagMenuOpen(false),
+    refs: [tagSelectRef],
+  });
 
   useEffect(() => {
     let cancelled = false;
@@ -414,7 +429,7 @@ export function Contatos() {
               <div className="contact-field">
                 <span className="contact-field__label">Telefone</span>
                 <div className="phone-field">
-                  <div className="phone-ddi" id="phone-ddi">
+                  <div className="phone-ddi" id="phone-ddi" ref={ddiRef}>
                     <button
                       type="button"
                       className="phone-ddi__trigger"
@@ -501,7 +516,7 @@ export function Contatos() {
                 {!etiquetas.length ? (
                   <p className="contact-etiqueta-picker__empty">Nenhuma etiqueta cadastrada.</p>
                 ) : (
-                  <div className="etiqueta-select" id="contact-etiqueta-select">
+                  <div className="etiqueta-select" id="contact-etiqueta-select" ref={tagSelectRef}>
                     <div
                       className="etiqueta-select__trigger"
                       role="button"

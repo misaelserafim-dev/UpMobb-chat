@@ -21,10 +21,15 @@
   z-index: 1;
   width: min(440px, 100%);
   background: #fff;
-  border-radius: 18px;
+  border-radius: var(--radius-default);
   padding: 24px 22px 20px;
   box-shadow: 0 24px 60px rgb(0 0 0 / 0.22);
   animation: new-ticket-in 0.2s ease;
+  transition: border-radius 0.2s ease;
+}
+
+html[data-template="rounded"] .new-ticket-modal__dialog {
+  border-radius: 18px;
 }
 
 @keyframes new-ticket-in {

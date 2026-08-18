@@ -239,10 +239,15 @@
   border: 0;
   padding: 0;
   background: transparent;
-  border-radius: 10px;
+  border-radius: var(--radius-default);
   overflow: hidden;
   position: relative;
   cursor: zoom-in;
+  transition: border-radius 0.2s ease;
+}
+
+html[data-template="rounded"] .message__media {
+  border-radius: 10px;
 }
 
 .message__media img,

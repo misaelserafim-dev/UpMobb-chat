@@ -14,8 +14,8 @@ export const RADIUS_TEMPLATES: RadiusTemplate[] = [
   {
     id: "square",
     label: "Cantos retos",
-    radius: "4px",
-    radiusFull: "4px",
+    radius: "2px",
+    radiusFull: "2px",
   },
   {
     id: "rounded",
@@ -45,7 +45,7 @@ export function applyTemplate(id: string): RadiusTemplate {
 
   root.setProperty("--radius", template.radius);
   root.setProperty("--radius-full", template.radiusFull);
-  // --radius-default fica fixo em 4px no CSS
+  // --radius-default fica fixo em 2px no CSS
 
   document.documentElement.dataset.template = template.id;
 
