@@ -1,4 +1,4 @@
-import { useEffect, useEffectEvent, useState, type TransitionEvent } from "react";
+import { useEffect, useEffectEvent, useRef, useState, type TransitionEvent } from "react";
 import { Icons } from "@/componentes/Icons/Icons.tsx";
 import type { ContactMediaItem, ContactPanelProps } from "./ContactPanel.ts";
 import "./ContactPanel.css";
@@ -10,6 +10,39 @@ async function copyText(value: string) {
   } catch {
     return false;
   }
+}
+
+function CopyButton({
+  kind,
+  value,
+  label,
+  copied,
+  onCopy,
+}: {
+  kind: "name" | "phone";
+  value: string;
+  label: string;
+  copied: "name" | "phone" | null;
+  onCopy: (kind: "name" | "phone", value: string) => void;
+}) {
+  const isCopied = copied === kind;
+
+  return (
+    <button
+      type="button"
+      className={`contact-panel__copy${isCopied ? " is-copied" : ""}`}
+      aria-label={isCopied ? "Copiado" : label}
+      title={isCopied ? "Copiado" : label}
+      onClick={() => onCopy(kind, value)}
+    >
+      {isCopied ? <Icons.Checks /> : <Icons.Copy />}
+      {isCopied ? (
+        <span className="contact-panel__copied-tip" aria-live="polite">
+          Copiado
+        </span>
+      ) : null}
+    </button>
+  );
 }
 
 function MediaThumb({
@@ -64,6 +97,7 @@ export function ContactPanel({
 }: ContactPanelProps) {
   const [shown, setShown] = useState(false);
   const [copied, setCopied] = useState<"name" | "phone" | null>(null);
+  const copiedTimer = useRef(0);
   const displayPhone = (phone || chat.phone || "").trim();
   const preview = media.slice(0, 4);
 
@@ -94,11 +128,18 @@ export function ContactPanel({
     if (!open) notifyExited();
   }
 
+  useEffect(() => {
+    return () => {
+      if (copiedTimer.current) window.clearTimeout(copiedTimer.current);
+    };
+  }, []);
+
   async function handleCopy(kind: "name" | "phone", value: string) {
     const ok = await copyText(value);
     if (!ok) return;
     setCopied(kind);
-    window.setTimeout(() => setCopied(null), 1200);
+    if (copiedTimer.current) window.clearTimeout(copiedTimer.current);
+    copiedTimer.current = window.setTimeout(() => setCopied(null), 700);
   }
 
   function handleMediaOpen(item: ContactMediaItem) {
@@ -126,15 +167,13 @@ export function ContactPanel({
             <h2 className="contact-panel__title" title={chat.name}>
               {chat.name}
             </h2>
-            <button
-              type="button"
-              className="contact-panel__copy"
-              aria-label="Copiar nome"
-              title={copied === "name" ? "Copiado" : "Copiar nome"}
-              onClick={() => handleCopy("name", chat.name)}
-            >
-              <Icons.Copy />
-            </button>
+            <CopyButton
+              kind="name"
+              value={chat.name}
+              label="Copiar nome"
+              copied={copied}
+              onCopy={handleCopy}
+            />
           </div>
           <button
             type="button"
@@ -157,20 +196,29 @@ export function ContactPanel({
             )}
           </div>
 
-          <div className="contact-panel__phone-row">
-            <span className="contact-panel__phone">
-              {displayPhone || "Sem telefone cadastrado"}
-            </span>
+          <div className={`contact-panel__phone-row${copied === "phone" ? " is-copied" : ""}`}>
             {displayPhone ? (
               <button
                 type="button"
-                className="contact-panel__copy"
-                aria-label="Copiar telefone"
+                className="contact-panel__phone"
                 title={copied === "phone" ? "Copiado" : "Copiar telefone"}
                 onClick={() => handleCopy("phone", displayPhone)}
               >
-                <Icons.Copy />
+                {displayPhone}
               </button>
+            ) : (
+              <span className="contact-panel__phone contact-panel__phone--empty">
+                Sem telefone cadastrado
+              </span>
+            )}
+            {displayPhone ? (
+              <CopyButton
+                kind="phone"
+                value={displayPhone}
+                label="Copiar telefone"
+                copied={copied}
+                onCopy={handleCopy}
+              />
             ) : null}
           </div>
 

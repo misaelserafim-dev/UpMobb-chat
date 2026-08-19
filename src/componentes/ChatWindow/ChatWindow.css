@@ -52,6 +52,8 @@
     0 1px 0 rgb(0 0 0 / 0.04);
   backdrop-filter: blur(28px) saturate(180%);
   -webkit-backdrop-filter: blur(28px) saturate(180%);
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .chat-window__header::before {
@@ -334,6 +336,24 @@ button.chat-window__etiqueta-add .icon {
   outline-offset: 1px;
 }
 
+.message.is-quote-target .message__bubble {
+  animation: quote-target-flash 1.25s ease;
+}
+
+@keyframes quote-target-flash {
+  0%,
+  100% {
+    outline-color: transparent;
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.06), 0 1px 3px rgb(0 0 0 / 0.04);
+  }
+  20%,
+  55% {
+    outline: 2px solid color-mix(in srgb, var(--accent) 70%, transparent);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 22%, transparent);
+  }
+}
+
 .chat-window__messages {
   flex: 1;
   overflow-y: auto;
@@ -343,6 +363,8 @@ button.chat-window__etiqueta-add .icon {
   flex-direction: column;
   gap: 8px;
   background: var(--chat-bg-pattern);
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .chat-window__messages.has-composer-preview {
@@ -429,6 +451,27 @@ button.chat-window__etiqueta-add .icon {
   pointer-events: none;
 }
 
+.chat-window.is-chat-drop-target {
+  outline: 2px solid color-mix(in srgb, var(--accent) 28%, transparent);
+  outline-offset: -2px;
+}
+
+.chat-window.is-chat-drop-hover .chat-window__column::after {
+  content: "";
+  position: absolute;
+  inset: 12px;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  border-radius: calc(var(--radius) - 4px) calc(var(--radius) - 4px) 0 0;
+  border: 2px dashed var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, #fff);
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 0.95rem;
+  pointer-events: none;
+}
+
 
 @media (max-width: 800px) {
   .chat-window {
@@ -453,7 +496,8 @@ button.chat-window__etiqueta-add .icon {
     display: flex;
   }
 
-  .chat-window.is-drop-target .chat-window__column::after {
+  .chat-window.is-drop-target .chat-window__column::after,
+  .chat-window.is-chat-drop-hover .chat-window__column::after {
     border-radius: 0;
   }
 }

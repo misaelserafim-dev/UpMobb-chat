@@ -11,6 +11,46 @@
   border-radius: var(--radius) var(--radius) 0 0;
   overflow: hidden;
   box-shadow: 0 1px 2px rgb(0 0 0 / 0.04), 0 8px 24px rgb(0 0 0 / 0.04);
+  transition:
+    opacity 0.22s ease,
+    box-shadow 0.22s ease,
+    transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.chat-empty.is-drop-target,
+.chat-empty.is-chat-drop-target {
+  opacity: 0.72;
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--accent) 35%, transparent),
+    0 8px 28px rgb(0 0 0 / 0.08);
+}
+
+.chat-empty.is-drop-hover,
+.chat-empty.is-chat-drop-hover {
+  opacity: 1;
+  transform: scale(0.992);
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--accent) 55%, transparent),
+    0 12px 36px rgb(0 0 0 / 0.12);
+}
+
+.chat-empty.is-drop-hover::before,
+.chat-empty.is-chat-drop-hover::before {
+  content: "Solte para abrir";
+  position: absolute;
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--accent-text, #fff);
+  background: var(--accent, #0063a3);
+  pointer-events: none;
+  white-space: nowrap;
+  box-shadow: 0 6px 16px rgb(0 0 0 / 0.15);
 }
 
 .chat-empty__logo {

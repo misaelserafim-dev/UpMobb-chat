@@ -10,4 +10,10 @@ export type MessageBubbleProps = {
   onImageClick?: (src: string) => void;
   onDocumentClick?: (file: DocumentPreviewFile) => void;
   onContextMenu?: (e: MouseEvent) => void;
+  /** Arrastar horizontal (mouse/touch) → mesma ação de Responder do menu. */
+  onReply?: () => void;
+  /** Arrastar para cima → apagar (só mensagens enviadas). */
+  onDelete?: () => void;
+  /** Clique na quote → rola até a mensagem original. */
+  onQuoteClick?: (messageId: string) => void;
 };

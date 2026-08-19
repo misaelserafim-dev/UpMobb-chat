@@ -18,6 +18,8 @@ export type ChatListProps = {
   resizeVersion?: number;
   onFilterChange?: (id: string) => void;
   onChatSelect?: (id: string) => void;
+  /** Arrastou item e soltou no painel do chat (vazio ou aberto). */
+  onChatDropOnEmpty?: (id: string) => void;
   onCreateTicket?: (chat: ChatItemData) => void;
   ref?: Ref<HTMLElement>;
 };

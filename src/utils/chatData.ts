@@ -15,6 +15,8 @@ export type ChatMessage = {
   read?: boolean;
   forwarded?: boolean;
   replyTo?: {
+    /** id da mensagem original (âncora ao clicar na quote) */
+    messageId?: string;
     author?: string;
     text?: string;
     image?: boolean;

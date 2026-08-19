@@ -16,6 +16,8 @@
   will-change: transform;
   box-shadow: 0 1px 2px rgb(0 0 0 / 0.04), 0 8px 24px rgb(0 0 0 / 0.04);
   transition: border-radius 0.2s ease;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 html[data-template="rounded"] .chat-item {
@@ -177,12 +179,98 @@ html[data-template="rounded"] .avatar {
   color: var(--accent-text);
   font-size: 0.6875rem;
   font-weight: 700;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  display: grid;
+  place-items: center;
   flex-shrink: 0;
 }
 
+/* Arraste → bolinha */
+.chat-item.is-dragging {
+  opacity: 0.35;
+  transform: scale(0.96);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.chat-drag-ghost {
+  position: fixed;
+  z-index: 10000;
+  width: 64px;
+  height: 64px;
+  margin: 0;
+  border-radius: var(--radius-default);
+  overflow: visible;
+  pointer-events: none;
+  transform: translate(-50%, -50%) scale(1);
+  box-shadow:
+    0 0 0 3px rgb(255 255 255 / 0.92),
+    0 14px 32px rgb(0 0 0 / 0.28);
+  animation: chat-drag-pop 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+html[data-template="rounded"] .chat-drag-ghost {
+  border-radius: 50%;
+}
+
+.chat-drag-ghost img {
+  width: 64px;
+  height: 64px;
+  border-radius: inherit;
+  object-fit: cover;
+  display: block;
+  background: #ddd;
+}
+
+.chat-drag-ghost--fallback {
+  display: grid;
+  place-items: center;
+  background: var(--accent, #0063a3);
+  color: #fff;
+  font-weight: 700;
+  font-size: 1.25rem;
+}
+
+.chat-drag-ghost__badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-text);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 0 0 2px #fff;
+}
+
+@keyframes chat-drag-pop {
+  from {
+    transform: translate(-50%, -50%) scale(0.55);
+    opacity: 0.5;
+  }
+  to {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+}
+
+body.is-dragging-chat {
+  cursor: grabbing;
+  user-select: none;
+}
+
+body.is-dragging-chat .chat-list__items {
+  touch-action: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chat-drag-ghost {
+    animation: none;
+  }
+}
 
 @media (max-width: 800px) {
   .chat-item,

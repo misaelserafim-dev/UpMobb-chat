@@ -26,4 +26,6 @@ export type ChatItemProps = {
   onClick?: () => void;
   morphIndex?: number;
   morphPhase?: "idle" | "drag" | "settle";
+  /** Soltou a bolinha no painel do chat (vazio ou conversa aberta). */
+  onDropOnEmpty?: (chatId: string) => void;
 };

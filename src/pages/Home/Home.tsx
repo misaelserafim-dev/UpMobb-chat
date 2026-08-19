@@ -403,6 +403,7 @@ export function Home() {
           resizeVersion={resizeVersion}
           onFilterChange={setActiveFilter}
           onChatSelect={selectChat}
+          onChatDropOnEmpty={selectChat}
         />
 
         <div

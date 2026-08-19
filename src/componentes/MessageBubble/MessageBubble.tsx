@@ -1,9 +1,15 @@
-﻿import { useEffect, useRef, useState, type MouseEvent } from "react";
+﻿import { useEffect, useRef, useState, type MouseEvent, type PointerEvent } from "react";
 import { Icons } from "@/componentes/Icons/Icons.tsx";
 import type { ChatMessage } from "@/utils/chatData.ts";
 import { getDocumentBadge, getDocumentKind } from "@/utils/documentPreview.ts";
 import type { MessageBubbleProps } from "./MessageBubble.ts";
 import "./MessageBubble.css";
+
+const SWIPE_THRESHOLD = 56;
+const SWIPE_MAX = 72;
+const SWIPE_AXIS_LOCK = 8;
+const DELETE_THRESHOLD = 64;
+const DELETE_MAX = 88;
 
 function replyPreview(reply: NonNullable<ChatMessage["replyTo"]>) {
   if (reply.text?.trim()) return reply.text;
@@ -160,6 +166,9 @@ export function MessageBubble({
   onImageClick,
   onDocumentClick,
   onContextMenu,
+  onReply,
+  onDelete,
+  onQuoteClick,
 }: MessageBubbleProps) {
   const isOut = message.from === "out";
   const hasText = Boolean(message.html?.trim() || message.text?.trim());
@@ -174,23 +183,242 @@ export function MessageBubble({
   const audioOnly =
     Boolean(message.audio) && !hasText && !message.image && !message.video && !attachment;
 
+  const canSwipeReply = Boolean(onReply);
+  const canSwipeDelete = Boolean(onDelete) && isOut;
+
+  const rootRef = useRef<HTMLDivElement>(null);
+  const dragRef = useRef({
+    pointerId: -1,
+    startX: 0,
+    startY: 0,
+    axis: null as null | "h" | "v" | "scroll",
+    dx: 0,
+    dy: 0,
+    armed: false,
+  });
+  const [offsetX, setOffsetX] = useState(0);
+  const [offsetY, setOffsetY] = useState(0);
+  const [swiping, setSwiping] = useState(false);
+
+  const preferReduce =
+    typeof window !== "undefined" &&
+    window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+
+  function clampSwipeX(raw: number) {
+    if (isOut) return Math.max(-SWIPE_MAX, Math.min(0, raw));
+    return Math.max(0, Math.min(SWIPE_MAX, raw));
+  }
+
+  function clampSwipeY(raw: number) {
+    // só pra cima (valores negativos)
+    return Math.max(-DELETE_MAX, Math.min(0, raw));
+  }
+
+  function onPointerDown(e: PointerEvent<HTMLDivElement>) {
+    if (preferReduce) return;
+    if (!canSwipeReply && !canSwipeDelete) return;
+    if (e.button !== 0 && e.pointerType === "mouse") return;
+    const t = e.target as HTMLElement;
+    if (t.closest("button, a, video, input, textarea, [role='slider'], .message__quote")) return;
+
+    dragRef.current = {
+      pointerId: e.pointerId,
+      startX: e.clientX,
+      startY: e.clientY,
+      axis: null,
+      dx: 0,
+      dy: 0,
+      armed: false,
+    };
+  }
+
+  function onPointerMove(e: PointerEvent<HTMLDivElement>) {
+    const d = dragRef.current;
+    if (preferReduce || d.pointerId !== e.pointerId) return;
+
+    const rawX = e.clientX - d.startX;
+    const rawY = e.clientY - d.startY;
+
+    if (!d.axis) {
+      if (Math.abs(rawX) < SWIPE_AXIS_LOCK && Math.abs(rawY) < SWIPE_AXIS_LOCK) return;
+
+      if (Math.abs(rawX) >= Math.abs(rawY)) {
+        if (!canSwipeReply) {
+          d.axis = "scroll";
+          return;
+        }
+        d.axis = "h";
+      } else if (rawY < 0 && canSwipeDelete) {
+        d.axis = "v";
+      } else {
+        d.axis = "scroll";
+        return;
+      }
+
+      try {
+        rootRef.current?.setPointerCapture(e.pointerId);
+      } catch {
+        /* ignore */
+      }
+      setSwiping(true);
+    }
+
+    if (d.axis === "scroll") return;
+
+    e.preventDefault();
+
+    if (d.axis === "h") {
+      const dx = clampSwipeX(rawX);
+      d.dx = dx;
+      d.dy = 0;
+      const progress = Math.abs(dx) / SWIPE_THRESHOLD;
+      if (!d.armed && progress >= 1) {
+        d.armed = true;
+        try {
+          navigator.vibrate?.(10);
+        } catch {
+          /* ignore */
+        }
+      } else if (d.armed && progress < 0.85) {
+        d.armed = false;
+      }
+      setOffsetX(dx);
+      setOffsetY(0);
+      return;
+    }
+
+    // vertical delete
+    const dy = clampSwipeY(rawY);
+    d.dy = dy;
+    d.dx = 0;
+    const progress = Math.abs(dy) / DELETE_THRESHOLD;
+    if (!d.armed && progress >= 1) {
+      d.armed = true;
+      try {
+        navigator.vibrate?.(12);
+      } catch {
+        /* ignore */
+      }
+    } else if (d.armed && progress < 0.85) {
+      d.armed = false;
+    }
+    setOffsetY(dy);
+    setOffsetX(0);
+  }
+
+  function endSwipe(e: PointerEvent<HTMLDivElement>) {
+    const d = dragRef.current;
+    if (d.pointerId !== e.pointerId) return;
+
+    const shouldReply = d.axis === "h" && Math.abs(d.dx) >= SWIPE_THRESHOLD;
+    const shouldDelete = d.axis === "v" && Math.abs(d.dy) >= DELETE_THRESHOLD;
+    try {
+      rootRef.current?.releasePointerCapture(e.pointerId);
+    } catch {
+      /* ignore */
+    }
+    d.pointerId = -1;
+    d.axis = null;
+    d.dx = 0;
+    d.dy = 0;
+    d.armed = false;
+    setSwiping(false);
+    setOffsetX(0);
+    setOffsetY(0);
+    if (shouldDelete) {
+      onDelete?.();
+      return;
+    }
+    if (shouldReply) onReply?.();
+  }
+
+  const replyProgress = Math.min(1, Math.abs(offsetX) / SWIPE_THRESHOLD);
+  const deleteProgress = Math.min(1, Math.abs(offsetY) / DELETE_THRESHOLD);
+  const lidOpen = deleteProgress * 42;
+  const hasTransform = offsetX !== 0 || offsetY !== 0;
+
   return (
     <div
-      className={`message message--${isOut ? "out" : "in"}${reactions.length ? " message--has-reactions" : ""}${className ? ` ${className}` : ""}`}
+      ref={rootRef}
+      className={`message message--${isOut ? "out" : "in"}${reactions.length ? " message--has-reactions" : ""}${swiping ? " is-swiping" : ""}${deleteProgress > 0 ? " is-deleting" : ""}${className ? ` ${className}` : ""}`}
       data-message-id={message.id}
       data-from={isOut ? "out" : "in"}
       onContextMenu={onContextMenu}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={endSwipe}
+      onPointerCancel={endSwipe}
+      style={
+        hasTransform
+          ? {
+              transform: `translate(${offsetX}px, ${offsetY}px)`,
+              ["--delete-p" as string]: String(deleteProgress),
+            }
+          : undefined
+      }
     >
+      {canSwipeReply && !preferReduce ? (
+        <span
+          className={`message__swipe-reply${replyProgress >= 1 ? " is-armed" : ""}`}
+          aria-hidden="true"
+          style={{
+            opacity: replyProgress,
+            transform: `translate(${-offsetX}px, ${-offsetY}px) scale(${0.55 + replyProgress * 0.45})`,
+          }}
+        >
+          <Icons.Reply size="sm" />
+        </span>
+      ) : null}
+
+      {canSwipeDelete && !preferReduce ? (
+        <span
+          className={`message__swipe-delete${deleteProgress >= 1 ? " is-armed" : ""}`}
+          aria-hidden="true"
+          style={{
+            opacity: Math.min(1, deleteProgress * 1.35),
+            transform: `scale(${0.7 + deleteProgress * 0.4})`,
+          }}
+        >
+          <svg className="message__trash" viewBox="0 0 24 28" aria-hidden="true">
+            <g
+              className="message__trash-lid"
+              style={{
+                transform: `rotate(${-lidOpen}deg)`,
+                transformOrigin: "7px 7px",
+              }}
+            >
+              <path d="M9 3h6" />
+              <path d="M4 7h16" />
+              <path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+            </g>
+            <g className="message__trash-body">
+              <path d="M6 7h12v16a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V7z" />
+              <path d="M10 12v8" />
+              <path d="M14 12v8" />
+            </g>
+          </svg>
+        </span>
+      ) : null}
       <div
         className={`message__bubble${message.image || message.video ? " message__bubble--media" : ""}${audioOnly ? " message__bubble--audio" : ""}`}
       >
         {showName ? <div className="message__sender">{senderName}</div> : null}
 
         {message.replyTo ? (
-          <div className="message__quote">
+          <button
+            type="button"
+            className={`message__quote${message.replyTo.messageId && onQuoteClick ? " message__quote--link" : ""}`}
+            aria-label="Ir para mensagem original"
+            disabled={!message.replyTo.messageId || !onQuoteClick}
+            onClick={(e) => {
+              e.stopPropagation();
+              const id = message.replyTo?.messageId;
+              if (id) onQuoteClick?.(id);
+            }}
+          >
             <div className="message__quote-author">{message.replyTo.author || ""}</div>
             <div className="message__quote-text">{replyPreview(message.replyTo)}</div>
-          </div>
+          </button>
         ) : null}
 
         {message.forwarded ? (

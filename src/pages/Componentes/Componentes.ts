@@ -57,6 +57,7 @@ export const DEMO_MESSAGES: ChatMessage[] = [
     time: "10:33",
     read: true,
     replyTo: {
+      messageId: "m2",
       author: "Ana Souza - Acme Corp",
       text: "briefing.txt",
       attachment: { name: "briefing.txt" },

@@ -5,6 +5,107 @@
   max-width: 80%;
   position: relative;
   margin-bottom: 10px;
+  touch-action: pan-y;
+  transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.message__swipe-reply {
+  position: absolute;
+  top: 50%;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  margin-top: -16px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-text, #fff);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.14);
+  pointer-events: none;
+  opacity: 0;
+  z-index: 0;
+}
+
+.message--in .message__swipe-reply {
+  left: 4px;
+}
+
+.message--out .message__swipe-reply {
+  right: 4px;
+}
+
+.message__swipe-delete {
+  position: absolute;
+  left: 50%;
+  top: -52px;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin-left: -22px;
+  border-radius: 999px;
+  background: #e11d48;
+  color: #fff;
+  box-shadow: 0 4px 14px rgb(225 29 72 / 0.4);
+  pointer-events: none;
+  opacity: 0;
+  z-index: 3;
+}
+
+.message__swipe-delete.is-armed {
+  background: #be123c;
+  box-shadow: 0 6px 18px rgb(190 18 60 / 0.5);
+}
+
+.message__trash {
+  width: 22px;
+  height: 26px;
+  overflow: visible;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+}
+
+.message__trash-lid {
+  transition: none;
+}
+
+.message.is-swiping {
+  transition: none;
+  user-select: none;
+}
+
+.message.is-deleting .message__bubble {
+  background: color-mix(
+    in srgb,
+    #e11d48 calc(var(--delete-p, 0.5) * 78%),
+    var(--bubble-out)
+  ) !important;
+  color: #fff !important;
+  box-shadow: 0 0 0 1px color-mix(in srgb, #e11d48 calc(var(--delete-p, 0.5) * 50%), transparent);
+}
+
+.message.is-deleting .message__time,
+.message.is-deleting .message__checks,
+.message.is-deleting .message__quote-author,
+.message.is-deleting .message__quote-text,
+.message.is-deleting .message__forwarded {
+  color: rgb(255 255 255 / 0.85) !important;
+}
+
+.message.is-deleting.message--out::after {
+  border-color: transparent transparent transparent
+    color-mix(in srgb, #e11d48 calc(var(--delete-p, 0.5) * 78%), var(--bubble-out));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .message {
+    transition: none;
+  }
 }
 
 .message.message--in::after {
@@ -49,6 +150,7 @@
   overflow: hidden;
   color: var(--text);
   position: relative;
+  z-index: 1;
   box-shadow: 0 1px 2px rgb(0 0 0 / 0.06), 0 1px 3px rgb(0 0 0 / 0.04);
 }
 
@@ -110,11 +212,36 @@
 }
 
 .message__quote {
+  display: block;
+  width: 100%;
   margin: 2px 2px 6px;
   padding: 8px 10px;
+  border: 0;
   border-radius: 8px;
   background: rgb(0 0 0 / 0.06);
   border-left: 4px solid var(--accent);
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  cursor: default;
+}
+
+.message__quote--link {
+  cursor: pointer;
+}
+
+.message__quote--link:hover {
+  filter: brightness(0.97);
+}
+
+.message__quote--link:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 55%, transparent);
+  outline-offset: 1px;
+}
+
+.message__quote:disabled {
+  cursor: default;
+  opacity: 1;
 }
 
 .message__quote-author {

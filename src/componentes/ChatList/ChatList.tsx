@@ -31,6 +31,7 @@ export function ChatList({
   resizeVersion = 0,
   onFilterChange,
   onChatSelect,
+  onChatDropOnEmpty,
   onCreateTicket,
   ref,
 }: ChatListProps) {
@@ -154,6 +155,7 @@ export function ChatList({
               chat={chat}
               morphIndex={index}
               morphPhase={morphPhase}
+              onDropOnEmpty={onChatDropOnEmpty}
               onClick={() => {
                 if (chat.active) return;
                 onChatSelect?.(chat.id);

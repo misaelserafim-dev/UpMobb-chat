@@ -171,15 +171,29 @@ html[data-template="rounded"] .contact-panel__avatar {
   display: flex;
   align-items: center;
   gap: 6px;
+  position: relative;
 }
 
 .contact-panel__phone {
+  position: relative;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
   font-size: 0.9375rem;
   font-weight: 500;
   color: var(--text);
+  cursor: pointer;
+}
+
+.contact-panel__phone--empty {
+  cursor: default;
+  color: var(--text-muted);
 }
 
 .contact-panel__copy {
+  position: relative;
   width: 28px;
   height: 28px;
   border-radius: 50%;
@@ -194,9 +208,59 @@ html[data-template="rounded"] .contact-panel__avatar {
   color: var(--menu-hover-fg);
 }
 
+.contact-panel__copy.is-copied {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+}
+
 .contact-panel__copy .icon {
   width: 14px;
   height: 14px;
+}
+
+.contact-panel__copied-tip {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 2px);
+  z-index: 2;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  color: #fff;
+  background: var(--accent, #0063a3);
+  pointer-events: none;
+  box-shadow: 0 4px 12px rgb(0 0 0 / 0.14);
+  animation: contact-copied-float 0.7s ease forwards;
+}
+
+@keyframes contact-copied-float {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(4px);
+  }
+  10% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  55% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-12px);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-22px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .contact-panel__copied-tip {
+    animation: none;
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
 }
 
 .contact-panel__edit {

@@ -46,6 +46,7 @@ type MsgMenuState = {
 
 function buildReplyDraft(msg: ChatMessage, senderName: string): ReplyDraft {
   return {
+    messageId: msg.id,
     author: msg.from === "out" ? "Você" : senderName,
     text: msg.text,
     image: Boolean(msg.image),
@@ -88,6 +89,7 @@ export function ChatWindow({
   const [replyTo, setReplyTo] = useState<ReplyDraft | null>(null);
   const [msgMenu, setMsgMenu] = useState<MsgMenuState>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [confirmDeleteMessageId, setConfirmDeleteMessageId] = useState<string | null>(null);
 
   const selectedTags = etiquetas.filter((e) => tagIds.includes(e.id));
   const contactMedia = collectChatMedia(messages);
@@ -181,6 +183,7 @@ export function ChatWindow({
     setMsgSearchOpen(false);
     setMsgSearchQuery("");
     setConfirmDelete(false);
+    setConfirmDeleteMessageId(null);
     setDocumentFile(null);
     setLightboxSrc(null);
   }, [activeChat.id]);
@@ -264,12 +267,28 @@ export function ChatWindow({
       return;
     }
     if (action === "delete") {
-      onDeleteMessage?.(messageId);
+      setConfirmDeleteMessageId(messageId);
       return;
     }
     if (action === "react" && emoji) {
       onReactMessage?.(messageId, emoji);
     }
+  }
+
+  function scrollToQuotedMessage(messageId: string) {
+    const root = messagesRef.current;
+    if (!root || !messageId) return;
+    const el = root.querySelector<HTMLElement>(
+      `[data-message-id="${CSS.escape(messageId)}"]`,
+    );
+    if (!el) return;
+
+    el.scrollIntoView({ block: "center", behavior: "smooth" });
+    el.classList.remove("is-quote-target");
+    // reflow para reiniciar animação se clicar de novo
+    void el.offsetWidth;
+    el.classList.add("is-quote-target");
+    window.setTimeout(() => el.classList.remove("is-quote-target"), 1400);
   }
 
   function handleChatAction(action: string) {
@@ -524,6 +543,11 @@ export function ChatWindow({
               onImageClick={setLightboxSrc}
               onDocumentClick={setDocumentFile}
               onContextMenu={(e) => openMessageMenu(msg, e)}
+              onReply={() => setReplyTo(buildReplyDraft(msg, senderName))}
+              onDelete={
+                msg.from === "out" ? () => setConfirmDeleteMessageId(msg.id) : undefined
+              }
+              onQuoteClick={scrollToQuotedMessage}
             />
           );
         })}
@@ -582,6 +606,21 @@ export function ChatWindow({
         onConfirm={() => {
           setConfirmDelete(false);
           onAction?.("deletar");
+        }}
+      />
+
+      <ConfirmModal
+        open={Boolean(confirmDeleteMessageId)}
+        title="Deletar mensagem?"
+        description="Essa mensagem será removida da conversa. Essa ação não pode ser desfeita."
+        confirmLabel="Deletar"
+        cancelLabel="Cancelar"
+        danger
+        onCancel={() => setConfirmDeleteMessageId(null)}
+        onConfirm={() => {
+          const id = confirmDeleteMessageId;
+          setConfirmDeleteMessageId(null);
+          if (id) onDeleteMessage?.(id);
         }}
       />
       </div>
