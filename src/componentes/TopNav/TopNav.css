@@ -222,6 +222,29 @@ html[data-template="rounded"] .nav-submenu__item {
 .theme-picker {
   position: relative;
   flex-shrink: 0;
+  touch-action: none;
+  will-change: transform;
+}
+
+.theme-picker.is-pulling {
+  z-index: 40;
+}
+
+.theme-picker.is-pulling .magnet__inner {
+  transition: none;
+}
+
+.theme-picker.is-pull-freed .theme-picker__btn {
+  color: var(--accent);
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.04),
+    0 8px 24px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-picker {
+    touch-action: manipulation;
+  }
 }
 
 .theme-picker__btn {

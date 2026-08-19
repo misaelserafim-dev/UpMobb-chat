@@ -5,6 +5,8 @@ import { ThemePickerMenu } from "@/componentes/ThemePickerMenu/ThemePickerMenu.t
 import { useAuth } from "@/context/AuthContext.tsx";
 import { useDismissable } from "@/hooks/useDismissable.ts";
 import { useMagnetic } from "@/hooks/useMagnetic.ts";
+import { useStubbornPull } from "@/hooks/useStubbornPull.ts";
+import { enablePrismMode } from "@/utils/theme.ts";
 import type { TopNavProps } from "./TopNav.ts";
 import "./TopNav.css";
 import "../NavLink/NavLink.css";
@@ -27,7 +29,10 @@ export function TopNav({
   const [themeOpen, setThemeOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const rootRef = useRef<HTMLElement>(null);
-  const themeMagnet = useMagnetic(true);
+  const themePull = useStubbornPull(true, {
+    onFreedRelease: () => enablePrismMode(),
+  });
+  const themeMagnet = useMagnetic(!themePull.isPulling);
 
   const anyMenuOpen = configOpen || themeOpen || menuOpen;
 
@@ -190,8 +195,16 @@ export function TopNav({
           ) : null}
         </div>
 
-        <div className={`theme-picker${themeOpen ? " is-open" : ""}`}>
-          <div className="magnet" ref={themeMagnet.magnetRef} {...themeMagnet.magnetProps}>
+        <div
+          className={`theme-picker${themeOpen ? " is-open" : ""}${themePull.className ? ` ${themePull.className}` : ""}`}
+          style={themePull.style}
+        >
+          <div
+            className="magnet"
+            ref={themeMagnet.magnetRef}
+            {...themeMagnet.magnetProps}
+            {...themePull.pullProps}
+          >
             <div className="magnet__inner" style={themeMagnet.style}>
               <button
                 type="button"
@@ -202,6 +215,7 @@ export function TopNav({
                 title="Cores do sistema"
                 onClick={(e) => {
                   e.stopPropagation();
+                  if (themePull.shouldSuppressClick()) return;
                   setThemeOpen((v) => !v);
                   setConfigOpen(false);
                   setMenuOpen(false);

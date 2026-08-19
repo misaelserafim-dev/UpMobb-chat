@@ -187,3 +187,8 @@ export function applyTheme(id: string): ThemeColor {
 
   return theme;
 }
+
+/** Fundo arco-íris só visual — sem localStorage / sem id de tema (some no refresh). */
+export function enablePrismMode() {
+  document.documentElement.classList.add("is-prism-mode");
+}

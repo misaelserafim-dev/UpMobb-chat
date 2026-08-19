@@ -74,6 +74,23 @@ body {
   background: var(--app-bg);
 }
 
+/* Prism efêmero (puxão do theme-picker) — não é tema / não grava */
+html.is-prism-mode body,
+html.is-prism-mode #root,
+html.is-prism-mode .app {
+  background: linear-gradient(
+    339deg,
+    #ff0040 0%,
+    #ff8c00 17%,
+    #ffee00 34%,
+    #00ff5e 51%,
+    #00c8ff 68%,
+    #8b00ff 85%,
+    #ff00c8 100%
+  );
+  background-attachment: fixed;
+}
+
 button {
   font: inherit;
   color: inherit;
