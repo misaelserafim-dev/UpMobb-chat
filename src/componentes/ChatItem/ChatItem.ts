@@ -18,6 +18,7 @@ export type ChatItemData = {
   color?: string;
   assignee?: string;
   tag?: ChatTag;
+  status?: "waiting" | "open" | "resolved";
 };
 
 export type ChatItemProps = {

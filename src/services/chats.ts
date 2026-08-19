@@ -5,10 +5,19 @@ import { getStoredUser } from "@/services/auth.ts";
 
 export type { ChatMessage };
 
+const CONVERSATION_FILTERS = new Set([
+  "todos",
+  "meus",
+  "grupos",
+  "aguardando",
+  "resolvidos",
+]);
+
 export type FetchChatsParams = {
   page?: number;
   pageSize?: number;
   query?: string;
+  filter?: string;
 };
 
 export type FetchChatsResult = {
@@ -87,6 +96,7 @@ function toChatItem(dto: ConversationDto): ChatItemData {
     phone: dto.contactPhone,
     time: formatTime(dto.lastMessageAt),
     color: dto.departmentColor || undefined,
+    status: dto.status,
     tag: dto.departmentName
       ? { type: "color", label: dto.departmentName, color: dto.departmentColor || undefined }
       : undefined,
@@ -117,14 +127,19 @@ function qs(params: Record<string, string | number | undefined>) {
 export async function fetchChats(params: FetchChatsParams = {}): Promise<FetchChatsResult> {
   const page = Math.max(1, params.page || 1);
   const pageSize = Math.min(100, Math.max(10, params.pageSize || 40));
+  const filter =
+    params.filter && CONVERSATION_FILTERS.has(params.filter)
+      ? params.filter
+      : getStoredUser()?.role === "admin"
+        ? "todos"
+        : "meus";
 
   if (!API_BASE) {
     return apiRequest<FetchChatsResult>(
-      `/chats${qs({ page, pageSize, q: params.query })}`,
+      `/chats${qs({ page, pageSize, q: params.query, filter })}`,
     );
   }
 
-  const filter = getStoredUser()?.role === "admin" ? "todos" : "meus";
   const res = await apiListRequest<ConversationDto>(
     `/panel/conversations?filter=${filter}&page=${page}&limit=${pageSize}`,
   );

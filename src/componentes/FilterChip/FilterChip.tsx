@@ -5,7 +5,7 @@ import "./FilterChip.css";
 export function FilterChip({
   id,
   label,
-  count = 0,
+  count,
   dropdown = false,
   active = false,
   wrapSlide = true,
@@ -19,7 +19,7 @@ export function FilterChip({
       onClick={onClick}
     >
       <span className="filter-chip__label">{label}</span>
-      <span className="filter-chip__count">{count}</span>
+      {count != null ? <span className="filter-chip__count">{count}</span> : null}
       {dropdown ? (
         <span className="filter-chip__chevron" aria-hidden="true">
           <Icons.ChevronDown />

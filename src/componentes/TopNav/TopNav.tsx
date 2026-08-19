@@ -2,6 +2,7 @@
 import { Icons } from "@/componentes/Icons/Icons.tsx";
 import { NavLink } from "@/componentes/NavLink/NavLink.tsx";
 import { ThemePickerMenu } from "@/componentes/ThemePickerMenu/ThemePickerMenu.tsx";
+import { useAuth } from "@/context/AuthContext.tsx";
 import { useDismissable } from "@/hooks/useDismissable.ts";
 import { useMagnetic } from "@/hooks/useMagnetic.ts";
 import type { TopNavProps } from "./TopNav.ts";
@@ -20,6 +21,8 @@ export function TopNav({
   onThemeChange,
   onLogout,
 }: TopNavProps) {
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
   const [configOpen, setConfigOpen] = useState(false);
   const [themeOpen, setThemeOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -39,10 +42,12 @@ export function TopNav({
   });
 
   const configActive =
-    active === "etiquetas" ||
-    active === "departamentos" ||
-    active === "respostas-rapidas" ||
-    active === "equipe";
+    isAdmin &&
+    (active === "etiquetas" ||
+      active === "departamentos" ||
+      active === "respostas-rapidas" ||
+      active === "equipe" ||
+      active === "conexoes");
 
   const showSearch = active === "conversas";
 
@@ -63,22 +68,30 @@ export function TopNav({
 
   const configItems = (
     <>
-      <button type="button" className={`nav-submenu__item${active === "etiquetas" ? " is-active" : ""}`} role="menuitem" onClick={() => go("etiquetas")}>
-        <span className="nav-submenu__icon" aria-hidden="true"><Icons.Tag /></span>
-        Etiqueta
-      </button>
-      <button type="button" className={`nav-submenu__item${active === "departamentos" ? " is-active" : ""}`} role="menuitem" onClick={() => go("departamentos")}>
-        <span className="nav-submenu__icon" aria-hidden="true"><Icons.Building /></span>
-        Departamento
-      </button>
-      <button type="button" className={`nav-submenu__item${active === "respostas-rapidas" ? " is-active" : ""}`} role="menuitem" onClick={() => go("respostas-rapidas")}>
-        <span className="nav-submenu__icon" aria-hidden="true"><Icons.Zap /></span>
-        Resposta rápida
-      </button>
-      <button type="button" className={`nav-submenu__item${active === "equipe" ? " is-active" : ""}`} role="menuitem" onClick={() => go("equipe")}>
-        <span className="nav-submenu__icon" aria-hidden="true"><Icons.Team /></span>
-        Equipe
-      </button>
+      {isAdmin ? (
+        <>
+          <button type="button" className={`nav-submenu__item${active === "etiquetas" ? " is-active" : ""}`} role="menuitem" onClick={() => go("etiquetas")}>
+            <span className="nav-submenu__icon" aria-hidden="true"><Icons.Tag /></span>
+            Etiqueta
+          </button>
+          <button type="button" className={`nav-submenu__item${active === "departamentos" ? " is-active" : ""}`} role="menuitem" onClick={() => go("departamentos")}>
+            <span className="nav-submenu__icon" aria-hidden="true"><Icons.Building /></span>
+            Departamento
+          </button>
+          <button type="button" className={`nav-submenu__item${active === "respostas-rapidas" ? " is-active" : ""}`} role="menuitem" onClick={() => go("respostas-rapidas")}>
+            <span className="nav-submenu__icon" aria-hidden="true"><Icons.Zap /></span>
+            Resposta rápida
+          </button>
+          <button type="button" className={`nav-submenu__item${active === "equipe" ? " is-active" : ""}`} role="menuitem" onClick={() => go("equipe")}>
+            <span className="nav-submenu__icon" aria-hidden="true"><Icons.Team /></span>
+            Equipe
+          </button>
+          <button type="button" className={`nav-submenu__item${active === "conexoes" ? " is-active" : ""}`} role="menuitem" onClick={() => go("conexoes")}>
+            <span className="nav-submenu__icon" aria-hidden="true"><Icons.Whatsapp /></span>
+            Conexão
+          </button>
+        </>
+      ) : null}
       <button type="button" className="nav-submenu__item nav-submenu__item--danger" role="menuitem" onClick={() => { closeMenus(); onLogout?.(); }}>
         <span className="nav-submenu__icon" aria-hidden="true"><Icons.LogOut /></span>
         Deslogar

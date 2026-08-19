@@ -67,10 +67,11 @@ async function mockRequest(method: string, path: string, body?: unknown) {
 
 async function realRequest(path: string, init?: RequestInit) {
   const token = getAuthToken();
+  const hasBody = init?.body != null && init.body !== "";
   const res = await fetch(`${API_BASE}${path}`, {
     ...init,
     headers: {
-      "Content-Type": "application/json",
+      ...(hasBody ? { "Content-Type": "application/json" } : {}),
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...(init?.headers || {}),
     },
@@ -83,6 +84,12 @@ async function realRequest(path: string, init?: RequestInit) {
       payload && typeof payload === "object" && typeof payload.error === "string"
         ? payload.error
         : `HTTP ${res.status}`;
+    const pathname = path.split("?")[0];
+    if (res.status === 401 && pathname !== "/auth/login") {
+      setAuthToken(null);
+      localStorage.removeItem("chat.user");
+      window.location.assign("/login");
+    }
     throw new Error(message);
   }
 

@@ -165,21 +165,25 @@ export function ChatList({
         )}
       </ul>
 
-      <div className="chat-list__footer">
-        <AddButton
-          id="chat-list-add-btn"
-          label="Novo ticket"
-          title="Abrir novo ticket"
-          className="chat-list__add"
-          onClick={() => setTicketOpen(true)}
-        />
-      </div>
+      {onCreateTicket ? (
+        <div className="chat-list__footer">
+          <AddButton
+            id="chat-list-add-btn"
+            label="Novo ticket"
+            title="Abrir novo ticket"
+            className="chat-list__add"
+            onClick={() => setTicketOpen(true)}
+          />
+        </div>
+      ) : null}
 
-      <NewTicketModal
-        open={ticketOpen}
-        onClose={() => setTicketOpen(false)}
-        onCreated={(chat: ChatItemData) => onCreateTicket?.(chat)}
-      />
+      {onCreateTicket ? (
+        <NewTicketModal
+          open={ticketOpen}
+          onClose={() => setTicketOpen(false)}
+          onCreated={(chat: ChatItemData) => onCreateTicket(chat)}
+        />
+      ) : null}
     </aside>
   );
 }

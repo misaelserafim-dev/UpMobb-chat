@@ -9,11 +9,13 @@ import { HomeTemplate } from "@/templates/Home/HomeTemplate.tsx";
 import type { ComposerSendPayload } from "@/componentes/ChatInput/ChatInput.ts";
 import type { ChatItemData } from "@/componentes/ChatItem/ChatItem.ts";
 import {
+  assignChat,
   deleteChat,
   deleteChatMessage,
   fetchChatMessages,
   fetchChats,
   reactChatMessage,
+  resolveChat,
   sendChatMessage,
   toChatMessage,
   type ChatMessage,
@@ -21,6 +23,7 @@ import {
 } from "@/services/chats.ts";
 import { getSocket } from "@/services/socket.ts";
 import { applyTheme, getSavedThemeId } from "@/utils/theme.ts";
+import { DEFAULT_FILTERS } from "@/utils/chatData.ts";
 import { useListResize } from "@/hooks/useListResize.ts";
 import "./Home.css";
 
@@ -31,13 +34,19 @@ type HomeLocationState = {
 export function Home() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   const chatLoadToken = useRef(0);
   const pendingOpenChatId = useRef<string | null>(null);
   const listRef = useRef<HTMLElement>(null);
+  const isAdmin = user?.role === "admin";
+  const filters = isAdmin
+    ? DEFAULT_FILTERS
+    : DEFAULT_FILTERS.filter((f) => f.id !== "todos");
 
   const [themeId, setThemeId] = useState(getSavedThemeId);
-  const [activeFilter, setActiveFilter] = useState("todos");
+  const [activeFilter, setActiveFilter] = useState(() =>
+    isAdmin ? "todos" : "meus",
+  );
   const [searchQuery, setSearchQuery] = useState("");
   const [chatsData, setChatsData] = useState<ChatItemData[]>([]);
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
@@ -61,7 +70,7 @@ export function Home() {
   useEffect(() => {
     let cancelled = false;
     setListLoading(true);
-    fetchChats()
+    fetchChats({ filter: activeFilter })
       .then((res) => {
         if (cancelled) return;
         setChatsData(res.items);
@@ -75,7 +84,13 @@ export function Home() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [activeFilter]);
+
+  const refetchChats = useEffectEvent(() => {
+    void fetchChats({ filter: activeFilter })
+      .then((res) => setChatsData(res.items))
+      .catch(() => {});
+  });
 
   useEffect(() => {
     const socket = getSocket();
@@ -102,9 +117,7 @@ export function Home() {
     };
 
     const onConversationUpdated = () => {
-      void fetchChats()
-        .then((res) => setChatsData(res.items))
-        .catch(() => {});
+      refetchChats();
     };
 
     socket.on("message:new", onMessageNew);
@@ -317,6 +330,36 @@ export function Home() {
     navigate(`/${id}`);
   }
 
+  async function handleAction(action: string) {
+    if (!activeChat) return;
+    const id = activeChat.id;
+
+    if (action === "deletar") {
+      void deleteChat({ id }).then(() => {
+        setChatsData((prev) => prev.filter((c) => c.id !== id));
+        closeChat();
+      });
+      return;
+    }
+
+    if (action === "assumir") {
+      await assignChat(id);
+      setActiveChat((prev) => (prev ? { ...prev, status: "open" } : prev));
+      const list = await fetchChats({ filter: activeFilter });
+      setChatsData(list.items);
+      const nextMessages = await fetchChatMessages(id);
+      setMessages(nextMessages);
+      return;
+    }
+
+    if (action === "resolver") {
+      await resolveChat(id);
+      closeChat();
+      const list = await fetchChats({ filter: activeFilter });
+      setChatsData(list.items);
+    }
+  }
+
   let panel = <ChatEmpty />;
   if (chatLoading) {
     panel = <ChatEmpty loading />;
@@ -330,13 +373,7 @@ export function Home() {
         onDeleteMessage={handleDeleteMessage}
         onReactMessage={handleReactMessage}
         onAction={(action) => {
-          if (action === "deletar") {
-            const id = activeChat.id;
-            void deleteChat({ id }).then(() => {
-              setChatsData((prev) => prev.filter((c) => c.id !== id));
-              closeChat();
-            });
-          }
+          void handleAction(action);
         }}
       />
     );
@@ -359,16 +396,13 @@ export function Home() {
         <ChatList
           ref={listRef}
           chats={chats}
+          filters={filters}
           activeFilter={activeFilter}
           loading={listLoading}
           morphPhase={morphPhase}
           resizeVersion={resizeVersion}
           onFilterChange={setActiveFilter}
           onChatSelect={selectChat}
-          onCreateTicket={(chat) => {
-            setChatsData((prev) => [chat, ...prev.filter((c) => c.id !== chat.id)]);
-            void selectChat(chat.id, chat);
-          }}
         />
 
         <div
