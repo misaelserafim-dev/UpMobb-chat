@@ -24,7 +24,18 @@
   transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.chat-empty:hover .chat-empty__logo {
+.chat-empty__logo--canvas {
+  display: block;
+  /* width/height vêm do JS (canvas mais alto que a imagem) */
+  max-width: min(220px, 55%);
+  transition: none;
+  will-change: auto;
+  aspect-ratio: auto;
+  pointer-events: auto;
+  cursor: default;
+}
+
+.chat-empty:hover .chat-empty__logo:not(.chat-empty__logo--canvas) {
   transition-duration: 0.12s;
 }
 
