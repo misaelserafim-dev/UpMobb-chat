@@ -77,6 +77,13 @@
 .message.is-swiping {
   transition: none;
   user-select: none;
+  z-index: 20;
+  position: relative;
+}
+
+.message.is-deleting {
+  z-index: 20;
+  position: relative;
 }
 
 .message.is-deleting .message__bubble {
