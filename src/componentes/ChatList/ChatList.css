@@ -13,22 +13,29 @@
 }
 
 .chat-list[data-morph="drag"] .chat-item:not(.chat-item--active) {
-  transform: scale(var(--morph-sx, 1), var(--morph-sy, 1));
+  transform: translateZ(0) scale(var(--morph-sx, 1), var(--morph-sy, 1));
   margin-top: var(--morph-m, 4px);
   margin-bottom: var(--morph-m, 4px);
   transform-origin: left center;
-  transition: transform 0.08s linear, margin 0.08s linear;
+  transition: transform 0.05s linear, margin 0.05s linear;
+  backface-visibility: hidden;
 }
 
 .chat-list[data-morph="settle"] .chat-item:not(.chat-item--active) {
-  transform: scale(1, 1);
+  transform: translateZ(0) scale(1, 1);
   margin-top: 4px;
   margin-bottom: 4px;
   transform-origin: left center;
+  /* bounce elástico curto — sem esticar demais */
   transition:
-    transform 0.48s cubic-bezier(0.22, 1.45, 0.36, 1),
-    margin 0.48s cubic-bezier(0.22, 1.45, 0.36, 1);
+    transform 0.48s cubic-bezier(0.22, 1.6, 0.36, 1),
+    margin 0.48s cubic-bezier(0.22, 1.6, 0.36, 1);
   transition-delay: var(--morph-delay, 0ms);
+  backface-visibility: hidden;
+}
+
+.chat-list[data-morph="drag"] {
+  transition: none;
 }
 
 @media (prefers-reduced-motion: reduce) {

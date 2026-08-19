@@ -8,11 +8,15 @@ import {
 import {
   applyListMorphDrag,
   applyListWidth,
+  clampListWidth,
   clearListMorphDrag,
   getListMorphDrag,
+  getListMorphJiggle,
   getSavedListWidth,
   LIST_WIDTH_DEFAULT,
+  readListWidth,
   saveListWidth,
+  springListWidth,
 } from "@/utils/listResize.ts";
 
 export type ListMorphPhase = "idle" | "drag" | "settle";
@@ -27,8 +31,9 @@ export function useListResize({ listRef, enabled = true }: UseListResizeOptions)
   const [resizeVersion, setResizeVersion] = useState(0);
 
   const draggingRef = useRef(false);
-  const dragRef = useRef({ startX: 0, startW: 0 });
+  const dragRef = useRef({ startX: 0, startW: 0, lastDx: 0 });
   const settleTimerRef = useRef(0);
+  const stopSpringRef = useRef<(() => void) | null>(null);
   const reduceMotionRef = useRef(false);
 
   useEffect(() => {
@@ -39,9 +44,15 @@ export function useListResize({ listRef, enabled = true }: UseListResizeOptions)
   useEffect(() => {
     return () => {
       window.clearTimeout(settleTimerRef.current);
+      stopSpringRef.current?.();
       document.body.classList.remove("is-resizing-list");
     };
   }, []);
+
+  function stopSpring() {
+    stopSpringRef.current?.();
+    stopSpringRef.current = null;
+  }
 
   function beginSettle(list: HTMLElement) {
     clearListMorphDrag(list);
@@ -53,7 +64,7 @@ export function useListResize({ listRef, enabled = true }: UseListResizeOptions)
     window.clearTimeout(settleTimerRef.current);
     settleTimerRef.current = window.setTimeout(() => {
       setMorphPhase("idle");
-    }, 560);
+    }, 620);
   }
 
   function finishDrag(currentTarget: HTMLElement, pointerId: number) {
@@ -66,12 +77,56 @@ export function useListResize({ listRef, enabled = true }: UseListResizeOptions)
     }
 
     const list = listRef.current;
-    const current = parseFloat(
-      getComputedStyle(document.documentElement).getPropertyValue("--list-w"),
+    const from = readListWidth();
+    const to = clampListWidth(from);
+    const lastDx = dragRef.current.lastDx;
+    saveListWidth(to);
+
+    if (!list) {
+      applyListWidth(to);
+      setResizeVersion((v) => v + 1);
+      return;
+    }
+
+    if (reduceMotionRef.current) {
+      applyListWidth(to);
+      beginSettle(list);
+      setResizeVersion((v) => v + 1);
+      return;
+    }
+
+    // Sempre treme ao soltar — se não passou do max/min, dá um “kick” na mola
+    const overshoot = Math.abs(from - to);
+    let springFrom = from;
+    let initialVelocity = 0;
+    if (overshoot < 0.5) {
+      springFrom = to;
+      const dir = lastDx === 0 ? 1 : Math.sign(lastDx);
+      const strength = Math.min(16, 5 + Math.abs(lastDx) * 0.1);
+      initialVelocity = dir * strength;
+    }
+
+    setMorphPhase("drag");
+    stopSpring();
+    stopSpringRef.current = springListWidth(
+      springFrom,
+      to,
+      (x, v) => {
+        document.documentElement.style.setProperty("--list-w", `${x}px`);
+        applyListMorphDrag(list, getListMorphJiggle(v));
+      },
+      () => {
+        stopSpringRef.current = null;
+        applyListWidth(to);
+        beginSettle(list);
+        setResizeVersion((v) => v + 1);
+      },
+      {
+        initialVelocity,
+        stiffness: overshoot > 0.5 ? 0.22 : 0.3,
+        damping: overshoot > 0.5 ? 0.68 : 0.58,
+      },
     );
-    saveListWidth(current);
-    if (list) beginSettle(list);
-    setResizeVersion((v) => v + 1);
   }
 
   function onPointerDown(e: ReactPointerEvent<HTMLElement>) {
@@ -80,10 +135,12 @@ export function useListResize({ listRef, enabled = true }: UseListResizeOptions)
     if (!list) return;
 
     e.preventDefault();
+    stopSpring();
     draggingRef.current = true;
     dragRef.current = {
       startX: e.clientX,
       startW: list.getBoundingClientRect().width,
+      lastDx: 0,
     };
 
     window.clearTimeout(settleTimerRef.current);
@@ -99,9 +156,12 @@ export function useListResize({ listRef, enabled = true }: UseListResizeOptions)
     if (!list) return;
 
     const dx = e.clientX - dragRef.current.startX;
-    applyListWidth(dragRef.current.startW + dx);
+    dragRef.current.lastDx = dx;
+    const raw = dragRef.current.startW + dx;
+    // Elástico além do min/max (não trava seco)
+    applyListWidth(raw, { elastic: true });
     if (!reduceMotionRef.current) {
-      applyListMorphDrag(list, getListMorphDrag(dx));
+      applyListMorphDrag(list, getListMorphDrag(dx, raw));
     }
   }
 
@@ -114,16 +174,34 @@ export function useListResize({ listRef, enabled = true }: UseListResizeOptions)
     const list = listRef.current;
     if (!list) return;
 
+    stopSpring();
     const before = list.getBoundingClientRect().width;
-    applyListWidth(LIST_WIDTH_DEFAULT);
-    saveListWidth(LIST_WIDTH_DEFAULT);
+    const target = LIST_WIDTH_DEFAULT;
+    saveListWidth(target);
 
-    if (!reduceMotionRef.current) {
-      applyListMorphDrag(list, getListMorphDrag(LIST_WIDTH_DEFAULT - before));
-      setMorphPhase("drag");
+    if (reduceMotionRef.current) {
+      applyListWidth(target);
+      beginSettle(list);
+      setResizeVersion((v) => v + 1);
+      return;
     }
-    beginSettle(list);
-    setResizeVersion((v) => v + 1);
+
+    setMorphPhase("drag");
+    stopSpringRef.current = springListWidth(
+      before,
+      target,
+      (x, v) => {
+        document.documentElement.style.setProperty("--list-w", `${x}px`);
+        applyListMorphDrag(list, getListMorphJiggle(v));
+      },
+      () => {
+        stopSpringRef.current = null;
+        applyListWidth(target);
+        beginSettle(list);
+        setResizeVersion((v) => v + 1);
+      },
+      { stiffness: 0.24, damping: 0.64 },
+    );
   }
 
   return {
